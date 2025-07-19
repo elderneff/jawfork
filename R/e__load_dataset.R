@@ -53,14 +53,14 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     }else if(tolower(outer_env[[session_name]]$passed_ext)=="xpt"){
       outer_env[[session_name]]$data1 <- as.data.frame(haven::read_xpt(data_file = outer_env[[session_name]]$sas_file_path))
       #outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA,
-          "type" = NA,
-          "label" = NA,
-          "n" = NA,
-          stringsAsFactors = FALSE
-        )  
+      #outer_env[[session_name]]$data1_contents <- data.frame(
+      #    "variable" = colnames(outer_env[[session_name]]$data1),
+      #    "length" = NA,
+      #    "type" = NA,
+      #    "label" = NA,
+      #    "n" = NA,
+      #    stringsAsFactors = FALSE
+      #  )  
   } else {
     outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
 
