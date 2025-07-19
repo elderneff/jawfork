@@ -11,11 +11,11 @@ e__load_dataset <- function(session_name,outer_env=totem) {
   ls_content <- ls(name = .GlobalEnv)
   if ((outer_env[[session_name]]$sas_file_path %in% ls_content) == F) {
     #sas7bdat
-    if(outer_env[[session_name]]$passed_ext=="sas7bdat"){
+    if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){
       outer_env[[session_name]]$data1 <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
       outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
     #sav
-    }else if(outer_env[[session_name]]$passed_ext=="sav"){
+    }else if(tolower(outer_env[[session_name]]$passed_ext)=="sav"){
       outer_env[[session_name]]$data1 <- as.data.frame(sjlabelled::unlabel(haven::read_sav(outer_env[[session_name]]$sas_file_path)),stringsAsFactors = FALSE) 
       outer_env[[session_name]]$data1_contents <- data.frame(
           "variable" = colnames(outer_env[[session_name]]$data1),
@@ -26,7 +26,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           stringsAsFactors = FALSE
         )
     #rds
-    }else if(toupper(outer_env[[session_name]]$passed_ext)=="RDS"){
+    }else if(tolower(outer_env[[session_name]]$passed_ext)=="rds"){
       outer_env[[session_name]]$data1 <- as.data.frame(readRDS(file=outer_env[[session_name]]$sas_file_path),stringsAsFactors = FALSE) 
       outer_env[[session_name]]$data1_contents <- data.frame(
           "variable" = colnames(outer_env[[session_name]]$data1),
@@ -37,7 +37,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           stringsAsFactors = FALSE
         )
     #csv
-    }else if(outer_env[[session_name]]$passed_ext=="csv"){
+    }else if(tolower(outer_env[[session_name]]$passed_ext)=="csv"){
       outer_env[[session_name]]$data1 <- as.data.frame(read.csv(file=outer_env[[session_name]]$sas_file_path)
                                                        , header = TRUE, sep = ",", skip = 0, stringsAsFactors = FALSE)
       outer_env[[session_name]]$data1_contents <- data.frame(
