@@ -26,7 +26,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           stringsAsFactors = FALSE
         )
     #rds
-    }else if(outer_env[[session_name]]$passed_ext=="RDS"){
+    }else if(toupper(outer_env[[session_name]]$passed_ext)=="RDS"){
       outer_env[[session_name]]$data1 <- as.data.frame(readRDS(file=outer_env[[session_name]]$sas_file_path),stringsAsFactors = FALSE) 
       outer_env[[session_name]]$data1_contents <- data.frame(
           "variable" = colnames(outer_env[[session_name]]$data1),
