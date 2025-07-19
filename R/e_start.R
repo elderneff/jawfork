@@ -1199,7 +1199,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
-          utils::browseURL(url="https://github.com/elderneff/jawfork/wiki")
+          utils::browseURL(url="https://wiki.internal.pentara.com/collection/jaw-YNNCF6rIE0/recent")
           return(FALSE)
         },
         data = list(session_name, outer_env)
@@ -1210,11 +1210,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         box = outer_env[[session_name]]$status_bar$box,
         start = T, padding = 3,
         stock_id = "gtk-dialog-question",
-        tool_tip = "Log issues",
+        tool_tip = "Suggest features",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
-          utils::browseURL(url="https://github.com/elderneff/jawfork/issues")
+          utils::browseURL(url="https://wiki.internal.pentara.com/doc/future-features-nm6Ur9fdWZ")
           return(FALSE)
         },
         data = list(session_name, outer_env)
