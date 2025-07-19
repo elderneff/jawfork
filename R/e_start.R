@@ -15,7 +15,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       return(F)
     }
     passed_ext <- z__file_ext(sas_file_path)
-    okay_files <- c("sas7bdat","sav","rds","csv")
+    okay_files <- c("sas7bdat","sav","rds","csv","xpt")
     if ((tolower(passed_ext) %in% okay_files) == F) {
       message(paste0("Only works on files ending in: ",paste0(okay_files, collapse=", ")))
       return(F)
