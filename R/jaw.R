@@ -75,10 +75,11 @@ jaw <- function(settings_dir=NULL) {
   left_rand <- 19
   evil_rand <- 37
   blurry_rand <- 55
-  if (outer_env$settings_list$professionalloading) {
-    RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
-  }
-  else {
+  #if (outer_env$settings_list$professionalloading) {
+  #  RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
+  #}
+  #else {
+  RGtk2::gtkContainerAdd(totem$load_window_prof, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
     if (rand == party_rand) {
       RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "party_loading.gif")))
     } else if (rand == left_rand) {
@@ -90,15 +91,24 @@ jaw <- function(settings_dir=NULL) {
     } else {
       RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "loading.gif")))
     }
-  }
+  #}
   RGtk2::gtkWindowSetDecorated(totem$load_window, F)
 
   totem$hide_load_window <- function(outer_env = totem) {
-    RGtk2::gtkWidgetHide(outer_env$load_window)
+    #RGtk2::gtkWidgetHide(outer_env$load_window)
+    if (outer_env$settings_list$professionalloading) {
+      RGtk2::gtkWidgetHide(outer_env$load_window_prof)
+    } else {
+      RGtk2::gtkWidgetHide(outer_env$load_windowf)
+    }
   }
 
   totem$show_load_window <- function(outer_env = totem) {
-    RGtk2::gtkWidgetShow(outer_env$load_window)
+    if (outer_env$settings_list$professionalloading) {
+      RGtk2::gtkWidgetShow(outer_env$load_window_prof)
+    } else {
+      RGtk2::gtkWidgetShow(outer_env$load_windowf)
+    }
   }
 
   totem$hide_settings_window <- function(outer_env = totem) {
