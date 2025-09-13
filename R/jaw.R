@@ -64,6 +64,8 @@ jaw <- function(settings_dir=NULL) {
   totem$load_window <- RGtk2::gtkWindow(show = F)
   RGtk2::gtkWindowSetModal(totem$load_window, T)
 
+  print(paste0("Loading setting: ", totem$settings_list$professionalloading))
+
   #Define a timeline and time to be referenced and edited by the text area
   timeline <- c()
   time <- 0
