@@ -75,7 +75,7 @@ jaw <- function(settings_dir=NULL) {
   left_rand <- 19
   evil_rand <- 37
   blurry_rand <- 55
-  if (professionalloading) {
+  if (T) {
     RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
   }
   else {
