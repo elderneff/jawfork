@@ -24,7 +24,10 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     ##########################################
                     if(ctrl & single_key %in% c("114")){
                       print("Refresh command received")
-                      refresh(session_name)
+                      #refresh(session_name)
+                      outer_env$show_load_window()
+                      outer_env$u__load_dataset(session_name)
+                      outer_env$hide_load_window()
                     }
                     ##########################################
                     # Store buffer whenever a key is pressed #
