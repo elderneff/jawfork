@@ -1322,7 +1322,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       # totem$loop_function_obj <- F
     }
   )
-  refresh(session_name)
+  #Try not reloading the dataset if there is a syntax error
+  #refresh(session_name)
   RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
   outer_env$hide_load_window()
 } # End of start function
