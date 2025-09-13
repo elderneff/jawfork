@@ -258,6 +258,11 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gtkToggleButtonSetActive(colunique, outer_env$settings_list$columnunique)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, colunique, F, F, padding = 4) 
   
+  #Add button for professional loading
+  profloading <- RGtk2::gtkCheckButtonNewWithLabel("Show professional loading screen rather than Bob", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(profloading, outer_env$settings_list$professionalloading)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, profloading, F, F, padding = 4) 
+  
   
   #Define function to call when maximization button clicked
   RGtk2::gSignalConnect(max, "toggled", function(max) {
@@ -287,6 +292,13 @@ e__create_settings <- function(outer_env = totem) {
     return(T)
   })
   
+  #Define function to call when professional loading button clicked
+  RGtk2::gSignalConnect(profloading, "toggled", function(colunique) {
+    current_state <- RGtk2::gtkToggleButtonGetActive(profloading)
+    outer_env$settings_list$professionalloading <- current_state
+    return(T)
+  })
+  
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, cb) {
     RGtk2::gtkToggleButtonSetActive(cb, T)
@@ -294,6 +306,7 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$ctrlshift <- T
     outer_env$settings_list$columnlabel <- T
     outer_env$settings_list$columnunique <- T
+    outer_env$settings_list$professionalloading <- F
     return(T)
   }, cb)
 
