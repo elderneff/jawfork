@@ -99,7 +99,7 @@ jaw <- function(settings_dir=NULL) {
     if (outer_env$settings_list$professionalloading) {
       RGtk2::gtkWidgetHide(outer_env$load_window_prof)
     } else {
-      RGtk2::gtkWidgetHide(outer_env$load_windowf)
+      RGtk2::gtkWidgetHide(outer_env$load_window)
     }
   }
 
@@ -107,7 +107,7 @@ jaw <- function(settings_dir=NULL) {
     if (outer_env$settings_list$professionalloading) {
       RGtk2::gtkWidgetShow(outer_env$load_window_prof)
     } else {
-      RGtk2::gtkWidgetShow(outer_env$load_windowf)
+      RGtk2::gtkWidgetShow(outer_env$load_window)
     }
   }
 
