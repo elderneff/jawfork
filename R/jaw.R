@@ -79,7 +79,7 @@ jaw <- function(settings_dir=NULL) {
   #  RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
   #}
   #else {
-  RGtk2::gtkContainerAdd(totem$load_window_prof, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
+  #RGtk2::gtkContainerAdd(totem$load_window_prof, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "professional_loading.gif")))
     if (rand == party_rand) {
       RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "party_loading.gif")))
     } else if (rand == left_rand) {
