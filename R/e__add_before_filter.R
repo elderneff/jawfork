@@ -30,9 +30,9 @@ e__add_before_filter_full_data_bucket <- function(session_name, current_row, exc
   }
 
   if (exclude) {
-    cmd <- paste0("df <- filter(df, (", paste0(my_title, collapse = " & "), ")==F)")
+    cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
-    cmd <- paste0("df <- filter(df, ", paste0(my_title, collapse = " & "), ")")
+    cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
   outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
@@ -80,9 +80,9 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
   }
 
   if (exclude) {
-    cmd <- paste0("df <- filter(df, (", paste0(my_title, collapse = " & "), ")==F)")
+    cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
-    cmd <- paste0("df <- filter(df, ", paste0(my_title, collapse = " & "), ")")
+    cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
   if (grepl('as.Date', cmd)) {
@@ -134,9 +134,9 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
   }
 
   if (exclude) {
-    cmd <- paste0("df <- filter(df, (", paste0(my_title, collapse = " & "), ")==F)")
+    cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
-    cmd <- paste0("df <- filter(df, ", paste0(my_title, collapse = " & "), ")")
+    cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
   if (grepl('as.Date', cmd)) {
@@ -183,9 +183,9 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 
 
   if (exclude) {
-    cmd <- paste0("df <- filter(df, (", paste0(my_title, collapse = " & "), ")==F)")
+    cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
-    cmd <- paste0("df <- filter(df, ", paste0(my_title, collapse = " & "), ")")
+    cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
 
