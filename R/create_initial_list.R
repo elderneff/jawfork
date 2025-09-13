@@ -197,6 +197,10 @@ check_settings <- function(settings) {
   if (("columnunique" %in% names(settings)) == F) {
     settings$columnunique <- T
   }
+  #Default professional loading to F if there is no previous setting
+  if (("professionalloading" %in% names(settings)) == F) {
+    settings$professionalloading <- F
+  }
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)
 
