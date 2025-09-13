@@ -69,17 +69,20 @@ jaw <- function(settings_dir=NULL) {
   time <- 0
   
   #Pick a random loading gif for this session
-  rand <- floor(runif(1, 1, 54))
+  rand <- floor(runif(1, 1, 72))
   #Set rare Bob numbers for use elsewhere
   party_rand <- 1
   left_rand <- 19
   evil_rand <- 37
+  blurry_rand <- 55
   if (rand == party_rand) {
     RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "party_loading.gif")))
   } else if (rand == left_rand) {
     RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "left_loading.gif")))
   } else if (rand == evil_rand) {
     RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "evil_loading.gif")))
+  } else if (rand == blurry_rand) {
+    RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "blurry_loading.gif")))
   } else {
     RGtk2::gtkContainerAdd(totem$load_window, RGtk2::gtkImageNewFromFile(file.path(system.file("images", package = "jaw"), "loading.gif")))
   }
