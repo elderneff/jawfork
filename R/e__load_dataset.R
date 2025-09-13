@@ -8,11 +8,16 @@
 #' @return TODO
 
 e__load_dataset <- function(session_name,outer_env=totem) {
+  print("Line 1")
   ls_content <- ls(name = .GlobalEnv)
+  print("Line 2")
   if ((outer_env[[session_name]]$sas_file_path %in% ls_content) == F) {
     #sas7bdat
+    print("Line 3")
     if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){
+      print("Line 4")
       outer_env[[session_name]]$data1 <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
+      print("Line 5")
       outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
     }
     #sav
