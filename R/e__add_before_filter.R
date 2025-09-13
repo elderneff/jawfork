@@ -173,6 +173,7 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
       clean_x <- x
     }
     clean_x <- gsub("\\\\", "\\\\\\\\", clean_x)
+    clean_x <- gsub("o", "~", clean_x)
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } else if (is.numeric(temp_df[[x]])) {
