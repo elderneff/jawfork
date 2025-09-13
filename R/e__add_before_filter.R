@@ -21,11 +21,8 @@ e__add_before_filter_full_data_bucket <- function(session_name, current_row, exc
     } else {
       clean_x <- x
     }
-    clean_x <- gsub("\\\\", "\\\\\\\\", clean_x)
     my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
-
-
-
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])   
 
     i <- i + 1
   }
@@ -65,7 +62,6 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     } else {
       clean_x <- x
     }
-    clean_x <- gsub("\\\\", "\\\\\\\\", clean_x)
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", paste0(sort(unique(filtered_data[, x, drop = T])), collapse = "\", \""), "\")")
     } else if (is.numeric(temp_df[[x]])) {
@@ -75,9 +71,9 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     } else if (lubridate::is.timepoint(temp_df[[x]])) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]))), collapse = "\", \""), "\")")
     }
-
-
-
+    
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
+    
     i <- i + 1
   }
 
@@ -119,7 +115,6 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     } else {
       clean_x <- x
     }
-    clean_x <- gsub("\\\\", "\\\\\\\\", clean_x)
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } else if (is.numeric(temp_df[[x]])) {
@@ -130,8 +125,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
     }
 
-
-
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
 
     i <- i + 1
   }
@@ -172,8 +166,6 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     } else {
       clean_x <- x
     }
-    clean_x <- gsub("\\\\", "\\\\\\\\", clean_x)
-    clean_x <- gsub("o", "~", clean_x)
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } else if (is.numeric(temp_df[[x]])) {
@@ -183,6 +175,9 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     } else if (lubridate::is.timepoint(temp_df[[x]])) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
     }
+    
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
+    
     i <- i + 1
   }
 
