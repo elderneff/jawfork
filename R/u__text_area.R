@@ -18,7 +18,14 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     ctrl <- event[["state"]] == "4"
                     if((key_state=="shift+ctrl" & outer_env$settings_list$ctrlshift) | (ctrl & single_key %in% c("65293", "65458"))){
                       shift_function(session)
-                    }                    
+                    }
+                    ##########################################
+                    # Refresh dataset for select key strokes #
+                    ##########################################
+                    if(ctrl & single_key %in% c("114")){
+                      print("Refresh command received")
+                      #refresh(session)
+                    }
                     ##########################################
                     # Store buffer whenever a key is pressed #
                     ##########################################
@@ -49,7 +56,7 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     #Add buffer to timeline if not command key
                     if (!(single_key %in% c("65507", "65505", "65513", "16777215", "65506", "65508", "65514", "65361", "65362", "65363", "65364", "65360", "65367", "65289"))
                          & !(single_key == "122" & ctrl) & !(single_key == "121" & ctrl)) {
-                      #print(paste0("Detected signal: ", str))
+                      print(paste0("Detected signal: ", str))
                       timeline[time] <<- str
                       time <<- time + 1
                     }
