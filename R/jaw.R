@@ -96,19 +96,19 @@ jaw <- function(settings_dir=NULL) {
 
   totem$hide_load_window <- function(outer_env = totem) {
     #RGtk2::gtkWidgetHide(outer_env$load_window)
-    if (outer_env$settings_list$professionalloading) {
+    #if (outer_env$settings_list$professionalloading) {
       RGtk2::gtkWidgetHide(outer_env$load_window_prof)
-    } else {
-      RGtk2::gtkWidgetHide(outer_env$load_window)
-    }
+    #} else {
+    #  RGtk2::gtkWidgetHide(outer_env$load_window)
+    #}
   }
 
   totem$show_load_window <- function(outer_env = totem) {
-    if (outer_env$settings_list$professionalloading) {
+    #if (outer_env$settings_list$professionalloading) {
       RGtk2::gtkWidgetShow(outer_env$load_window_prof)
-    } else {
-      RGtk2::gtkWidgetShow(outer_env$load_window)
-    }
+    #} else {
+    #  RGtk2::gtkWidgetShow(outer_env$load_window)
+    #}
   }
 
   totem$hide_settings_window <- function(outer_env = totem) {
