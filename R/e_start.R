@@ -286,8 +286,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             print(fcount_df[,resultcol])
             print(apply(fcount_df[,resultcol], 2, nchar))
             #Get nchar of column before n
-            fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
-            #fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
+            #fcount_df$nchar <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
+            fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
           } else {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
@@ -309,8 +309,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             print(fcount_df[,resultcol])
             print(apply(fcount_df[,resultcol], 2, nchar))
             #Get nchar of column before n
-            fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
-            #fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
+            #fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
+            fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
           }
 
 
