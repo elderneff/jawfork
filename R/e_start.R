@@ -264,6 +264,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         try({
           hist_bars <- paste0(rep("|", 100), collapse = "")
 
+          print(session_name)
+          print(temp_df)
+          print(cvar)
+          print(cvar2)
+          print(outer_env)
+
           if (length(cvar2) > 0) {
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
@@ -276,7 +282,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                   substr(hist_bars, 1, x)
                 }),
                 freq = sprintf("%.3f", freq),
-                nchar = nchar(n)
+                nchar = nchar(cvar2)
               )
 
 
@@ -292,7 +298,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                   substr(hist_bars, 1, x)
                 }),
                 freq = sprintf("%.3f", freq),
-                nchar = nchar(n)
+                nchar = nchar(cvar2)
               )
 
 
