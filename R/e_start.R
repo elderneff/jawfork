@@ -283,6 +283,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
             print(resultcol)
+            print(fcount_df[,resultcol])
             #Get nchar of column before n
             fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
             #fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
@@ -304,6 +305,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
             print(resultcol)
+            print(fcount_df[,resultcol])
             #Get nchar of column before n
             fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
             #fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
