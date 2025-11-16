@@ -268,8 +268,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           if (length(cvar2) > 0) {
             print("Case 1")
             print(cvar2)
-            
+
+            print("Line 1")
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
+            print("Line 2")
             fcount_df <- temp_df %>%
               #group_by(syms(cvar2)) %>%
               group_by(!!!syms(cvar2)) %>%
@@ -283,6 +285,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                 freq = sprintf("%.3f", freq)
               )
 
+            print("Line 3")
             colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
 
             #Find column before n
@@ -315,6 +318,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
           }
           
+          print("Line 4")
           outer_env[[session_name]]$data_view_list$slot2_list$value_table$update(fcount_df)
           RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$slot2_box)
         })
