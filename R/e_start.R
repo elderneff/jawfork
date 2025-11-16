@@ -281,7 +281,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
 
             #Find column before n
-            resultcol <- grep("^n$", colnames(fcount_df))
+            resultcol <- grep("^n$", colnames(fcount_df)) - 1
             print(resultcol)
             #Get nchar of column before n
             fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
@@ -302,7 +302,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             colnames(fcount_df) <- c(cvar, "n", "freq", "lines")
             
             #Find column before n
-            resultcol <- grep("^n$", colnames(fcount_df))
+            resultcol <- grep("^n$", colnames(fcount_df)) - 1
             print(resultcol)
             #Get nchar of column before n
             fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
