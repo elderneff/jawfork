@@ -282,8 +282,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df))
+            print(resultcol)
             #Get nchar of column before n
-            fcount_df$nchar <- nchar(fcount_df[,resultcol])
+            fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
           } else {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
@@ -301,8 +302,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df))
+            print(resultcol)
             #Get nchar of column before n
-            fcount_df$nchar <- nchar(fcount_df[,resultcol])
+            fcount_df$nchar <- nchar(as.character(fcount_df[,resultcol]))
           }
 
 
