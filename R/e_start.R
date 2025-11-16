@@ -256,6 +256,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       #----------------------------------------
 
       load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {
+        print(cvar2)
+        print(!!!syms(cvar2))
+        
         if (nrow(temp_df) > 10000) {
           outer_env$show_load_window()
           Sys.sleep(0.05)
