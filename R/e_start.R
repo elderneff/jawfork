@@ -264,7 +264,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         try({
           hist_bars <- paste0(rep("|", 100), collapse = "")
 
+          #If unique_by is populated
           if (length(cvar2) > 0) {
+            print("Case 1")
+            print(cvar2)
+            
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar2)) %>%
@@ -284,7 +288,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
             #Get nchar of column before n
             fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
-          } else {
+          } 
+          #If unique_by is not populated
+          else {
+            print("Case 2")
+            print(cvar2)
+            
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
               summarise(n = n()) %>%
