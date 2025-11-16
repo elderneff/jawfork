@@ -268,11 +268,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           if (length(cvar2) > 0) {
             print("Case 1")
             print(cvar2)
-            print(!!!syms(cvar2))
             
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
-              group_by(!!!syms(cvar2)) %>%
+              group_by(cvar2) %>%
+              #group_by(!!!syms(cvar2)) %>%
               summarise(n = n()) %>%
               ungroup() %>%
               mutate(
