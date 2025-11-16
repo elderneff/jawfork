@@ -275,11 +275,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                 lines = sapply(ceiling(freq * 100), function(x) {
                   substr(hist_bars, 1, x)
                 }),
-                freq = sprintf("%.3f", freq)
+                freq = sprintf("%.3f", freq),
+                nchar = nchar(n)
               )
 
 
-            colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
+            colnames(fcount_df) <- c(cvar2, "n", "freq", "lines", "nchar")
           } else {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
@@ -290,11 +291,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                 lines = sapply(ceiling(freq * 100), function(x) {
                   substr(hist_bars, 1, x)
                 }),
-                freq = sprintf("%.3f", freq)
+                freq = sprintf("%.3f", freq),
+                nchar = nchar(n)
               )
 
 
-            colnames(fcount_df) <- c(cvar, "n", "freq", "lines")
+            colnames(fcount_df) <- c(cvar, "n", "freq", "lines", "nchar")
           }
 
 
