@@ -271,8 +271,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
-              group_by(syms(cvar2)) %>%
-              #group_by(!!!syms(cvar2)) %>%
+              #group_by(syms(cvar2)) %>%
+              group_by(!!!syms(cvar2)) %>%
               summarise(n = n()) %>%
               ungroup() %>%
               mutate(
