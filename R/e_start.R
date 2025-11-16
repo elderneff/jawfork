@@ -264,25 +264,19 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         try({
           hist_bars <- paste0(rep("|", 100), collapse = "")
 
-          print(session_name)
-          print(temp_df)
-          print(cvar)
-          print(cvar2)
-          print(outer_env)
-
           if (length(cvar2) > 0) {
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar2)) %>%
               summarise(n = n()) %>%
+              mutate(nchar = nchar(!!!syms(cvar2)) %>%
               ungroup() %>%
               mutate(
                 freq = round(n / sum(n), 3),
                 lines = sapply(ceiling(freq * 100), function(x) {
                   substr(hist_bars, 1, x)
                 }),
-                freq = sprintf("%.3f", freq),
-                nchar = nchar(cvar2)
+                freq = sprintf("%.3f", freq)
               )
 
 
@@ -291,14 +285,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
               summarise(n = n()) %>%
+              mutate(nchar = nchar(!!!syms(cvar2)) %>%
               ungroup() %>%
               mutate(
                 freq = round(n / sum(n), 3),
                 lines = sapply(ceiling(freq * 100), function(x) {
                   substr(hist_bars, 1, x)
                 }),
-                freq = sprintf("%.3f", freq),
-                nchar = nchar(cvar2)
+                freq = sprintf("%.3f", freq)
               )
 
 
