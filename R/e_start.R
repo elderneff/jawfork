@@ -282,11 +282,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
-            print(resultcol)
-            print(fcount_df[,resultcol])
-            print(apply(fcount_df[,resultcol], 2, nchar))
             #Get nchar of column before n
-            #fcount_df$nchar <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
             fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
           } else {
             fcount_df <- temp_df %>%
@@ -305,15 +301,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
-            print(resultcol)
-            print(fcount_df[,resultcol])
-            print(apply(fcount_df[,resultcol], 2, nchar))
             #Get nchar of column before n
-            #fcount_df <- mutate(fcount_df, nchar = nchar(as.character(fcount_df[,resultcol])))
             fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
           }
-
-
+          
           outer_env[[session_name]]$data_view_list$slot2_list$value_table$update(fcount_df)
           RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$slot2_box)
         })
@@ -1319,7 +1310,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         #Update version number here with substantial updates
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.0.5.3", " | ", as.character(Sys.time())
+          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.0.5.4", " | ", as.character(Sys.time())
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
 
