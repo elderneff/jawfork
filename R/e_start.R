@@ -269,7 +269,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar2)) %>%
               summarise(n = n()) %>%
-              mutate(nchar = nchar(!!!syms(cvar2)) %>%
+              #mutate(nchar = nchar(!!!syms(cvar2)) %>%
               ungroup() %>%
               mutate(
                 freq = round(n / sum(n), 3),
@@ -280,12 +280,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               )
 
 
-            colnames(fcount_df) <- c(cvar2, "n", "freq", "lines", "nchar")
+            colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
+            #colnames(fcount_df) <- c(cvar2, "n", "freq", "lines", "nchar")
           } else {
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
               summarise(n = n()) %>%
-              mutate(nchar = nchar(!!!syms(cvar2)) %>%
+              #mutate(nchar = nchar(!!!syms(cvar2)) %>%
               ungroup() %>%
               mutate(
                 freq = round(n / sum(n), 3),
@@ -296,7 +297,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               )
 
 
-            colnames(fcount_df) <- c(cvar, "n", "freq", "lines", "nchar")
+            colnames(fcount_df) <- c(cvar, "n", "freq", "lines")
+            #colnames(fcount_df) <- c(cvar, "n", "freq", "lines", "nchar")
           }
 
 
