@@ -255,10 +255,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       #----------------------------------------
 
-      load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {
-        print(cvar2)
-        print(!!!syms(cvar2))
-        
+      load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {        
         if (nrow(temp_df) > 10000) {
           outer_env$show_load_window()
           Sys.sleep(0.05)
@@ -283,8 +280,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               )
 
             colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
-            fcount_df <- fcount_df %>%
-              mutate(nchar = nchar(cvar2))
+            print(fcount_df$cvar)
+            print(fcount_df[,1])
+            #fcount_df <- fcount_df %>% mutate(nchar = nchar(cvar2))
             #colnames(fcount_df) <- c(cvar2, "n", "freq", "lines", "nchar")
           } else {
             fcount_df <- temp_df %>%
@@ -301,8 +299,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               )
 
             colnames(fcount_df) <- c(cvar, "n", "freq", "lines")
-            fcount_df <- fcount_df %>%
-              mutate(nchar = nchar(cvar2))
+            print(fcount_df$cvar)
+            print(fcount_df[,1])
+            #fcount_df <- fcount_df %>% mutate(nchar = nchar(cvar2))
             #colnames(fcount_df) <- c(cvar, "n", "freq", "lines", "nchar")
           }
 
