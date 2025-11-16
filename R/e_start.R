@@ -268,6 +268,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           if (length(cvar2) > 0) {
             print("Case 1")
             print(cvar2)
+            print(!!!syms(cvar2))
             
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
             fcount_df <- temp_df %>%
