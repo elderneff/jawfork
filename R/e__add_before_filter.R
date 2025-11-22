@@ -22,7 +22,9 @@ e__add_before_filter_full_data_bucket <- function(session_name, current_row, exc
       clean_x <- x
     }
     my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
-    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])   
+    #Clean filter
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])
+    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
 
     i <- i + 1
   }
@@ -82,8 +84,10 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }
-    
-    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
+
+    #Clean filter
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])   
+    my_title[[i]] <- gsub(" +", " ", my_title[[i]]) 
     
     i <- i + 1
   }
@@ -143,6 +147,10 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }
 
+    #Clean filter
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]]) 
+    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
+
     i <- i + 1
   }
 
@@ -198,8 +206,10 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }
-    
+
+    #Clean filter
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
+    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
     
     i <- i + 1
   }
