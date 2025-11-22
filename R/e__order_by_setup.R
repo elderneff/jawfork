@@ -111,8 +111,8 @@ e__order_by_setup <- function(header_table, row_1,obj_env=inner_env) {
       RGtk2::gtkEntrySetText(order_by_entry, paste0(clean_column))
     } else {
       x <- trimws(strsplit(x, ",", T)[[1]])
-      if (column %in% x) {
-        x[which(x %in% column)] <- desc_column
+      if (clean_column %in% x) {
+        x[which(x %in% clean_column)] <- desc_column
         RGtk2::gtkEntrySetText(order_by_entry, paste0(x, collapse = ", "))
       } else if (desc_column %in% x) {
         RGtk2::gtkEntrySetText(order_by_entry, paste0(setdiff(x, desc_column), collapse = ", "))
