@@ -126,14 +126,25 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     } else {
       clean_x <- x
     }
+    #Character - put quotes around values
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
-    } else if (is.numeric(temp_df[[x]])) {
+    } 
+    #Numeric - no quotes around values
+    else if (is.numeric(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(", current_row$row[, x, drop = T], ")")
-    } else if (lubridate::is.Date(temp_df[[x]])) {
+    } 
+    #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
+    else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
-    } else if (lubridate::is.timepoint(temp_df[[x]])) {
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+    }  
+    #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
+    else if (lubridate::is.timepoint(temp_df[[x]])) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }
 
     i <- i + 1
@@ -145,11 +156,11 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  if (grepl('as.Date', cmd)) {
-    outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
-  } else {
+  #if (grepl('as.Date', cmd)) {
+  #  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
+  #} else {
     outer_env$u__append_before_code(session_name, cmd)
-  }
+  #}
 }
 
 #' e__add_before_filter
