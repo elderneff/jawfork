@@ -141,11 +141,17 @@ e__filter_setup <- function(header_table, row_1,obj_env=inner_env) {
 
     df <- obj_env$df_obj$full_data()
 
+    #Sandwich column name with backticks if it has special characters
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", x)) { 
+      clean_column <- paste0("`", column, "`") 
+    } else {
+      clean_column <- column
+    }
 
     if (is.numeric(df[[column]])) {
-      new_filter_string <- paste0("grepl(\"", value, "\",as.character(", column, "))")
+      new_filter_string <- paste0("grepl(\"", value, "\",as.character(", clean_column, "))")
     } else {
-      new_filter_string <- paste0("grepl(\"", value, "\", ", column, ")")
+      new_filter_string <- paste0("grepl(\"", value, "\", ", clean_column, ")")
     }
 
     if (x == "") {
