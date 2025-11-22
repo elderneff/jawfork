@@ -98,10 +98,17 @@ e__order_by_setup <- function(header_table, row_1,obj_env=inner_env) {
 
 
   add <- function(column,obj_env=inner_env) {
-    desc_column <- paste0("desc(", column, ")")
+    #Sandwich column name with backticks if it has special characters
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", column)) { 
+      clean_column <- paste0("`", column, "`") 
+    } else {
+      clean_column <- column
+    }
+    
+    desc_column <- paste0("desc(", clean_column, ")")
     x <- RGtk2::gtkEntryGetText(order_by_entry)
     if (x == "") {
-      RGtk2::gtkEntrySetText(order_by_entry, paste0(column))
+      RGtk2::gtkEntrySetText(order_by_entry, paste0(clean_column))
     } else {
       x <- trimws(strsplit(x, ",", T)[[1]])
       if (column %in% x) {
@@ -110,7 +117,7 @@ e__order_by_setup <- function(header_table, row_1,obj_env=inner_env) {
       } else if (desc_column %in% x) {
         RGtk2::gtkEntrySetText(order_by_entry, paste0(setdiff(x, desc_column), collapse = ", "))
       } else {
-        RGtk2::gtkEntrySetText(order_by_entry, paste0(c(x, column), collapse = ", "))
+        RGtk2::gtkEntrySetText(order_by_entry, paste0(c(x, clean_column), collapse = ", "))
       }
     }
 
