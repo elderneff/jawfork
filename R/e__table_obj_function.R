@@ -12,13 +12,13 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
 
 
   if (nrow(df) == 0) {
-    df2 <- matrix("#ffffff", ncol = 2, nrow = nrow(df))
+    df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
     colnames(df2) <- c("f___1", "f___2")
     return(df2)
   }
 
 
-  df2 <- matrix("#ffffff", ncol = 2, nrow = nrow(df))
+  df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
 
 
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
