@@ -108,17 +108,24 @@ e__filter_setup <- function(header_table, row_1,obj_env=inner_env) {
 
     df <- obj_env$df_obj$full_data()
 
+    #Sandwich column name with backticks if it has special characters
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", x)) { 
+      clean_column <- paste0("`", column, "`") 
+    } else {
+      clean_column <- column
+    }
+    
     if (is.numeric(df[[column]])) {
       if (x == "") {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(column, " %in% c(", value, ")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0(clean_column, " %in% c(", value, ")"))
       } else {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", column, " %in% c(", value, ")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", clean_column, " %in% c(", value, ")"))
       }
     } else {
       if (x == "") {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(column, " %in% c(\"", value, "\")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0(clean_column, " %in% c(\"", value, "\")"))
       } else {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", column, " %in% c(\"", value, "\")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", clean_column, " %in% c(\"", value, "\")"))
       }
     }
 
