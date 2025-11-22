@@ -141,7 +141,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }  
     #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (lubridate::is.timepoint(temp_df[[x]])) {
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -175,7 +175,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
 e__add_before_filter <- function(session_name, current_row, exclude = F, outer_env = totem) {
   temp_df <- outer_env[[session_name]]$data2
 
-  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
+  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
   my_title <- rep(NA, length(cross_tab_names))
   i <- 1
@@ -186,14 +186,25 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     } else {
       clean_x <- x
     }
+    #Character - put quotes around values
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
-    } else if (is.numeric(temp_df[[x]])) {
+    } 
+    #Numeric - no quotes around values
+    else if (is.numeric(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(", current_row$row[, x, drop = T], ")")
-    } else if (lubridate::is.Date(temp_df[[x]])) {
+    }  
+    #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
+    else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
-    } else if (lubridate::is.timepoint(temp_df[[x]])) {
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+    } 
+    #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }
     
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
@@ -209,11 +220,11 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
   }
 
 
-  if (grepl('as.Date', cmd)) {
-    outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
-  } else {
+  #if (grepl('as.Date', cmd)) {
+  #  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
+  #} else {
     outer_env$u__append_before_code(session_name, cmd)
-  }
+  #}
 }
 
 
