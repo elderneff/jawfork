@@ -94,11 +94,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  #if (grepl('as.Date', cmd)) {
-  #  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
-  #} else {
-    outer_env$u__append_before_code(session_name, cmd)
-  #}
+  outer_env$u__append_before_code(session_name, cmd)
 }
 
 
@@ -156,11 +152,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  #if (grepl('as.Date', cmd)) {
-  #  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
-  #} else {
-    outer_env$u__append_before_code(session_name, cmd)
-  #}
+  outer_env$u__append_before_code(session_name, cmd)
 }
 
 #' e__add_before_filter
@@ -219,12 +211,7 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-
-  #if (grepl('as.Date', cmd)) {
-  #  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
-  #} else {
-    outer_env$u__append_before_code(session_name, cmd)
-  #}
+  outer_env$u__append_before_code(session_name, cmd)
 }
 
 
@@ -257,7 +244,7 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
   temp_df <- temp_df[, -ncol(temp_df)]
   temp_df2 <- temp_df2[, -ncol(temp_df2)]
 
-  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
+  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
   my_filter <- rep(T, nrow(temp_df))
   my_title <- ""
