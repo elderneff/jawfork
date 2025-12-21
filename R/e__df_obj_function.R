@@ -178,15 +178,15 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     print("Checkpoint 1")
     #Add header options
     choices_header <- c("Column names", "Column labels")
-    choice_buttons_header <- NULL
+    check_buttons_header <- NULL
     vbox_header <- gtkVBox(F, 0)
     for (choice in choices_header) {
       print("Checkpoint 1a")
-      button <- gtkChoiceButton(choice_buttons_header, choice)
+      button <- gtkCheckButton(choice_buttons_header, choice)
       print("Checkpoint 1b")
       vbox_header$add(button)
       print("Checkpoint 1c")
-      choice_buttons_header <- c(choice_buttons_header, button)
+      check_buttons_header <- c(check_buttons_header, button)
     }
     
     #Make a frame for NA
@@ -210,7 +210,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   
     print("Checkpoint 3")
     #Find selection
-    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, choice_buttons_header)
+    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
     selections <- logical(length(radio_buttons_all))
     for (i in 1:length(radio_buttons_all)) {
       if (gtkToggleButtonGetActive(radio_buttons_all[[i]])) {
