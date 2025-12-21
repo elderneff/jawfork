@@ -168,7 +168,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     #Make a frame for the buttons
     frame <- gtkFrame("Setting for NA numeric values")
     frame$add(vbox_NA)
-    dialog[["vbox_NA"]]$add(frame)
+    dialog[["vbox"]]$add(frame)
     #Require response before interacting with table
     response <- dialog$run()
   
