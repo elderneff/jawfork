@@ -157,22 +157,22 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   
     #Add NA options
     choices <- c("Blank", "NA")
-    radio_buttons <- NULL
+    radio_buttons_NA <- NULL
     vbox_NA <- gtkVBox(F, 0)
     for (choice in choices) {
       button <- gtkRadioButton(radio_buttons, choice)
       vbox_NA$add(button)
-      radio_buttons <- c(radio_buttons, button)
+      radio_buttons_NA <- c(radio_buttons_NA, button)
     }
     
     #Add row index options
     choices <- c("Row index", "No row index")
-    radio_buttons <- NULL
+    radio_buttons_index <- NULL
     vbox_index <- gtkVBox(F, 0)
     for (choice in choices) {
       button <- gtkRadioButton(radio_buttons, choice)
       vbox_index$add(button)
-      radio_buttons <- c(radio_buttons, button)
+      radio_buttons_index <- c(radio_buttons_index, button)
     }
     
     #Make a frame for NA
@@ -189,8 +189,9 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     response <- dialog$run()
   
     #Find selection
-    for (i in 1:length(radio_buttons)) {
-      if (gtkToggleButtonGetActive(radio_buttons[[i]])) {
+    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index)
+    for (i in 1:length(radio_buttons_all)) {
+      if (gtkToggleButtonGetActive(radio_buttons_all[[i]])) {
         selectn <- i
       }
     }
