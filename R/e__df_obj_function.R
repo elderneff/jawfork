@@ -175,6 +175,16 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       radio_buttons_index <- c(radio_buttons_index, button)
     }
     
+    #Add header options
+    choices_header <- c("Column names", "Column labels")
+    toggle_buttons_header <- NULL
+    vbox_header <- gtkVBox(F, 0)
+    for (choice in choices_header) {
+      button <- gtkToggleButton(toggle_buttons_header, choice)
+      vbox_header$add(button)
+      toggle_buttons_header <- c(toggle_buttons_header, button)
+    }
+    
     #Make a frame for NA
     frame <- gtkFrame("Setting for NA numeric values")
     frame$add(vbox_NA)
@@ -185,11 +195,16 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     frame$add(vbox_index)
     dialog[["vbox"]]$add(frame)
     
+    #Make a frame for header
+    frame <- gtkFrame("Settings for header rows")
+    frame$add(vbox_headers)
+    dialog[["vbox"]]$add(frame)
+    
     #Require response before interacting with table
     response <- dialog$run()
   
     #Find selection
-    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index)
+    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, toggle_buttons_header)
     selections <- logical(length(radio_buttons_all))
     for (i in 1:length(radio_buttons_all)) {
       if (gtkToggleButtonGetActive(radio_buttons_all[[i]])) {
