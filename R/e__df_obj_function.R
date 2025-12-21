@@ -179,13 +179,12 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     frame <- gtkFrame("Setting for NA numeric values")
     frame$add(vbox_NA)
     dialog[["vbox"]]$add(frame)
-    #Require response before interacting with table
-    response <- dialog$run()
     
     #Make a frame for row index
     frame <- gtkFrame("Setting for row index")
     frame$add(vbox_index)
     dialog[["vbox"]]$add(frame)
+    
     #Require response before interacting with table
     response <- dialog$run()
   
