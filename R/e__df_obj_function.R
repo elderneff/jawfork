@@ -142,6 +142,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         temp_df<-  datapasta::vector_construct(obj_env$df_obj_list$full_df[, pass_columns, drop = T])
       }
     }
+    attr(temp_df$r__, "label") <- "Row Index"
 
     #######################################
     # Generate dialog to get user options #
