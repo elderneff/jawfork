@@ -207,7 +207,6 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     
     #Require response before interacting with table
     response <- dialog$run()
-    print(response)
   
     #Find selections
     radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
@@ -238,11 +237,25 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     }
     if (selections[4]) {
       temp_df <- temp_df[, !(names(temp_df) %in% "r__")]
+    }  
+    append_data <- F
+    append_labels <- F
+    if (selections[5]) {
+      append_data <- T
+      append_labels <- T
+    }
+    if (selections[6]) {
+      append_data <- T
     }
     user_names <- T
     #Only write file if user selected "OK"
-    if (response == -5) {
-      write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = user_names)
+    if (response == GtkResponseType["ok"]) {
+      #Write column names
+      write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F)
+      #Write column labels
+      write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_labels)
+      #Write data
+      write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_data)
     }
     shell.exec(temp)
   }
