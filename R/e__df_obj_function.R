@@ -182,7 +182,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     vbox_header <- gtkVBox(F, 0)
     for (choice in choices_header) {
       print("Checkpoint 1a")
-      button <- gtkCheckButton(choice_buttons_header, choice)
+      button <- gtkCheckButton(check_buttons_header, choice)
       print("Checkpoint 1b")
       vbox_header$add(button)
       print("Checkpoint 1c")
