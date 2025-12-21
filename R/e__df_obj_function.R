@@ -235,7 +235,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     else if (selections[2]) {
       user_na <- "NA"
     }
-    print(colnames(temp_df)
+    print(colnames(temp_df))
     user_names <- T
     write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = user_names)
     shell.exec(temp)
