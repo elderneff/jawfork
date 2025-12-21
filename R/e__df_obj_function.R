@@ -155,8 +155,8 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       buttons = "ok-cancel", 
       "Select options for the file")
   
-    #Add NA option
-    choices <- c("Missing", "NA")
+    #Add NA options
+    choices <- c("Blank", "NA")
     radio_buttons <- NULL
     vbox_NA <- gtkVBox(F, 0)
     for (choice in choices) {
@@ -165,9 +165,26 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       radio_buttons <- c(radio_buttons, button)
     }
     
-    #Make a frame for the buttons
+    #Add row index options
+    choices <- c("Row index", "No row index")
+    radio_buttons <- NULL
+    vbox_index <- gtkVBox(F, 0)
+    for (choice in choices) {
+      button <- gtkRadioButton(radio_buttons, choice)
+      vbox_index$add(button)
+      radio_buttons <- c(radio_buttons, button)
+    }
+    
+    #Make a frame for NA
     frame <- gtkFrame("Setting for NA numeric values")
     frame$add(vbox_NA)
+    dialog[["vbox"]]$add(frame)
+    #Require response before interacting with table
+    response <- dialog$run()
+    
+    #Make a frame for row index
+    frame <- gtkFrame("Setting for row index")
+    frame$add(vbox_index)
     dialog[["vbox"]]$add(frame)
     #Require response before interacting with table
     response <- dialog$run()
