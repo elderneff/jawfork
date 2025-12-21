@@ -203,7 +203,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     print("Checkpoint 2")
     #Make a frame for header
     frame <- gtkFrame("Settings for header rows")
-    frame$add(vbox_headers)
+    frame$add(vbox_header)
     dialog[["vbox"]]$add(frame)
     
     #Require response before interacting with table
