@@ -237,11 +237,13 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       user_na <- "NA"
     }
     if (selections[4]) {
-      temp_df <- temp_df[, !(names(df) %in% "r__")]
+      temp_df <- temp_df[, !(names(temp_df) %in% "r__")]
     }
-    print(colnames(temp_df))
     user_names <- T
-    write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = user_names)
+    #Only write file if user selected "OK"
+    if (response == -5) {
+      write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = user_names)
+    }
     shell.exec(temp)
   }
 
