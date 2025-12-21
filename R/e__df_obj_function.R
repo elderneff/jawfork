@@ -160,7 +160,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     radio_buttons_NA <- NULL
     vbox_NA <- gtkVBox(F, 0)
     for (choice in choices) {
-      button <- gtkRadioButton(radio_buttons, choice)
+      button <- gtkRadioButton(radio_buttons_NA, choice)
       vbox_NA$add(button)
       radio_buttons_NA <- c(radio_buttons_NA, button)
     }
@@ -170,7 +170,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     radio_buttons_index <- NULL
     vbox_index <- gtkVBox(F, 0)
     for (choice in choices) {
-      button <- gtkRadioButton(radio_buttons, choice)
+      button <- gtkRadioButton(radio_buttons_index, choice)
       vbox_index$add(button)
       radio_buttons_index <- c(radio_buttons_index, button)
     }
