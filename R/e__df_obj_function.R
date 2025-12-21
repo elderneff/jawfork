@@ -181,11 +181,13 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     vbox_header <- gtkVBox(F, 0)
     for (choice in choices_header) {
       button <- gtkCheckButton(choice)
+      #Column names selected by default
+      if (choice == "Column names") {
+        gtkCheckMenuItemSetActive(button)
+      }
       vbox_header$add(button)
       check_buttons_header <- c(check_buttons_header, button)
     }
-    #Column names selected by default
-    gtkCheckMenuItemSetActive(check_buttons_header[[1]])
     
     #Make a frame for NA
     frame <- gtkFrame("Setting for NA numeric values")
