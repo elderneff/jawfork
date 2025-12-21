@@ -247,13 +247,17 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     if (selections[6]) {
       append_data <- T
     }
-    user_names <- T
+    labels <- sapply(temp_df, function(x) attr(x, "label"))
     #Only write file if user selected "OK"
     if (response == GtkResponseType["ok"]) {
-      #Write column names
-      write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F)
-      #Write column labels
-      write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_labels)
+      if (selection[5]) {
+        #Write column names
+        write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F)
+      }
+      if (selection[6]) {
+        #Write column labels
+        write.table(t(labels), sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_labels)
+      }
       #Write data
       write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_data)
     }
