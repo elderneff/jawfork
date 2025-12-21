@@ -208,7 +208,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     #Require response before interacting with table
     response <- dialog$run()
   
-    #Find selection
+    #Find selections
     radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
     selections <- logical(length(radio_buttons_all))
     for (i in 1:length(radio_buttons_all)) {
@@ -228,7 +228,14 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     sas_ext <- unlist(gregexpr('.', sas_w_ext, fixed = T))[1]
     sas_no_ext <- substr(sas_w_ext, 1, sas_ext - 1)
     temp <- paste0(tempdir(), "\\", sas_no_ext, ".csv")
-    user_na <-""
+    #Interpret user settings
+    if (selections[1]) {
+      user_na <- ""
+    }
+    else if (selections[2]) {
+      user_na <- "NA"
+    }
+    print(colnames(temp_df)
     user_names <- T
     write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = user_names)
     shell.exec(temp)
