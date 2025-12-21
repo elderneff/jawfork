@@ -183,7 +183,8 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       button <- gtkCheckButton(choice)
       #Column names selected by default
       if (choice == "Column names") {
-        gtkCheckMenuItemSetActive(button)
+        # gtkCheckMenuItemSetActive(button)
+        button$setActive(T)
       }
       vbox_header$add(button)
       check_buttons_header <- c(check_buttons_header, button)
