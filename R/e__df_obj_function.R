@@ -175,18 +175,14 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       radio_buttons_index <- c(radio_buttons_index, button)
     }
 
-    print("Checkpoint 1")
     #Add header options
     #choices_header <- c("Column names", "Column labels")
-    choices_header <- c(T, F)
+    choices_header <- c(T, T)
     check_buttons_header <- NULL
     vbox_header <- gtkVBox(F, 0)
     for (choice in choices_header) {
-      print("Checkpoint 1a")
       button <- gtkCheckButton(check_buttons_header, choice)
-      print("Checkpoint 1b")
       vbox_header$add(button)
-      print("Checkpoint 1c")
       check_buttons_header <- c(check_buttons_header, button)
     }
     
@@ -200,7 +196,6 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     frame$add(vbox_index)
     dialog[["vbox"]]$add(frame)
 
-    print("Checkpoint 2")
     #Make a frame for header
     frame <- gtkFrame("Settings for header rows")
     frame$add(vbox_header)
@@ -209,7 +204,6 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     #Require response before interacting with table
     response <- dialog$run()
   
-    print("Checkpoint 3")
     #Find selection
     radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
     selections <- logical(length(radio_buttons_all))
