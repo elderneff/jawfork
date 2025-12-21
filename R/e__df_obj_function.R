@@ -156,20 +156,20 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       "Select options for the file")
   
     #Add NA options
-    choices <- c("Blank", "NA")
+    choices_NA <- c("Blank", "NA")
     radio_buttons_NA <- NULL
     vbox_NA <- gtkVBox(F, 0)
-    for (choice in choices) {
+    for (choice in choices_NA) {
       button <- gtkRadioButton(radio_buttons_NA, choice)
       vbox_NA$add(button)
       radio_buttons_NA <- c(radio_buttons_NA, button)
     }
     
     #Add row index options
-    choices <- c("Row index", "No row index")
+    choices_index <- c("Row index", "No row index")
     radio_buttons_index <- NULL
     vbox_index <- gtkVBox(F, 0)
-    for (choice in choices) {
+    for (choice in choices_index) {
       button <- gtkRadioButton(radio_buttons_index, choice)
       vbox_index$add(button)
       radio_buttons_index <- c(radio_buttons_index, button)
@@ -190,13 +190,13 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   
     #Find selection
     radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index)
+    selections <- logical(length(radio_buttons_all))
     for (i in 1:length(radio_buttons_all)) {
       if (gtkToggleButtonGetActive(radio_buttons_all[[i]])) {
-        selectn <- i
+        selections[i] <- T
       }
     }
-    selection <- choices[selectn]
-    print(selection)
+    print(selections)
     
     #Destroy dialog box
     gtkWidgetDestroy(dialog)
