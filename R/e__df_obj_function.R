@@ -207,6 +207,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     
     #Require response before interacting with table
     response <- dialog$run()
+    print(response)
   
     #Find selections
     radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
@@ -234,6 +235,9 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     }
     else if (selections[2]) {
       user_na <- "NA"
+    }
+    if (selections[4]) {
+      temp_df <- temp_df[, !(names(df) %in% "r__")]
     }
     print(colnames(temp_df))
     user_names <- T
