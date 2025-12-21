@@ -143,6 +143,48 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       }
     }
 
+    #######################################
+    # Generate dialog to get user options #
+    #######################################
+    dialog <- gtkMessageDialog(
+      parent = outer_env[[session_name]]$windows$main_window, 
+      flags = "destroy-with-parent", 
+      type = "question", 
+      buttons = "ok-cancel", 
+      "Select options for the file")
+  
+    #Add NA option
+    choices <- c("Missing", "NA")
+    radio_buttons <- NULL
+    vbox_NA <- gtkVBox(F, 0)
+    for (choice in choices) {
+      button <- gtkRadioButton(radio_buttons, choice)
+      vbox_NA$add(button)
+      radio_buttons <- c(radio_buttons, button)
+    }
+    
+    #Make a frame for the buttons
+    frame <- gtkFrame("Setting for NA numeric values")
+    frame$add(vbox_NA)
+    dialog[["vbox_NA"]]$add(frame)
+    #Require response before interacting with table
+    response <- dialog$run()
+  
+    #Find selection
+    for (i in 1:length(radio_buttons)) {
+      if (gtkToggleButtonGetActive(radio_buttons[[i]])) {
+        selectn <- i
+      }
+    }
+    selection <- choices[selectn]
+    print(selection)
+    
+    #Destroy dialog box
+    gtkWidgetDestroy(dialog)
+
+    ##############
+    # Write file #
+    ##############
     sas_w_ext <- outer_env[[session_name]]$sas_file_basename
     sas_ext <- unlist(gregexpr('.', sas_w_ext, fixed = T))[1]
     sas_no_ext <- substr(sas_w_ext, 1, sas_ext - 1)
