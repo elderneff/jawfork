@@ -146,6 +146,8 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     #######################################
     # Generate dialog to get user options #
     #######################################
+    require(RGtk2)
+    
     dialog <- gtkMessageDialog(
       parent = outer_env[[session_name]]$windows$main_window, 
       flags = "destroy-with-parent", 
