@@ -52,7 +52,21 @@ create_file_structure <- function(jaw_e) {
   try_settings <- try(readRDS(file = jaw_e$local_settings_rds))
   #Throw an error and reset settings if they cannot be read in
   if (class(try_settings) == "try-error") {
-    print("Settings file corrupted - resetting to default settings")
+    # print("Settings file corrupted - resetting to default settings")
+
+
+    
+  dialog <- gtkMessageDialog(
+    parent = outer_env[[session_name]]$windows$main_window, 
+    flags = "destroy-with-parent", 
+    type = "error", 
+    buttons = "ok", 
+    "settings.rds was corrupted. All settings have been reset to default.")
+  response <- dialog$run()
+  gtkWidgetDestroy(dialog)
+
+
+    
     saveRDS(list(), file = jaw_e$local_settings_rds)
   }  
   settings <- readRDS(file = jaw_e$local_settings_rds)
