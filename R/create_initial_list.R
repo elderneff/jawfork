@@ -62,7 +62,7 @@ create_file_structure <- function(jaw_e) {
     type = "error", 
     buttons = "ok", 
     "settings.rds was corrupted. All settings have been reset to default.")
-  response <- dialog$run()
+  # response <- dialog$run()
   gtkWidgetDestroy(dialog)
 
 
