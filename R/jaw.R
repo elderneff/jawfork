@@ -6,6 +6,7 @@
 #' @export
 
 jaw <- function(settings_dir=NULL) {
+  library(RGtk2)
   debug <- T
 
   color_bg_1 <- "#FFFFFF"
@@ -13,13 +14,17 @@ jaw <- function(settings_dir=NULL) {
   totem <- create_initial_list(settings_dir)
   
   #Generate error if settings were corrupted
-  # if (
-  library(RGtk2)
-  temp_window <- RGtk2::gtkWindow(show = F)
-  temp_dialog <- RGtk2::gtkMessageDialog(parent = temp_window, "destroy-with-parent", "error", "close", "Error loading file")
-  temp_dialog$run()
-  RGtk2::gtkWidgetDestroy(temp_dialog)
-  temp_window$destroy()
+  if (class(try_settings) == "try-error") {
+    temp_window <- RGtk2::gtkWindow(show = F)
+    temp_dialog <- RGtk2::gtkMessageDialog(parent = temp_window
+                               , "destroy-with-parent"
+                               , "error"
+                               , "close"
+                               , "settings.rds was corrupted. Settings were reset to defaults.")
+    temp_dialog$run()
+    RGtk2::gtkWidgetDestroy(temp_dialog)
+    temp_window$destroy()
+  }  
   
   totem$while_loop_running <- F
   # Events
