@@ -16,7 +16,7 @@ jaw <- function(settings_dir=NULL) {
   # if (
   temp_window <- RGtk2::gtkWindow(show = F)
   temp_dialog <- RGtk2::gtkMessageDialog(
-    parent = temp_window
+    parent = temp_window,
     type = "error", 
     buttons = "ok", 
     "settings.rds was corrupted. Settings were reset to defaults."))
