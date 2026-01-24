@@ -1256,23 +1256,23 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$export_name_entry, F, F)
 
 
-      u__button(
-        box = outer_env[[session_name]]$status_bar$box,
-        start = T, padding = 3,
-        stock_id = "gtk-harddisk",
-        tool_tip = "Write to .GlobalEnv",
-        call_back_fct = function(widget, event, data) {
-          session_name <- data[[1]]
-          outer_env <- data[[2]]
-          assign_env <- data[[3]]
-          export_name <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$export_name_entry)
+      # u__button(
+      #   box = outer_env[[session_name]]$status_bar$box,
+      #   start = T, padding = 3,
+      #   stock_id = "gtk-harddisk",
+      #   tool_tip = "Write to .GlobalEnv",
+      #   call_back_fct = function(widget, event, data) {
+      #     session_name <- data[[1]]
+      #     outer_env <- data[[2]]
+      #     assign_env <- data[[3]]
+      #     export_name <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$export_name_entry)
 
-          assign(export_name, value = outer_env[[session_name]]$data2, envir = assign_env)
-          message("Exported data")
-          return(FALSE)
-        },
-        data = list(session_name, outer_env,assign_env)
-      )
+      #     assign(export_name, value = outer_env[[session_name]]$data2, envir = assign_env)
+      #     message("Exported data")
+      #     return(FALSE)
+      #   },
+      #   data = list(session_name, outer_env,assign_env)
+      # )
 
 
 
