@@ -11,12 +11,19 @@ jaw <- function(settings_dir=NULL) {
   color_bg_1 <- "#FFFFFF"
   color_bg_2 <- "#f9f9f9"
   totem <- create_initial_list(settings_dir)
+  
   #Generate error if settings were corrupted
-  help <- try(dialog <- RGtk2::gtkMessageDialog(
-    type = "question", 
-    buttons = "ok-cancel", 
-    "Select an option for the copied code"))
-  # help <- try(RGtk2::gtkWidgetDestroy(dialog))
+  # if (
+  temp_window <- RGtk2::gtkWindow(show = F)
+  temp_dialog <- RGtk2::gtkMessageDialog(
+    parent = temp_window
+    type = "error", 
+    buttons = "ok", 
+    "settings.rds was corrupted. Settings were reset to defaults."))
+  temp_response <- temp_dialog$run()
+  RGtk2::gtkWidgetDestroy(temp_dialog)
+  temp_window$destroy()
+  
   totem$while_loop_running <- F
   # Events
   totem$all_event_functions <- (e__with_env(e__all_event_functions))()
