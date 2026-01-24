@@ -14,13 +14,10 @@ jaw <- function(settings_dir=NULL) {
   
   #Generate error if settings were corrupted
   # if (
+  library(RGtk2)
   temp_window <- RGtk2::gtkWindow(show = F)
-  temp_dialog <- RGtk2::gtkMessageDialog(
-    parent = temp_window,
-    type = "error", 
-    buttons = "ok", 
-    "settings.rds was corrupted. Settings were reset to defaults.")
-  temp_response <- temp_dialog$run()
+  temp_dialog <- RGtk2::gtkMessageDialog(parent = temp_window, "destroy-with-parent", "error", "close", "Error loading file")
+  temp_dialog$run()
   RGtk2::gtkWidgetDestroy(temp_dialog)
   temp_window$destroy()
   
