@@ -49,10 +49,11 @@ create_file_structure <- function(jaw_e) {
     saveRDS(list(), file = jaw_e$local_settings_rds)
   }
 
-  jaw_e$try_settings <- try(readRDS(file = jaw_e$local_settings_rds))
-  #Throw an error and reset settings if they cannot be read in
-  if (class(jaw_e$try_settings) == "try-error") {
-    # print("Settings file corrupted - resetting to default settings")
+  #Write setting corruption status to global environment
+  try_settings <- try(readRDS(file = jaw_e$local_settings_rds))
+  assign("try_settings", try_settings, envir = .GlobalEnv)  
+  #Reset settings if they cannot be read in
+  if (class(try_settings) == "try-error") {
     saveRDS(list(), file = jaw_e$local_settings_rds)
   }  
   settings <- readRDS(file = jaw_e$local_settings_rds)
