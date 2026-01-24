@@ -12,12 +12,12 @@ jaw <- function(settings_dir=NULL) {
   color_bg_2 <- "#f9f9f9"
   totem <- create_initial_list(settings_dir)
   #Generate error if settings were corrupted
-  dialog <- gtkMessageDialog(
+  help <- try(dialog <- gtkMessageDialog(
     parent = totem, 
     flags = "destroy-with-parent", 
     type = "question", 
     buttons = "ok-cancel", 
-    "Select an option for the copied code")
+    "Select an option for the copied code"))
   # gtkWidgetDestroy(dialog)
   totem$while_loop_running <- F
   # Events
