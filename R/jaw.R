@@ -19,7 +19,7 @@ jaw <- function(settings_dir=NULL) {
     parent = temp_window,
     type = "error", 
     buttons = "ok", 
-    "settings.rds was corrupted. Settings were reset to defaults."))
+    "settings.rds was corrupted. Settings were reset to defaults.")
   temp_response <- temp_dialog$run()
   RGtk2::gtkWidgetDestroy(temp_dialog)
   temp_window$destroy()
