@@ -16,7 +16,7 @@ jaw <- function(settings_dir=NULL) {
     type = "question", 
     buttons = "ok-cancel", 
     "Select an option for the copied code"))
-  help <- try(RGtk2::gtkWidgetDestroy(dialog))
+  # help <- try(RGtk2::gtkWidgetDestroy(dialog))
   totem$while_loop_running <- F
   # Events
   totem$all_event_functions <- (e__with_env(e__all_event_functions))()
