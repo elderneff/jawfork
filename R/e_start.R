@@ -1251,17 +1251,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       export_name <- make.names(gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename))
 
 
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Export name: "), F, F, padding = 2)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Export: "), F, F, padding = 2)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$export_name_entry, export_name)
-
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$export_name_entry, F, F)
-
 
       u__button(
         box = outer_env[[session_name]]$status_bar$box,
         start = T, padding = 3,
         stock_id = "gtk-harddisk",
-        tool_tip = "Write to .GlobalEnv",
+        tool_tip = "Export to .GlobalEnv",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
