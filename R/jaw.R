@@ -13,8 +13,6 @@ jaw <- function(settings_dir=NULL) {
   totem <- create_initial_list(settings_dir)
   #Generate error if settings were corrupted
   help <- try(dialog <- RGtk2::gtkMessageDialog(
-    parent = totem, 
-    flags = "destroy-with-parent", 
     type = "question", 
     buttons = "ok-cancel", 
     "Select an option for the copied code"))
