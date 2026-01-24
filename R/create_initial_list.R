@@ -56,14 +56,14 @@ create_file_structure <- function(jaw_e) {
 
 
     
-  dialog <- gtkMessageDialog(
+  try(dialog <- gtkMessageDialog(
     parent = outer_env[[session_name]]$windows$main_window, 
     flags = "destroy-with-parent", 
     type = "error", 
     buttons = "ok", 
-    "settings.rds was corrupted. All settings have been reset to default.")
+    "settings.rds was corrupted. All settings have been reset to default."))
   # response <- dialog$run()
-  gtkWidgetDestroy(dialog)
+  try(gtkWidgetDestroy(dialog))
 
 
     
