@@ -52,9 +52,11 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
         }
         #Two format by variables
         else if (format_var2 %in% colnames(df)) {
-          df2[, 2] <- ifelse((levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
-            ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4")
-          )
+          df2[, 2] <- ifelse((levels %% 4) == 1, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
+             ifelse((levels %% 4) == 2, ifelse((1:nrow(df) %% 2) == 0, "#FCEEE8", "#F4E8E1"),
+             ifelse((levels %% 4) == 0, ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4"),
+            ifelse((1:nrow(df) %% 2) == 0, "#E8E4FC", "#E1DDF4")
+          )))
         }
       },
       #Colors for when there is no Format by:
