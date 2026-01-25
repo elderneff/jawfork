@@ -64,6 +64,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$windows$main_window <- main_window
       outer_env[[session_name]]$format_by_entry <- RGtk2::gtkEntry()
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, "USUBJID")
+      outer_env[[session_name]]$format_by_entry2 <- RGtk2::gtkEntry()
+      RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, "")
 
 
       outer_env[[session_name]]$main <- list()
@@ -1274,13 +1276,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       )
 
 
-
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Format by: "), F, F, padding = 2)
-
-
-
-
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry, F, F)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Add'l format: "), F, F, padding = 2)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry2, F, F)
 
 
 
