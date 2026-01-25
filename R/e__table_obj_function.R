@@ -21,10 +21,17 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
 
 
+  #Get format by variable
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
     format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry)
   } else {
     format_var <- "USUBJID"
+  }
+  #Get add'l format by variable
+  if ("format_by_entry2" %in% names(outer_env[[session_name]])) {
+    format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry2)
+  } else {
+    format_var2 <- ""
   }
 
 
