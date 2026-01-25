@@ -17,9 +17,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
     return(df2)
   }
 
-
   df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
-
 
   #Get format by variable
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
@@ -34,36 +32,31 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
     format_var2 <- ""
   }
 
-
-
   if (format_var %in% colnames(df)) {
-    usubjid_levels <- as.numeric(as.factor(df[, format_var, drop = T]))
-    usubjid_levels[is.na(usubjid_levels)] <- -98
-
-    usubjid_levels2 <- c(-99, usubjid_levels[1:(length(usubjid_levels) - 1)])
-    usubjid_levels <- cumsum((usubjid_levels != usubjid_levels2) * 1)
-
-
-
+    #Only one format by variable
+    if (format_var %in% colnames(df) == F) {
+      levels <- dplyr::consecutive_id(df[[format_var]])
+    }
+    #Two format by variables
+    else if (format_var %in% colnames(df)) {
+      levels <- dplyr::consecutive_id(df[[format_var]], df[[format_var2]])
+    }
+  
     tryCatch(
       {
         #Colors according to Format by:
-        df2[, 2] <- ifelse((usubjid_levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
-        #df2[, 2] <- ifelse((usubjid_levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#7F5F01", "#533F04"),
+        df2[, 2] <- ifelse((levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
           ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4")
-          #ifelse((1:nrow(df) %% 2) == 0, "#206A83", "#164555")
         )
       },
       #Colors for when there is no Format by:
       error = function(e) {
         df2[, 2] <- ifelse((1:nrow(df) %% 2) == 0, "#F1F1F1", "#FFFFFF")
-        #df2[, 2] <- ifelse((1:nrow(df) %% 2) == 0, "#2C3E5D", "#172B4D")
       }
     )
   } else {
     #Colors for when there is no Format by:
     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 0, "#FFFFFF", "#F1F1F1")
-    #df2[, 2] <- ifelse((1:nrow(df) %% 2) == 0, "#2C3E5D", "#172B4D")
   }
   #r__ Color
   df2[, 1] <- "#9bb5f5"
