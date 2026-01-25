@@ -35,12 +35,8 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   if (format_var %in% colnames(df)) {
     #Only one format by variable
     # if (format_var %in% colnames(df) == F) {
-      print(format_var)
-      print(colnames(df))
-      print(class(df))
-      try(print(df[[format_var]]))
-      try(levels <- dplyr::consecutive_id(df[[format_var]]))
-      levels <- rep(1, nrow(df))
+      levels <- dplyr::consecutive_id(df[, format_var])
+      # levels <- rep(1, nrow(df))
     # }
     #Two format by variables
     # else if (format_var %in% colnames(df)) {
