@@ -71,8 +71,6 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   }
   #r__ Color
   df2[, 1] <- "#9bb5f5"
-  #df2[, 1] <- "#A54800"
-
 
   colnames(df2) <- c("f___1", "f___2")
   return(df2)
