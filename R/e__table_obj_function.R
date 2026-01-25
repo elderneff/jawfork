@@ -33,7 +33,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   }
 
   if (format_var %in% colnames(df)) {
-    #Only one format by variable
+    #One format by variable
     if (format_var2 %in% colnames(df) == F) {
       levels <- dplyr::consecutive_id(df[, format_var])
     }
@@ -44,10 +44,18 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   
     tryCatch(
       {
-        #Colors according to Format by:
-        df2[, 2] <- ifelse((levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
-          ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4")
-        )
+        #One format by variable
+        if (format_var2 %in% colnames(df) == F) {
+          df2[, 2] <- ifelse((levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
+            ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4")
+          )
+        }
+        #Two format by variables
+        else if (format_var2 %in% colnames(df)) {
+          df2[, 2] <- ifelse((levels %% 2) == 0, ifelse((1:nrow(df) %% 2) == 0, "#fcf7e8", "#f4efe1"),
+            ifelse((1:nrow(df) %% 2) == 0, "#e8edfc", "#e1e5f4")
+          )
+        }
       },
       #Colors for when there is no Format by:
       error = function(e) {
