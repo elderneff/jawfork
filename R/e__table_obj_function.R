@@ -37,7 +37,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
     # if (format_var %in% colnames(df) == F) {
       print(format_var)
       print(colnames(df))
-      print(df[[format_var]])
+      try(print(df[[format_var]]))
       try(levels <- dplyr::consecutive_id(df[[format_var]]))
       levels <- rep(1, nrow(df))
     # }
