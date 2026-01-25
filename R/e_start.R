@@ -1068,7 +1068,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env[[session_name]]$status_bar$simplicity_view <- T
       }
       
-      #JN: simplicity mode that will hide everything but Full Data Table     
+      #JN: simplicity mode that will hide all tables except Full Data Table     
       u__button(
         box = outer_env[[session_name]]$status_bar$box,
         start = F, padding = 5,
@@ -1322,7 +1322,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         #Update version number here with substantial updates
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.0.6.2", " | ", as.character(Sys.time())
+          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.0.1", " | ", as.character(Sys.time())
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
 
