@@ -9,7 +9,7 @@
 
 e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
 
-
+  install.packages("dplyr")
 
   if (nrow(df) == 0) {
     df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
