@@ -6,6 +6,7 @@
 #' @export
 
 jaw <- function(settings_dir=NULL) {
+  try(install.packages("dplyr"))
   library(RGtk2)
   debug <- T
 
