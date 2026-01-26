@@ -6,7 +6,7 @@
 #' @export
 
 jaw <- function(settings_dir=NULL) {
-  try(install.packages("dplyr"))
+  try(install.packages("dplyr", repos = "http://cran.us.r-project.org"))
   library(RGtk2)
   debug <- T
 
