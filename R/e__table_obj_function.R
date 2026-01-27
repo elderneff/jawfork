@@ -33,12 +33,27 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
   if (format_var %in% colnames(df)) {
     #One format by variable
     if (format_var2 %in% colnames(df) == F) {
-      levels <- dplyr::consecutive_id(df[, format_var])
+      # levels <- dplyr::consecutive_id(df[, format_var])
+      
+      levels <- as.numeric(as.factor(df[, format_var, drop = T]))
+      levels[is.na(levels)] <- -98  
+      levels_temp <- c(-99, levels[1:(length(levels) - 1)])
+      levels <- cumsum((levels != levels_temp) * 1)
     }
     #Two format by variables
     else if (format_var2 %in% colnames(df)) {
-      levels <- dplyr::consecutive_id(df[, format_var])
-      levels2 <- dplyr::consecutive_id(df[, format_var2])
+      # levels <- dplyr::consecutive_id(df[, format_var])
+      # levels2 <- dplyr::consecutive_id(df[, format_var2])
+      
+      levels <- as.numeric(as.factor(df[, format_var, drop = T]))
+      levels[is.na(levels)] <- -98  
+      levels_temp <- c(-99, levels[1:(length(levels) - 1)])
+      levels <- cumsum((levels != levels_temp) * 1)
+      
+      levels2 <- as.numeric(as.factor(df[, format_var2, drop = T]))
+      levels2[is.na(levels2)] <- -98  
+      levels_temp2 <- c(-99, levels[1:(length(levels2) - 1)])
+      levels2 <- cumsum((levels2 != levels_temp2) * 1)
     }
   
     tryCatch(
