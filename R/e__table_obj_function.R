@@ -52,8 +52,8 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
       
       levels2 <- as.numeric(as.factor(df[, format_var2, drop = T]))
       levels2[is.na(levels2)] <- -98  
-      levels_temp2 <- c(-99, levels[1:(length(levels2) - 1)])
-      levels2 <- cumsum((levels2 != levels_temp2) * 1)
+      # levels_temp2 <- c(-99, levels[1:(length(levels2) - 1)])
+      # levels2 <- cumsum((levels2 != levels_temp2) * 1)
     }
   
     tryCatch(
