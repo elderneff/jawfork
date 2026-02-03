@@ -63,8 +63,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$windows$main_window <- main_window
       outer_env[[session_name]]$format_by_entry <- RGtk2::gtkEntry()
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry, 75, 25)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, "USUBJID")
       outer_env[[session_name]]$format_by_entry2 <- RGtk2::gtkEntry()
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry2, 75, 25)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, "")
 
 
