@@ -1264,6 +1264,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
       outer_env[[session_name]]$export_name_entry <- RGtk2::gtkEntry()
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$export_name_entry, 75, 25)
 
       export_name <- make.names(gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename))
 
