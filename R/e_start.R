@@ -63,10 +63,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$windows$main_window <- main_window
       outer_env[[session_name]]$format_by_entry <- RGtk2::gtkEntry()
-      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry, 75, 25)
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry, 65, 25)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, "USUBJID")
       outer_env[[session_name]]$format_by_entry2 <- RGtk2::gtkEntry()
-      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry2, 75, 25)
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$format_by_entry2, 65, 25)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, "")
 
 
@@ -1266,7 +1266,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
       outer_env[[session_name]]$export_name_entry <- RGtk2::gtkEntry()
-      gtkWidgetSetSizeRequest(outer_env[[session_name]]$export_name_entry, 75, 25)
+      gtkWidgetSetSizeRequest(outer_env[[session_name]]$export_name_entry, 65, 25)
 
       export_name <- make.names(gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename))
 
