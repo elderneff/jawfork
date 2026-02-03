@@ -7,6 +7,7 @@
 
 jaw <- function(settings_dir=NULL) {
   library(RGtk2)
+  options(scipen = 999)
   debug <- T
 
   color_bg_1 <- "#FFFFFF"
