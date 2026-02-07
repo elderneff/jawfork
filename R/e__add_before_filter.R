@@ -79,7 +79,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }  
     #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (sum(class([[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = "\", \""), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
