@@ -113,7 +113,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
 #' @return TODO
 
 e__add_before_filter_full_data <- function(session_name, current_row, exclude = F, outer_env = totem) {
-   <- outer_env[[session_name]]$data2
+  temp_df <- outer_env[[session_name]]$data2
 
   cross_tab_names <- current_row$column
 
