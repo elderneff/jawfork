@@ -174,8 +174,6 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
 
 e__add_before_filter <- function(session_name, current_row, exclude = F, outer_env = totem) {
   temp_df <- outer_env[[session_name]]$data2
-  print(paste0("temp_df: ", temp_df))
-  print(paste0("class of temp_df: ", class(temp_df)))
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
@@ -237,8 +235,6 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 
 e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {  
   temp_df <- outer_env[[session_name]]$data2
-  print(paste0("temp_df: ", temp_df))
-  print(paste0("class of temp_df: ", class(temp_df)))
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
@@ -248,7 +244,7 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
   my_title <- rep(NA, length(cross_tab_names))
   
   while (j <= nrow(temp_df)) {
-    current_row$row <- table[j, ]
+    current_row$row <- temp_df[j, ]
     
     for (x in cross_tab_names) {
       #Sandwich column name with backticks if it has special characters
