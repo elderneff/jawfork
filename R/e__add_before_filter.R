@@ -234,9 +234,10 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 #' @return TODO
 
 e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {  
-  temp_df <- outer_env[[session_name]]$data2
-
+  data2 <- outer_env[[session_name]]$data2
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
+  temp_df <- unique(data2[, cross_tab_names])
+  print(temp_df)
 
   i <- 1
   j <- 1
@@ -245,7 +246,7 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
   
   while (j <= nrow(temp_df)) {
     meta_row <- temp_df[j, ]
-    print(paste0("meta_row: ", meta_row))
+    # print(paste0("meta_row: ", meta_row))
     
     for (x in cross_tab_names) {
       #Sandwich column name with backticks if it has special characters
