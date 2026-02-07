@@ -177,6 +177,10 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
+  #What does current_row look like?
+  class(current_row)
+  print(current_row)
+
   my_title <- rep(NA, length(cross_tab_names))
   i <- 1
   for (x in cross_tab_names) {
