@@ -43,6 +43,7 @@ jaw <- function(settings_dir=NULL) {
   totem$u__add_before_filter_full_data_column <- e__with_env(e__add_before_filter_full_data_column)
   totem$u__add_before_filter_full_data <- e__with_env(e__add_before_filter_full_data)
   totem$u__add_before_filter <- e__with_env(e__add_before_filter)
+  totem$u__add_before_filter_table <- e__with_env(e__add_before_filter_table)
   totem$u__add_count_to_df_summary <- e__with_env(e__add_count_to_df_summary)
   totem$u__get_summary <- e__with_env(e__get_summary)
   totem$u__graph_summary <- e__with_env(e__graph_summary)
