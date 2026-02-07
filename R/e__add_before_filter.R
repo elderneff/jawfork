@@ -177,10 +177,6 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
-  #What does current_row look like?
-  class(current_row)
-  print(current_row)
-
   my_title <- rep(NA, length(cross_tab_names))
   i <- 1
   for (x in cross_tab_names) {
@@ -223,6 +219,73 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
+  }
+
+  outer_env$u__append_before_code(session_name, cmd)
+}
+
+#' e__add_before_filter_table
+#'
+#' @param session_name TODO
+#' @param current_row TODO
+#' @param exclude TODO
+#' @param outer_env TODO
+#'
+#' @return TODO
+
+e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {
+  temp_df <- outer_env[[session_name]]$data2
+
+  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
+
+  i <- 1
+  j <- 1
+  table_title <- rep(NA, nrow(temp_df))
+  my_title <- rep(NA, length(cross_tab_names))
+  
+  while (j <= nrow(temp_df)) {
+    current_row$row <- table[j, ]
+    
+    for (x in cross_tab_names) {
+      #Sandwich column name with backticks if it has special characters
+      if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", x)) { 
+        clean_x <- paste0("`", x, "`") 
+      } else {
+        clean_x <- x
+      }
+      #Character - put quotes around values
+      if (is.character(temp_df[[x]])) {
+        my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
+      } 
+      #Numeric - no quotes around values
+      else if (is.numeric(temp_df[[x]])) {
+        my_title[[i]] <- paste0(clean_x, " %in% c(", current_row$row[, x, drop = T], ")")
+      }  
+      #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
+      else if (lubridate::is.Date(temp_df[[x]])) {
+        my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
+        #Remove quotes from around NA
+        my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+      } 
+      #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
+      else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+        my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
+        #Remove quotes from around NA
+        my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+      }
+      
+      #Clean filter
+      my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
+      my_title[[i]] <- gsub(" +", " ", my_title[[i]])
+      
+      i <- i + 1
+    }
+    #Combine filter for row
+    table_title[[j]] <- paste0(my_title, collapse = " & ")
+    cmd <- rep(NA, length(cross_tab_names))
+    
+    i <- 1
+    j <- j + 1
   }
 
   outer_env$u__append_before_code(session_name, cmd)
