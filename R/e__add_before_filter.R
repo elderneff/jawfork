@@ -79,7 +79,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }  
     #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+    else if (sum(class([[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = "\", \""), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -113,7 +113,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
 #' @return TODO
 
 e__add_before_filter_full_data <- function(session_name, current_row, exclude = F, outer_env = totem) {
-  temp_df <- outer_env[[session_name]]$data2
+   <- outer_env[[session_name]]$data2
 
   cross_tab_names <- current_row$column
 
@@ -233,10 +233,10 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 #'
 #' @return TODO
 
-e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {
+e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {  
   temp_df <- outer_env[[session_name]]$data2
-  print(temp_df)
-  print(class(temp_df))
+  print(paste0("temp_df", temp_df))
+  print(paste0(, "class of temp_df", class(temp_df)))
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
