@@ -235,8 +235,8 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
 
 e__add_before_filter_table <- function(session_name, current_row, exclude = F, outer_env = totem) {  
   temp_df <- outer_env[[session_name]]$data2
-  print(paste0("temp_df", temp_df))
-  print(paste0(, "class of temp_df", class(temp_df)))
+  print(paste0("temp_df: ", temp_df))
+  print(paste0("class of temp_df: ", class(temp_df)))
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
