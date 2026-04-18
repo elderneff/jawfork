@@ -42,7 +42,7 @@ create_file_structure <- function(jaw_e) {
 
 
 
-  #logger("", jaw_e, append = F)
+  logger("", jaw_e, append = F)
 
 
   if (file.exists(jaw_e$local_settings_rds) == F) {
