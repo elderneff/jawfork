@@ -24,10 +24,10 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     ##########################################
                     if(ctrl & single_key %in% c("114")){
                       print("Refresh command received")
-                      print(paste0("session_name: ", session_name))
+                      print(paste0("session_name: ", session))
                       #refresh(session_name)
                       outer_env$show_load_window()
-                      outer_env$u__load_dataset(session_name)
+                      outer_env$u__load_dataset(session)
                       outer_env$hide_load_window()
                     }
                     ##########################################
