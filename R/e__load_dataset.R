@@ -8,21 +8,12 @@
 #' @return TODO
 
 e__load_dataset <- function(session_name,outer_env=totem) {
-  print("Line 1")
   ls_content <- ls(name = .GlobalEnv)
-  print("Line 2")
   if ((outer_env[[session_name]]$sas_file_path %in% ls_content) == F) {
     #sas7bdat
-    print("Line 3")
-    if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){
-
-
-
-      print("Line 4: Attempting haven::read_sas...")
-        
+    if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){        
         # Attempt the read
-        try_read <- try(as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)
-      
+        try_read <- try(as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)      
         # Check if an error occurred
         if (inherits(try_read, "try-error")) {
           print(paste("CRITICAL ERROR ON STARTUP:", as.character(try_read)))
@@ -32,15 +23,9 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           return(FALSE) # Exit early only on failure
         } else {      
           # SUCCESS PATH: Assign data and continue normally
-          print("Line 5: Data read successfully.")
-          Sys.sleep(2)
           outer_env[[session_name]]$data1 <- try_read
           outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
-          Sys.sleep(2)
-          # No return(F) here! Let it fall through to the update logic.
         }
-        
-      
     }
     #sav
     else if(tolower(outer_env[[session_name]]$passed_ext)=="sav"){
