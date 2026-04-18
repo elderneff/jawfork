@@ -19,29 +19,24 @@ e__load_dataset <- function(session_name,outer_env=totem) {
 
 
       print("Line 4: Attempting haven::read_sas...")
+        
+        # Attempt the read
+        try_read <- try(as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)
       
-      # Wrap the binary read in a tryCatch to prevent a total freeze
-      try_read <- tryCatch({
-        # Use col_select to test if the file is readable at all
-        df_result <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
+        # Check if an error occurred
+        if (inherits(try_read, "try-error")) {
+          print(paste("CRITICAL ERROR ON STARTUP:", as.character(try_read)))
+          message("\n!!! DATA LOAD FAILED !!!")
+          message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted.")
+          readline() 
+          return(FALSE) # Exit early only on failure
+        }
+      
+        # SUCCESS PATH: Assign data and continue normally
         print("Line 5: Data read successfully.")
-        df_result
-      }, error = function(e) {
-        print(paste("CRITICAL ERROR ON STARTUP:", e$message))
-        # Return NULL so the rest of the app knows the load failed
-        return(NULL)
-      })
-    
-      if (is.null(try_read)) {
-        # If read failed, keep console open for troubleshooting
-        message("\n!!! DATA LOAD FAILED !!!")
-        message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted or compressed.")
-        readline() 
-        return(F)
-      }
-    
-      outer_env[[session_name]]$datal <- try_read
-      outer_env[[session_name]]$datal_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
+        outer_env[[session_name]]$datal <- try_read
+        outer_env[[session_name]]$datal_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
+        # No return(F) here! Let it fall through to the update logic.
 
 
       
