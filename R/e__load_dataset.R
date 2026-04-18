@@ -15,10 +15,37 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     #sas7bdat
     print("Line 3")
     if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){
-      print("Line 4")
-      outer_env[[session_name]]$data1 <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
-      print("Line 5")
-      outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
+
+
+
+      print("Line 4: Attempting haven::read_sas...")
+      
+      # Wrap the binary read in a tryCatch to prevent a total freeze
+      try_read <- tryCatch({
+        # Use col_select to test if the file is readable at all
+        df_result <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
+        print("Line 5: Data read successfully.")
+        df_result
+      }, error = function(e) {
+        print(paste("CRITICAL ERROR AT LINE 5:", e$message))
+        # Return NULL so the rest of the app knows the load failed
+        return(NULL)
+      })
+    
+      if (is.null(try_read)) {
+        # If read failed, keep console open for troubleshooting
+        message("\n!!! DATA LOAD FAILED !!!")
+        message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted or compressed.")
+        message("Press [ENTER] to return to JAW (this window will stay open until then).")
+        readline() 
+        return(F)
+      }
+    
+      outer_env[[session_name]]$datal <- try_read
+      outer_env[[session_name]]$datal_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
+
+
+      
     }
     #sav
     else if(tolower(outer_env[[session_name]]$passed_ext)=="sav"){
