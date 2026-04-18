@@ -71,8 +71,6 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       df_tmp <- as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path))
       outer_env[[session_name]]$data1 <- df_tmp
       
-      # outer_env[[session_name]]$data1_contents <- df_meta(df_tmp)
-      # outer_env[[session_name]]$data1_contents$n <- nrow(df_tmp)
       outer_env[[session_name]]$data1_contents <- data.frame(
         "variable" = colnames(outer_env[[session_name]]$data1),
         "length" = NA,
@@ -81,8 +79,6 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         "n" = NA,
         stringsAsFactors = FALSE
       )
-      print(outer_env[[session_name]]$data1_contents)
-      Sys.sleep(5)
     }
   } 
   else {
