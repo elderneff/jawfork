@@ -34,7 +34,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           # SUCCESS PATH: Assign data and continue normally
           print("Line 5: Data read successfully.")
           Sys.sleep(2)
-          outer_env[[session_name]]$data1 <- as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path))
+          outer_env[[session_name]]$data1 <- try_read
           outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
           Sys.sleep(2)
           # No return(F) here! Let it fall through to the update logic.
