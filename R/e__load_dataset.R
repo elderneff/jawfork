@@ -68,7 +68,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     }
     #xpt
     else if(tolower(outer_env[[session_name]]$passed_ext)=="xpt"){
-      df_tmp <- as.data.frame(haven::read_xpt(data_file = outer_env[[session_name]]$sas_file_path))
+      df_tmp <- as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path))
       outer_env[[session_name]]$data1 <- df_tmp
       
       outer_env[[session_name]]$data1_contents <- df_meta(df_tmp)
