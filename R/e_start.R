@@ -1352,11 +1352,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       }
     },
     error = function(e) {
-
-
-      #
-      # gSourceRemove(totem$loop_function_obj)
-      # totem$loop_function_obj <- F
+      message("\n*********************************")
+      message("STARTUP ERROR:")
+      message(as.character(e))
+      message("*********************************\n")
+      
+      message("Press [Enter] to exit...")
+      readline()
+    
+      try({ outer_env$hide_load_window() })
     }
   )
   refresh(session_name)
