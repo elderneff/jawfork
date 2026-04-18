@@ -34,7 +34,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       
         # SUCCESS PATH: Assign data and continue normally
         print("Line 5: Data read successfully.")
-        readline() 
+        Sys.sleep(5)
         outer_env[[session_name]]$datal <- try_read
         outer_env[[session_name]]$datal_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
         # No return(F) here! Let it fall through to the update logic.
