@@ -27,7 +27,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         print("Line 5: Data read successfully.")
         df_result
       }, error = function(e) {
-        print(paste("CRITICAL ERROR AT LINE 5:", e$message))
+        print(paste("CRITICAL ERROR ON STARTUP:", e$message))
         # Return NULL so the rest of the app knows the load failed
         return(NULL)
       })
@@ -36,7 +36,6 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         # If read failed, keep console open for troubleshooting
         message("\n!!! DATA LOAD FAILED !!!")
         message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted or compressed.")
-        message("Press [ENTER] to return to JAW (this window will stay open until then).")
         readline() 
         return(F)
       }
