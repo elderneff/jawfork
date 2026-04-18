@@ -25,6 +25,8 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           # SUCCESS PATH: Assign data and continue normally
           outer_env[[session_name]]$data1 <- try_read
           outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
+          print(outer_env[[session_name]]$data1_contents)
+          Sys.sleep(5)
         }
     }
     #sav
@@ -71,6 +73,8 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       
       outer_env[[session_name]]$data1_contents <- df_meta(df_tmp)
       outer_env[[session_name]]$data1_contents$n <- nrow(df_tmp)
+      print(outer_env[[session_name]]$data1_contents)
+      Sys.sleep(5)
     }
   } 
   else {
