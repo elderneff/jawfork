@@ -305,10 +305,27 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         }
       }
     }
-  }
-
-
-
+    #Resize r__ column to match data column header sizes
+    if (is_full_data_table) {
+        max_newlines <- 0
+        
+        # 1. Loop through all data columns to find the maximum number of newlines
+        for (j in setdiff(seq_len(ncol(df) - 2), 1)) {
+           col_text <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
+           if (!is.null(col_text) && col_text != "") {
+              newlines <- stringr::str_count(col_text, "\n")
+              max_newlines <- max(max_newlines, newlines)
+           }
+        }
+        
+        # 2. Apply that many newlines as a blank string to the r__ column
+        if (max_newlines > 0) {
+           blank_label <- paste0(rep(" \n", max_newlines), collapse = "")
+           RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, blank_label)
+        } else {
+           RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
+        }
+      }
 
 
   clear_filters <- function() {
