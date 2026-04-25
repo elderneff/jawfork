@@ -98,7 +98,11 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
     x$xalign <- 0
     RGtk2::gtkWidgetModifyFont(x, font)
     RGtk2::gtkBoxPackStart(hb, x, F, F, padding = 1)
-    RGtk2::gtkBoxPackStart(hb, y, F, F, padding = 1)
+    
+    # Only pack the extra y label (and its padding) if this is the Full Data Table
+    if (exists("is_full_data_table") && is_full_data_table) {
+      RGtk2::gtkBoxPackStart(hb, y, F, F, padding = 1)
+    }
   }
 
 
