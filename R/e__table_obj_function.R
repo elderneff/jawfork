@@ -130,7 +130,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       # Create the shared model
       obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(df)
 
-      # Create TWO views sharing the same model
+      # Create two views sharing the same model
       obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
       obj_env$table_objects_list$view_frozen <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
 
@@ -198,6 +198,36 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       # Bind cell click events to both views
       RGtk2::gSignalConnect(obj_env$table_objects_list$view, "button-press-event", obj_env$tree_view_column_btn_press, data = obj_env)
       RGtk2::gSignalConnect(obj_env$table_objects_list$view_frozen, "button-press-event", obj_env$tree_view_column_btn_press, data = obj_env)
+
+      # Sync Main View -> Frozen View
+      RGtk2::gSignalConnect(obj_env$table_objects_list$view, "cursor-changed", function(widget, data) {
+        frozen_view <- data
+        cursor <- RGtk2::gtkTreeViewGetCursor(widget)
+        
+        if (!is.null(cursor$path)) {
+          frozen_cursor <- RGtk2::gtkTreeViewGetCursor(frozen_view)
+          # Only update if the paths are different to avoid an infinite loop
+          if (is.null(frozen_cursor$path) || RGtk2::gtkTreePathToString(cursor$path) != RGtk2::gtkTreePathToString(frozen_cursor$path)) {
+            RGtk2::gtkTreeViewSetCursor(frozen_view, cursor$path, NULL, FALSE)
+          }
+        }
+        return(FALSE)
+      }, data = obj_env$table_objects_list$view_frozen)
+
+      # Sync Frozen View -> Main View
+      RGtk2::gSignalConnect(obj_env$table_objects_list$view_frozen, "cursor-changed", function(widget, data) {
+        main_view <- data
+        cursor <- RGtk2::gtkTreeViewGetCursor(widget)
+        
+        if (!is.null(cursor$path)) {
+          main_cursor <- RGtk2::gtkTreeViewGetCursor(main_view)
+          # Only update if the paths are different to avoid an infinite loop
+          if (is.null(main_cursor$path) || RGtk2::gtkTreePathToString(cursor$path) != RGtk2::gtkTreePathToString(main_cursor$path)) {
+            RGtk2::gtkTreeViewSetCursor(main_view, cursor$path, NULL, FALSE)
+          }
+        }
+        return(FALSE)
+      }, data = obj_env$table_objects_list$view)
     } else {
       obj_env$table_objects_list$raw_df <- df
       df2 <- obj_env$table_obj_function_df2(df)
