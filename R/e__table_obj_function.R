@@ -200,21 +200,17 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       RGtk2::gSignalConnect(obj_env$table_objects_list$view_frozen, "button-press-event", obj_env$tree_view_column_btn_press, data = obj_env)
     } else {
       obj_env$table_objects_list$raw_df <- df
-
-
-
-
       df2 <- obj_env$table_obj_function_df2(df)
-
-
       df <- cbind(df, df2)
-
 
       obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(df)
 
-
       RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view, obj_env$table_objects_list$model)
+      RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view_frozen, obj_env$table_objects_list$model)
+      
       RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view)
+      RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view_frozen)
+      
       if (is_full_data_table) {
         for (j in setdiff(seq_len(ncol(df) - 2), 1)) {
           data3 <- outer_env[[session_name]]$data3
