@@ -127,49 +127,77 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       obj_env$table_objects_list$inner_box <- RGtk2::gtkVBox()
       RGtk2::gtkBoxPackStart(box, obj_env$table_objects_list$inner_box, T, T)
 
+      # Create the shared model
       obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(df)
 
+      # Create TWO views sharing the same model
       obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
-
-      # selection <- RGtk2::gtkTreeViewGetSelection(view)
-      # RGtk2::gtkTreeSelectionSetMode(selection, 'multiple')
-
-
-      # RGtk2::gtkTreeViewSetGridLines(view, "horizontal")
+      obj_env$table_objects_list$view_frozen <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
 
       RGtk2::gtkTreeViewSetFixedHeightMode(obj_env$table_objects_list$view, F)
+      RGtk2::gtkTreeViewSetFixedHeightMode(obj_env$table_objects_list$view_frozen, F)
+      
       obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 2)
+
+      # Append columns to their respective views
       for (j in seq_len(ncol(df) - 2)) {
         tmp <- obj_env$new_tree_view_column(df, j)
-        RGtk2::gtkTreeViewAppendColumn(obj_env$table_objects_list$view, tmp$column)
+
+        # If it's the row number column, put it in the frozen view
+        if (colnames(df)[j] == "r__") {
+          RGtk2::gtkTreeViewAppendColumn(obj_env$table_objects_list$view_frozen, tmp$column)
+        } else {
+          RGtk2::gtkTreeViewAppendColumn(obj_env$table_objects_list$view, tmp$column)
+        }
+        
         obj_env$table_objects_list$allColumns[[j]] <- tmp
       }
 
 
       selectedColor <- RGtk2::as.GdkColor(c(198, 213, 253) * 256) # Linux
 
-      #Color for selected row
+      # Styling for Main View
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], "#e7e3cd")
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], "#e7e3cd")
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+
+      # Styling for Frozen View
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], "#e7e3cd")
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], "#e7e3cd")
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+
+      #Failed attempt at dark mode
       #RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], "#302459")
       #RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], "#302459")
       #RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("grey"))
       #RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("grey"))
 
-
-      ## basic GUI
+      # Main Scrolled Window
       sw <- RGtk2::gtkScrolledWindow()
-
       RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
       RGtk2::gtkContainerAdd(sw, obj_env$table_objects_list$view)
 
-      RGtk2::gtkBoxPackStart(obj_env$table_objects_list$inner_box, sw, T, T)
+      # Frozen Scrolled Window (No scrollbars visible)
+      sw_frozen <- RGtk2::gtkScrolledWindow()
+      RGtk2::gtkScrolledWindowSetPolicy(sw_frozen, "never", "never") 
+      RGtk2::gtkContainerAdd(sw_frozen, obj_env$table_objects_list$view_frozen)
 
+      # Synchronize the vertical adjustments
+      adj <- RGtk2::gtkScrolledWindowGetVadjustment(sw)
+      RGtk2::gtkScrolledWindowSetVadjustment(sw_frozen, adj)
 
+      # Pack main and frozen side-by-side in an HBox
+      table_hbox <- RGtk2::gtkHBox()
+      RGtk2::gtkBoxPackStart(table_hbox, sw_frozen, F, F) # Expand=F keeps it tight to the column
+      RGtk2::gtkBoxPackStart(table_hbox, sw, T, T)        # Expand=T gives the rest of the screen to the data
 
+      RGtk2::gtkBoxPackStart(obj_env$table_objects_list$inner_box, table_hbox, T, T)
+
+      # Bind cell click events to both views
       RGtk2::gSignalConnect(obj_env$table_objects_list$view, "button-press-event", obj_env$tree_view_column_btn_press, data = obj_env)
+      RGtk2::gSignalConnect(obj_env$table_objects_list$view_frozen, "button-press-event", obj_env$tree_view_column_btn_press, data = obj_env)
     } else {
       obj_env$table_objects_list$raw_df <- df
 
