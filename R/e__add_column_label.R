@@ -100,7 +100,8 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
     RGtk2::gtkBoxPackStart(hb, x, F, F, padding = 1)
     
     # Only pack the extra y label (and its padding) if this is the Full Data Table
-    if (exists("is_full_data_table") && is_full_data_table) {
+    # Only pack the extra y label if unique values and/or column headers are enabled in settings
+    if (exists("is_full_data_table") && is_full_data_table && (totem$settings_list$columnlabel | totem$settings_list$columnunique)) {
       RGtk2::gtkBoxPackStart(hb, y, F, F, padding = 1)
     }
   }
