@@ -82,8 +82,18 @@ e__table_obj_function_df2 <- function(df, outer_env = totem,obj_env=inner_env) {
     #Colors for when there is no Format by:
     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 0, "#FFFFFF", "#F1F1F1")
   }
+
+  # Check local filter states to see if any contain text
+  has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
+  has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
+  has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
+  
   #r__ Color
-  df2[, 1] <- "#9bb5f5"
+  if (has_filter || has_arrange || has_select) {
+    df2[, 1] <- "#F4D9D9"
+  } else {
+    df2[, 1] <- "#9bb5f5"
+  }
 
   colnames(df2) <- c("f___1", "f___2")
   return(df2)
