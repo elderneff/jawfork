@@ -170,7 +170,13 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
 #' @return TODO
 
 e__load_dataset_filter_inner_select <- function(session_name, df,outer_env=totem) {
-  select_txt <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+  # Treat as empty string if the select checkbox is unchecked
+  if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$select_cb)) {
+    select_txt <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+  } else {
+    select_txt <- ""
+  }
+  
   if (select_txt == "") {
     return(df)
   }
