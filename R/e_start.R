@@ -368,9 +368,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
           group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
 
-
-
-
           if (group_by_entry != "") {
             x <- trimws(strsplit(x = group_by_entry, split = ",", fixed = T)[[1]])
             if (cvar %in% x) {
@@ -384,10 +381,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
           RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$group_by_entry, paste0(cvar, collapse = ", "))
 
-
           unique_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry)
-
-
 
           if (unique_by_entry != "") {
             cvar2 <- trimws(strsplit(x = unique_by_entry, split = ",", fixed = T)[[1]])
@@ -397,7 +391,42 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             cvar2 <- c()
           }
 
+          load_value_function_inner(session_name, temp_df, cvar, cvar2)
+        })
+        return(FALSE)
+      }
 
+      add_unique_by_function <- function(session_name, clicked_col, outer_env = totem) {
+        try({
+          temp_df <- outer_env[[session_name]]$data2
+
+          # 1. Update the Unique By entry (cvar2)
+          unique_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry)
+          if (unique_by_entry != "") {
+            x <- trimws(strsplit(x = unique_by_entry, split = ",", fixed = T)[[1]])
+            if (clicked_col %in% x) {
+              cvar2 <- setdiff(x, clicked_col) # Toggle off if already present
+            } else {
+              cvar2 <- c(x, clicked_col)       # Append if not present
+            }
+          } else {
+            cvar2 <- clicked_col
+          }
+          
+          cvar2 <- cvar2[cvar2 %in% colnames(temp_df)]
+          RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$unique_by_entry, paste0(cvar2, collapse = ", "))
+
+          # 2. Read the existing Group By entry (cvar) so the data aggregates correctly
+          group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+          if (group_by_entry != "") {
+            cvar <- trimws(strsplit(x = group_by_entry, split = ",", fixed = T)[[1]])
+            cvar <- cvar[cvar %in% colnames(temp_df)]
+            cvar <- unique(cvar)
+          } else {
+            cvar <- c()
+          }
+
+          # 3. Trigger the data pull
           load_value_function_inner(session_name, temp_df, cvar, cvar2)
         })
         return(FALSE)
@@ -408,7 +437,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       build_meta_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
           "Meta Table|Trigger Value Summary" = load_value_function,
-          "Meta Table|Trigger Value Summary with Group By" = add_group_by_function
+          "Meta Table|Trigger Value Summary with Group By" = add_group_by_function,
+          "Meta Table|Trigger Value Summary with Unique By" = add_unique_by_function
         )
 
 
@@ -430,7 +460,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       build_full_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
           "Full Data Table|Trigger Value Summary" = load_value_function,
-          "Full Data Table|Trigger Value Summary with Group By" = add_group_by_function
+          "Full Data Table|Trigger Value Summary with Group By" = add_group_by_function,
+          "Full Data Table|Trigger Value Summary with Unique By" = add_unique_by_function
         )
 
 
