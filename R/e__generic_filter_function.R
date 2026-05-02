@@ -39,7 +39,7 @@ e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select,
         buttons = "ok-cancel",
         "filter Error: Should entry by cleared?"
       )
-      dialog["secondary-text"] <- cmd
+      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
 
 
       ###################################################
@@ -73,7 +73,7 @@ e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select,
         buttons = "ok-cancel",
         "arrange Error: Should entry by cleared?"
       )
-      dialog["secondary-text"] <- cmd
+      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
 
 
       ###################################################
@@ -120,7 +120,7 @@ e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select,
             buttons = "ok-cancel",
             "select Error: Should entry by cleared?"
           )
-          dialog["secondary-text"] <- cmd
+          dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
 
 
           ###################################################
