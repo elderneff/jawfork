@@ -489,6 +489,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$data_view_list$group_by_label <- RGtk2::gtkLabel("group_by: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$group_by_box, outer_env[[session_name]]$data_view_list$group_by_label, F, F, padding = 2)
 
+      #Checkbox to temporary disable group by
+      outer_env[[session_name]]$data_view_list$group_by_cb <- RGtk2::gtkCheckButtonNew()
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$group_by_cb, TRUE)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$group_by_box, outer_env[[session_name]]$data_view_list$group_by_cb, F, F, padding = 2)
 
       outer_env[[session_name]]$data_view_list$group_by_entry <- RGtk2::gtkEntry()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$group_by_box, outer_env[[session_name]]$data_view_list$group_by_entry, T, T)
@@ -524,6 +528,19 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$data_view_list$select_label <- RGtk2::gtkLabel("select: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_label, F, F, padding = 2)
 
+      #Checkbox to temporary disable select
+      outer_env[[session_name]]$data_view_list$select_cb <- RGtk2::gtkCheckButtonNew()
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_cb, TRUE)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_cb, F, F, padding = 2)
+      #If button is toggled, refresh dataset
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$select_cb, "toggled", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        return(TRUE)
+      }, data = list(session_name, outer_env))
 
       outer_env[[session_name]]$data_view_list$select_entry <- RGtk2::gtkEntry()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_entry, T, T)
@@ -538,7 +555,24 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         return(T)
       }, data = list(session_name, outer_env))
 
-
+      u__button(
+        box = outer_env[[session_name]]$data_view_list$select_box,
+        start = T, padding = 2,
+        but_txt = "e",
+        tool_tip = "everything",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+          if (st != "") {
+            st <- paste0(st, ", everything()")
+          } else {
+            st <- "everything()"
+          }
+          RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
       u__button(
         box = outer_env[[session_name]]$data_view_list$select_box,
         start = T, padding = 2,
@@ -557,8 +591,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           return(FALSE)
         }, data = list(session_name, outer_env)
       )
-
-
       u__button(
         box = outer_env[[session_name]]$data_view_list$select_box,
         start = T, padding = 2,
@@ -577,10 +609,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           return(FALSE)
         }, data = list(session_name, outer_env)
       )
-
-
-
-
       u__button(
         box = outer_env[[session_name]]$data_view_list$select_box,
         start = T, padding = 2,
@@ -631,7 +659,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$data_view_list$unique_by_label <- RGtk2::gtkLabel("unique_by: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$unique_by_box, outer_env[[session_name]]$data_view_list$unique_by_label, F, F, padding = 2)
-
+      
+      #Checkbox to temporary disable unique by
+      outer_env[[session_name]]$data_view_list$unique_by_cb <- RGtk2::gtkCheckButtonNew()
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$unique_by_cb, TRUE)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$unique_by_box, outer_env[[session_name]]$data_view_list$unique_by_cb, F, F, padding = 2)
 
       outer_env[[session_name]]$data_view_list$unique_by_entry <- RGtk2::gtkEntry()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$unique_by_box, outer_env[[session_name]]$data_view_list$unique_by_entry, T, T)
