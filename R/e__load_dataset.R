@@ -122,17 +122,10 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
 
   df <- outer_env$u__load_dataset_filter_inner(session_name)
 
-
-
-
   # outer_env[[session_name]]$data_row_num <- seq_len(nrow(df))
   # df <- df[c("r__2", setdiff(colnames(df), 'r__2'))]
 
   outer_env[[session_name]]$data2 <- df
-
-
-
-
 
   if (nrow(outer_env[[session_name]]$data1) == nrow(outer_env[[session_name]]$data2)) {
     str_row <- paste0(nrow(outer_env[[session_name]]$data2))
@@ -140,14 +133,11 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
     str_row <- paste0(nrow(outer_env[[session_name]]$data2), " (", round(100 * nrow(outer_env[[session_name]]$data2) / nrow(outer_env[[session_name]]$data1), 2), "%)")
   }
 
-
-
   if (ncol(outer_env[[session_name]]$data1) == ncol(outer_env[[session_name]]$data2)) {
     str_col <- paste0(ncol(outer_env[[session_name]]$data2))
   } else {
     str_col <- paste0(ncol(outer_env[[session_name]]$data2), " (", round(100 * ncol(outer_env[[session_name]]$data2) / ncol(outer_env[[session_name]]$data1), 2), "%)")
   }
-
 
   str_dim <- paste0(str_row, " x ", str_col)
   RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, str_dim)
@@ -332,10 +322,13 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
         }
         RGtk2::gtkWidgetDestroy(dialog)
 
-
-
-
-        return(outer_env$u__load_dataset_filter_inner_select(session_name, outer_env[[session_name]]$data1))
+        # If a previous successful state exists, return it so the UI doesn't reset
+        if (!is.null(outer_env[[session_name]]$data2)) {
+          return(outer_env[[session_name]]$data2)
+        } else {
+          # Fallback to the base dataset only if this is the very first load
+          return(outer_env$u__load_dataset_filter_inner_select(session_name, outer_env[[session_name]]$data1))
+        }
       }
     )
   }
