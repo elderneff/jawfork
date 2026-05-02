@@ -188,7 +188,7 @@ e__load_dataset_filter_inner_select <- function(session_name, df,outer_env=totem
         buttons = "ok-cancel",
         "select Error: Should entry by cleared?"
       )
-      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e))
+      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
 
 
       ###################################################
