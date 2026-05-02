@@ -496,7 +496,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$data_view_list$group_by_box <- RGtk2::gtkHBox()
 
-      outer_env[[session_name]]$data_view_list$group_by_label <- RGtk2::gtkLabel("group_by: ")
+      outer_env[[session_name]]$data_view_list$group_by_label <- RGtk2::gtkLabel("group_by:")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$group_by_box, outer_env[[session_name]]$data_view_list$group_by_label, F, F, padding = 2)
 
       #Checkbox to temporary disable group by
@@ -535,7 +535,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$data_view_list$select_box <- RGtk2::gtkHBox()
 
-      outer_env[[session_name]]$data_view_list$select_label <- RGtk2::gtkLabel("select: ")
+      outer_env[[session_name]]$data_view_list$select_label <- RGtk2::gtkLabel("  select:")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_label, F, F, padding = 2)
 
       #Checkbox to temporary disable select
@@ -667,7 +667,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       outer_env[[session_name]]$data_view_list$unique_by_box <- RGtk2::gtkHBox()
 
-      outer_env[[session_name]]$data_view_list$unique_by_label <- RGtk2::gtkLabel("unique_by: ")
+      outer_env[[session_name]]$data_view_list$unique_by_label <- RGtk2::gtkLabel("unique_by:")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$unique_by_box, outer_env[[session_name]]$data_view_list$unique_by_label, F, F, padding = 2)
       
       #Checkbox to temporary disable unique by
