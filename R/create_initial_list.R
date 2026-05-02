@@ -141,6 +141,13 @@ check_settings <- function(settings) {
         settings$default_table_events[[config_i]][[item_i]] <- "-"
       }
     }
+    for (item_i in names(settings$default_table_events[[config_i]])) {
+      if ((item_i %in% names(settings$table_events[[config_i]])) == F) {
+        settings$table_events[[config_i]][[item_i]] <- settings$default_table_events[[config_i]][[item_i]]
+      }
+    }
+    # Force the active settings list to inherit the exact order of the default settings list
+    settings$table_events[[config_i]] <- settings$table_events[[config_i]][names(settings$default_table_events[[config_i]])]
   }
 
 
