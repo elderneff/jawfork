@@ -117,9 +117,9 @@ e__filter_setup <- function(header_table, row_1,obj_env=inner_env) {
     
     if (is.numeric(df[[column]])) {
       if (x == "") {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(clean_column, " %in% c(", value, ")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0("round(", clean_column, ", 5) %in% round(c(", trimws(value), "), 5)"))
       } else {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", clean_column, " %in% c(", value, ")"))
+        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & round(", clean_column, ", 5) %in% round(c(", trimws(value), "), 5)"))
       }
     } else {
       if (x == "") {
