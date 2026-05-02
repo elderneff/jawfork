@@ -236,6 +236,21 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Full Data Table"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
   }
+  i__all_event_functions[["Full Data Table"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    col <- current_row$column
+    val <- current_row$value
+    
+    # Sandwich column name with backticks if it has special characters
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { 
+      clean_col <- paste0("`", col, "`") 
+    } else {
+      clean_col <- col
+    }
+    
+    # Build the string and append it to the code area
+    cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
+    outer_env$u__append_before_code(session_name, cmd)
+  }
   i__all_event_functions[["Full Data Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_count_to_df_summary(session_name, obj_env$table_objects_list$current_row$column)
   }
@@ -256,7 +271,7 @@ e__all_event_functions <- function(outer_env = totem) {
 
   #--------------------------------------------
 
-  # value table
+  # Summary table
 
   #-------------------------------------------
   i__all_event_functions[["Summary Table"]][["Open Flat View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
@@ -290,6 +305,21 @@ e__all_event_functions <- function(outer_env = totem) {
 
   i__all_event_functions[["Summary Table"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
+  }
+  i__all_event_functions[["Summary Table"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    col <- current_row$column
+    val <- current_row$value
+    
+    # Sandwich column name with backticks if it has special characters
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { 
+      clean_col <- paste0("`", col, "`") 
+    } else {
+      clean_col <- col
+    }
+    
+    # Build the string and append it to the code area
+    cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
+    outer_env$u__append_before_code(session_name, cmd)
   }
 
   i__all_event_functions[["Summary Table"]][["Add Table to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
