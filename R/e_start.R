@@ -259,8 +259,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       #----------------------------------------
 
-      load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {        
-        if (nrow(temp_df) > 10000) {
+      load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {
+        showed_bob <- nrow(temp_df) > 10000
+        
+        if (showed_bob) {
           outer_env$show_load_window()
           Sys.sleep(0.05)
         }
@@ -270,14 +272,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
           #If unique_by is populated
           if (length(cvar2) > 0) {
-            print("Case 1")
-            print(cvar2)
-
-            print("Line 1")
             temp_df <- unique(temp_df[, c(cvar, cvar2)])
-            print("Line 2")
             fcount_df <- temp_df %>%
-              #group_by(syms(cvar2)) %>%
               group_by(!!!syms(cvar2)) %>%
               summarise(n = n()) %>%
               ungroup() %>%
@@ -289,19 +285,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
                 freq = sprintf("%.3f", freq)
               )
 
-            print("Line 3")
             colnames(fcount_df) <- c(cvar2, "n", "freq", "lines")
 
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
             #Get nchar of column before n
-            fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
+            fcount_df$nchar <- nchar(as.character(fcount_df[[resultcol]]))
           } 
           #If unique_by is not populated
-          else {
-            print("Case 2")
-            print(cvar2)
-            
+          else {            
             fcount_df <- temp_df %>%
               group_by(!!!syms(cvar)) %>%
               summarise(n = n()) %>%
@@ -319,14 +311,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             #Find column before n
             resultcol <- grep("^n$", colnames(fcount_df)) - 1
             #Get nchar of column before n
-            fcount_df$nchar <- apply(fcount_df[,resultcol], 2, nchar)
+            fcount_df$nchar <- nchar(as.character(fcount_df[[resultcol]]))
           }
           
-          print("Line 4")
           outer_env[[session_name]]$data_view_list$slot2_list$value_table$update(fcount_df)
           RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$slot2_box)
         })
-        if (nrow(temp_df) > 10000) {
+        if (showed_bob > 10000) {
           outer_env$hide_load_window()
         }
       }
