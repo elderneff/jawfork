@@ -26,7 +26,12 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
   ################################################################
   # Begin JNEFF code, I do not even want to touch anything above #
   ################################################################
-  group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+  #Check if group by checkbox is checked before pulling value
+  if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
+    group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+  } else {
+    group_by_entry <- ""
+  }
 
   ### Handle when there are grouping variables ###
   if (group_by_entry != "") {
