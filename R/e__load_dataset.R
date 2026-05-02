@@ -306,7 +306,7 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
           buttons = "ok",
           "Code Error"
         )
-        dialog["secondary-text"] <- as.character(e)
+        dialog["secondary-text"] <- gsub("\033\\[[0-9;]*m", "", conditionMessage(e))
 
 
         ###################################################
