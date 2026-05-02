@@ -260,9 +260,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       #----------------------------------------
 
       load_value_function_inner <- function(session_name, temp_df, cvar, cvar2, outer_env = totem) {
-        showed_bob <- nrow(temp_df) > 10000
+        large_load <- nrow(temp_df) > 10000
         
-        if (showed_bob) {
+        if (large_load) {
           outer_env$show_load_window()
           Sys.sleep(0.05)
         }
@@ -317,7 +317,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           outer_env[[session_name]]$data_view_list$slot2_list$value_table$update(fcount_df)
           RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$slot2_box)
         })
-        if (showed_bob > 10000) {
+        if (large_load) {
           outer_env$hide_load_window()
         }
       }
