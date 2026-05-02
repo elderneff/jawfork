@@ -24,7 +24,6 @@ e__add_before_filter_full_data_bucket <- function(session_name, current_row, exc
     my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
     #Clean filter
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])
-    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
 
     i <- i + 1
   }
@@ -68,10 +67,10 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", paste0(sort(unique(filtered_data[, x, drop = T]), na.last = T), collapse = "\", \""), "\")")
     } 
-    #Numeric - no quotes around values
+    #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(sort(unique(filtered_data[, x, drop = T]), na.last = T), collapse = ", "), ")")
-    } 
+      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", paste0(trimws(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = ", "), "), 5)")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = "\", \""), "\"))")
@@ -87,7 +86,6 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
 
     #Clean filter
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])   
-    my_title[[i]] <- gsub(" +", " ", my_title[[i]]) 
     
     i <- i + 1
   }
@@ -130,10 +128,10 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } 
-    #Numeric - no quotes around values
+    #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0(clean_x, " %in% c(", current_row$row[, x, drop = T], ")")
-    } 
+      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(current_row$row[, x, drop = T]), "), 5)")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
@@ -149,7 +147,6 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
 
     #Clean filter
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]]) 
-    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
 
     i <- i + 1
   }
@@ -190,10 +187,10 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } 
-    #Numeric - no quotes around values
+    #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0(clean_x, " %in% c(", current_row$row[, x, drop = T], ")")
-    }  
+      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(current_row$row[, x, drop = T]), "), 5)")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
@@ -208,8 +205,7 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     }
 
     #Clean filter
-    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
-    my_title[[i]] <- gsub(" +", " ", my_title[[i]])
+    my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])
     
     i <- i + 1
   }
@@ -257,10 +253,10 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
       if (is.character(temp_df[[x]])) {
         my_title[[i]] <- paste0(clean_x, " %in% c(\"", meta_row[, x, drop = T], "\")")
       } 
-      #Numeric - no quotes around values
+      #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
       else if (is.numeric(temp_df[[x]])) {
-        my_title[[i]] <- paste0(clean_x, " %in% c(", meta_row[, x, drop = T], ")")
-      }  
+        my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(meta_row[, x, drop = T]), "), 5)")
+      }
       #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
       else if (lubridate::is.Date(temp_df[[x]])) {
         my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(meta_row[, x, drop = T]), "\"))")
@@ -275,8 +271,7 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
       }
       
       #Clean filter
-      my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])    
-      my_title[[i]] <- gsub(" +", " ", my_title[[i]])
+      my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])
       
       i <- i + 1
     }
