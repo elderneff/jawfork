@@ -109,12 +109,13 @@ check_settings <- function(settings) {
     ),
     "Meta Table" = list(
       "Trigger Value Summary" = "left+none",
-      "Trigger Value Summary with Group By" = "left+ctrl"
-
+      "Trigger Value Summary with Group By" = "left+ctrl",
+      "Trigger Value Summary with Unique By" = "left+alt"
     ),
     "Full Data Table" = list(
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
+      "Trigger Value Summary with Unique By" = "left+alt",
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Get Summary" = "middle+ctrl"
