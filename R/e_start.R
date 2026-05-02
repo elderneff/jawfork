@@ -370,6 +370,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       add_group_by_function <- function(session_name, cvar, outer_env = totem) {
         try({
+          RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$group_by_cb, TRUE)
+          
           temp_df <- outer_env[[session_name]]$data2
 
           group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
@@ -404,6 +406,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       add_unique_by_function <- function(session_name, clicked_col, outer_env = totem) {
         try({
+          RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$unique_by_cb, TRUE)
+          
           temp_df <- outer_env[[session_name]]$data2
 
           # 1. Update the Unique By entry (cvar2)
