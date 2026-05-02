@@ -770,7 +770,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
 
-          outer_env$u__append_before_code(session_name, cmd = "options(scipen=0)")
+          outer_env$u__append_before_code(session_name, cmd = "options(scipen=999)")
           
           return(FALSE)
         }, data = list(session_name, outer_env)
