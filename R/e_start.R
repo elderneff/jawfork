@@ -332,9 +332,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             ", max length:", max(nchar(as.character(temp_df[[cvar]])))
           ))
 
-          group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
-
-
+          #Treat group by entry as blank if checkbox is unchecked
+          if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
+            group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+          } else {
+            group_by_entry <- ""
+          }
 
           if (group_by_entry != "") {
             cvar <- c(trimws(strsplit(x = group_by_entry, split = ",", fixed = T)[[1]]), cvar)
@@ -342,11 +345,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             cvar <- unique(cvar)
           }
 
-
-          unique_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry)
-
-
-
+          
+          #Treat unique by entry as blank if checkbox is unchecked
+          if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)) {
+            unique_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry)
+          } else {
+            unique_by_entry <- ""
+          }
+          
           if (unique_by_entry != "") {
             cvar2 <- trimws(strsplit(x = unique_by_entry, split = ",", fixed = T)[[1]])
             cvar2 <- cvar2[cvar2 %in% colnames(temp_df)]
