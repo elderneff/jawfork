@@ -82,8 +82,8 @@ jaw <- function(settings_dir=NULL) {
   RGtk2::gtkWindowSetModal(totem$load_window, T)
 
   #Define a timeline and time to be referenced and edited by the text area
-  timeline <- c()
-  time <- 0
+  outer_env[[session_name]]$timeline <- c("")
+  outer_env[[session_name]]$time <- 1
   
   #Pick a random loading gif for this session
   rand <- floor(runif(1, 1, 72))
