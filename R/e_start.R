@@ -31,6 +31,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       #Define a timeline and time to be referenced and edited by the text area
       outer_env[[session_name]]$timeline <- c("")
       outer_env[[session_name]]$time <- 1
+      #Global flag for if a key has been pressed along with ctrl+shift
+      outer_env[[session_name]]$cancel_ctrl_shift <- FALSE
 
 
 
