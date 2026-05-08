@@ -1,4 +1,4 @@
-u__add_text_area <- function(label, shift_function, session, timeline, time, outer_env) {
+u__add_text_area <- function(label, shift_function, session, outer_env) {
   temp_list <- list()
   temp_list$Frame <- RGtk2::gtkFrame()
 
@@ -10,6 +10,7 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                 function(view, event, data) {
                   session<- data[[1]]
                   shift_function <- data[[2]]
+                  outer_env <- data[[3]]
                     ###################################
                     # Run code for select key strokes #
                     ###################################
@@ -23,9 +24,6 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     # Refresh dataset for select key strokes #
                     ##########################################
                     if(ctrl & single_key %in% c("114")){
-                      print("Refresh command received")
-                      print(paste0("session_name: ", session))
-                      #refresh(session_name)
                       outer_env$show_load_window()
                       outer_env$u__load_dataset(session)
                       outer_env$hide_load_window()
@@ -44,45 +42,46 @@ u__add_text_area <- function(label, shift_function, session, timeline, time, out
                     # Delete the linebreak that gets inserted with Ctrl+Enter #
                     ###########################################################
                     if (ctrl & single_key =="65293") {
-                      #Take last item from timeline if there is one
-                      if (length(timeline) != 0) {
-                        RGtk2::gtkTextBufferSetText(buffer, timeline[time - 1])
-                      }
-                      #If there is no timeline, set buffer to blank
-                      else {
-                        RGtk2::gtkTextBufferSetText(buffer, "")
+                      t <- outer_env[[session]]$time
+                      if (length(outer_env[[session]]$timeline) > 0) {
+                        RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                       }
                     }
                     #########################
-                    #Do not add to timeline stack for the following keys:
-                    #Left and right ctrl, shift, and alt keys; caps lock, arrow keys, home, end, and tab
-                    ##############################
-                    #Add buffer to timeline if not command key
+                    # Undo / Redo Tracking  #
+                    #########################
                     if (!(single_key %in% c("65507", "65505", "65513", "16777215", "65506", "65508", "65514", "65361", "65362", "65363", "65364", "65360", "65367", "65289"))
                          & !(single_key == "122" & ctrl) & !(single_key == "121" & ctrl) & !(single_key == "114" & ctrl)) {
-                      print(paste0("Detected signal: ", str))
-                      timeline[time] <<- str
-                      time <<- time + 1
+                      
+                      t <- outer_env[[session]]$time
+                      
+                      # Truncate alternate history branches if user types after an Undo
+                      if (length(outer_env[[session]]$timeline) > t) {
+                          outer_env[[session]]$timeline <- outer_env[[session]]$timeline[1:t]
+                      }
+                      
+                      # Increment time and store the new state
+                      t <- t + 1
+                      outer_env[[session]]$timeline[t] <- str
+                      outer_env[[session]]$time <- t
                     }
-                    #Undo
-                  
-                    #TODO: combine entries that are the exact same
-                    #TODO: print timeline and time with each key to see how it changes
-                  
-                    if (single_key == "122" & ctrl & time != 0) {
-                      time <<- time - 1
-                      RGtk2::gtkTextBufferSetText(buffer, timeline[time])
-                      #print(timeline)
+
+                    # Undo (Ctrl+Z)
+                    if (single_key == "122" & ctrl & outer_env[[session]]$time > 1) {
+                      t <- outer_env[[session]]$time - 1
+                      outer_env[[session]]$time <- t
+                      RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                     }
-                    #Redo
-                    if (single_key == "121" & ctrl & time != length(timeline)) {
-                      time <<- time + 1
-                      RGtk2::gtkTextBufferSetText(buffer, timeline[time])
-                      #print(timeline)
+                    
+                    # Redo (Ctrl+Y)
+                    if (single_key == "121" & ctrl & outer_env[[session]]$time < length(outer_env[[session]]$timeline)) {
+                      t <- outer_env[[session]]$time + 1
+                      outer_env[[session]]$time <- t
+                      RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                     }
                   
                     return(TRUE)
-                },data=list(session,shift_function))
+                },data=list(session,shift_function, outer_env))
 
 
 
