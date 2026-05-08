@@ -13,6 +13,23 @@ jaw <- function(settings_dir=NULL) {
   color_bg_1 <- "#FFFFFF"
   color_bg_2 <- "#f9f9f9"
   totem <- create_initial_list(settings_dir)
+
+  ##########################################
+  # Copy console and errors to jaw_log.txt #
+  ##########################################
+  # Log standard output
+  sink(totem$jaw_log_path, append = TRUE, split = TRUE)
+  
+  # Log errors (messages, warnings, crashes). 
+  # Note: R does not support split = TRUE for messages, so errors will go directly to the log.
+  sink(totem$jaw_log_path, append = TRUE, type = "message")
+  
+  # Ensure the sinks are safely closed when the jaw() function exits or crashes
+  on.exit({
+    sink(type = "message")
+    sink()
+  })
+  # -------------------------------------------------------
   
   #Generate error if settings were corrupted
   if (class(try_settings) == "try-error") {
