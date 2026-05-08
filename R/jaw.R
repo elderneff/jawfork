@@ -17,19 +17,21 @@ jaw <- function(settings_dir=NULL) {
   ##########################################
   # Copy console and errors to jaw_log.txt #
   ##########################################
-  # Log standard output
-  #sink(totem$jaw_log_path, append = TRUE, split = TRUE)
+  #Open an explicit connection to the log file in append mode
+  log_con <- file(totem$jaw_log_path, open = "a")
+  #Log standard output
+  ink(log_con, type = "output", split = TRUE)
   
-  # Log errors (messages, warnings, crashes). 
-  # Note: R does not support split = TRUE for messages, so errors will go directly to the log.
-  #sink(totem$jaw_log_path, append = TRUE, type = "message")
+  #Log errors (messages, warnings, crashes). 
+  #Note: R does not support split = TRUE for messages, so errors will go directly to the log.
+  sink(log_con, type = "message")
   
-  # Ensure the sinks are safely closed when the jaw() function exits or crashes
-  #on.exit({
-  #  sink(type = "message")
-  #  sink()
-  #})
-  # -------------------------------------------------------
+  #Ensure the sinks are safely closed when the jaw() function exits or crashes
+  on.exit({
+    sink(type = "message")
+    sink(type = "output")
+    close(log_con)
+  }, add = TRUE)
   
   #Generate error if settings were corrupted
   if (class(try_settings) == "try-error") {
