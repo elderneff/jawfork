@@ -28,6 +28,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env$show_load_window()
       session_name <- outer_env$add_session(sas_file_path)
 
+      #Define a timeline and time to be referenced and edited by the text area
+      outer_env[[session_name]]$timeline <- c("")
+      outer_env[[session_name]]$time <- 1
+
 
 
       #----------------------------------------
