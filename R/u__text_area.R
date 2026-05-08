@@ -6,6 +6,22 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
 
   temp_list$View <- RGtk2::gtkTextView()
 
+    #Block Ctrl+Enter from inserting a newline
+    RGtk2::gSignalConnect(temp_list$View, "key-press-event", 
+        function(view, event, data) {
+            single_key <- event[["keyval"]]
+            # Use bitwAnd to safely detect Ctrl (bit 4) even if NumLock or CapsLock is on
+            ctrl <- bitwAnd(as.integer(event[["state"]]), 4) > 0
+            
+            # 65293 is standard Enter, 65458 is Numpad Enter
+            if (ctrl && single_key %in% c("65293", "65458")) {
+                return(TRUE) # TRUE kills the event, blocking the newline
+            }
+            
+            return(FALSE) # FALSE lets normal typing pass through to the buffer
+        }
+    )
+  
     RGtk2::gSignalConnect(temp_list$View, "key-release-event", 
                 function(view, event, data) {
                   session<- data[[1]]
@@ -38,15 +54,6 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                       start_iter$iter, end_iter$iter,
                       include.hidden.chars = TRUE
                     )
-                    ###########################################################
-                    # Delete the linebreak that gets inserted with Ctrl+Enter #
-                    ###########################################################
-                    if (ctrl & single_key =="65293") {
-                      t <- outer_env[[session]]$time
-                      if (length(outer_env[[session]]$timeline) > 0) {
-                        RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
-                      }
-                    }
                     #########################
                     # Undo / Redo Tracking  #
                     #########################
@@ -54,16 +61,18 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                          & !(single_key == "122" & ctrl) & !(single_key == "121" & ctrl) & !(single_key == "114" & ctrl)) {
                       
                       t <- outer_env[[session]]$time
-                      
-                      # Truncate alternate history branches if user types after an Undo
-                      if (length(outer_env[[session]]$timeline) > t) {
-                          outer_env[[session]]$timeline <- outer_env[[session]]$timeline[1:t]
+                      #Only save to timeline if the string actually changed
+                      if (str != outer_env[[session]]$timeline[t]) {                      
+                        #Truncate alternate history branches if user types after an Undo
+                        if (length(outer_env[[session]]$timeline) > t) {
+                            outer_env[[session]]$timeline <- outer_env[[session]]$timeline[1:t]
+                        }
+                        
+                        #Increment time and store the new state
+                        t <- t + 1
+                        outer_env[[session]]$timeline[t] <- str
+                        outer_env[[session]]$time <- t
                       }
-                      
-                      # Increment time and store the new state
-                      t <- t + 1
-                      outer_env[[session]]$timeline[t] <- str
-                      outer_env[[session]]$time <- t
                     }
 
                     # Undo (Ctrl+Z)
