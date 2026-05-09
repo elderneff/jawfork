@@ -7,19 +7,29 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
   temp_list$View <- RGtk2::gtkTextView()
 
     #Block Ctrl+Enter from inserting a newline
+    #Track Ctrl+Shift cancellations
     RGtk2::gSignalConnect(temp_list$View, "key-press-event", 
         function(view, event, data) {
-            single_key <- event[["keyval"]]
-            # Use bitwAnd to safely detect Ctrl (bit 4) even if NumLock or CapsLock is on
-            ctrl <- bitwAnd(as.integer(event[["state"]]), 4) > 0
+            session <- data[[1]]
+            outer_env <- data[[2]]
             
+            single_key <- event[["keyval"]]
+            state_int <- as.integer(event[["state"]])
+            ctrl <- bitwAnd(state_int, 4) > 0            
+            #If no modifiers are currently being held down, reset the cancel flag
+            if (state_int == 0) {
+                outer_env[[session]]$cancel_ctrl_shift <- FALSE
+            }            
+            #If the key pressed is NOT Ctrl (65507, 65508) and NOT Shift (65505, 65506) do not run code
+            if (!(single_key %in% c("65505", "65506", "65507", "65508"))) {
+                outer_env[[session]]$cancel_ctrl_shift <- TRUE
+            }            
             # 65293 is standard Enter, 65458 is Numpad Enter
             if (ctrl && single_key %in% c("65293", "65458")) {
                 return(TRUE) # TRUE kills the event, blocking the newline
-            }
-            
+            }            
             return(FALSE) # FALSE lets normal typing pass through to the buffer
-        }
+        }, data = list(session, outer_env)
     )
   
     RGtk2::gSignalConnect(temp_list$View, "key-release-event", 
