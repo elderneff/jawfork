@@ -14,6 +14,11 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             outer_env <- data[[2]]
             
             single_key <- as.character(event[["keyval"]])
+            state_str <- as.character(event[["state"]])
+            # Helper lists for states: Base, +NumLock, +CapsLock, +Both
+            is_ctrl_shift <- state_str %in% c("5", "21", "69", "85")
+            is_ctrl <- state_str %in% c("4", "20", "68", "84")
+          
             #If no modifiers are currently being held down, reset the cancel flag
             if (single_key %in% c("65505", "65506", "65507", "65508")) {
                 outer_env[[session]]$cancel_ctrl_shift <- FALSE
@@ -21,7 +26,13 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             #If the key pressed is NOT Ctrl or Shift do not run code
             else {
                 outer_env[[session]]$cancel_ctrl_shift <- TRUE
-            }            
+            }
+            #Insert pipe for Ctrl+Shift+M or Ctrl+.
+            if ((is_ctrl_shift && single_key %in% c("77", "109")) || (is_ctrl && single_key == "46")) {
+                buffer <- RGtk2::gtkTextViewGetBuffer(view)
+                RGtk2::gtkTextBufferInsertAtCursor(buffer, " %>% ")
+                return(TRUE)
+            }
             # 65293 is standard Enter, 65458 is Numpad Enter
             ctrl <- as.character(event[["state"]]) %in% c("4", "20")
             if (ctrl && single_key %in% c("65293", "65458")) {
