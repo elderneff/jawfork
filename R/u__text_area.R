@@ -43,8 +43,21 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                     key_state <- z__event_state_key(event)
                     single_key <- event[["keyval"]]
                     ctrl <- event[["state"]] == "4"
-                    if((key_state=="shift+ctrl" & outer_env$settings_list$ctrlshift) | (ctrl & single_key %in% c("65293", "65458"))){
-                      shift_function(session)
+                  
+                    run_triggered <- FALSE                    
+                    #Look for Ctrl+Enter
+                    if (ctrl & single_key %in% c("65293", "65458")) {
+                        run_triggered <- TRUE
+                    }                    
+                    #Look for Ctrl+Shift, only if not cancelled by other keys
+                    if (key_state == "shift+ctrl" & outer_env$settings_list$ctrlshift) {
+                        if (!isTRUE(outer_env[[session]]$cancel_ctrl_shift)) {
+                            run_triggered <- TRUE
+                        }
+                    }                    
+                    #Run for either condition
+                    if (run_triggered) {
+                        shift_function(session)
                     }
                     ##########################################
                     # Refresh dataset for select key strokes #
