@@ -350,6 +350,14 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
   } else {
     u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
   }
+  # Fetch the newly injected text
+  buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+  end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+  start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+  str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+  
+  # Send it to the timeline tracker as a unique event!
+  outer_env$u__log_history(session_name, str, "button_click")
 }
 
 #' e__set_before_code
