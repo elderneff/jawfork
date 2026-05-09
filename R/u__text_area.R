@@ -13,19 +13,17 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             session <- data[[1]]
             outer_env <- data[[2]]
             
-            single_key <- event[["keyval"]]
-            state_int <- as.integer(event[["state"]])
-            ctrl <- bitwAnd(state_int, 4) > 0
-            shift <- bitwAnd(state_int, 1) > 0
+            single_key <- as.character(event[["keyval"]])
             #If no modifiers are currently being held down, reset the cancel flag
-            if (!ctrl && !shift) {
+            if (single_key %in% c("65505", "65506", "65507", "65508")) {
                 outer_env[[session]]$cancel_ctrl_shift <- FALSE
             }            
-            #If the key pressed is NOT Ctrl (65507, 65508) and NOT Shift (65505, 65506) do not run code
-            if (!(single_key %in% c("65505", "65506", "65507", "65508"))) {
+            #If the key pressed is NOT Ctrl or Shift do not run code
+            else {
                 outer_env[[session]]$cancel_ctrl_shift <- TRUE
             }            
             # 65293 is standard Enter, 65458 is Numpad Enter
+            ctrl <- as.character(event[["state"]]) %in% c("4", "20")
             if (ctrl && single_key %in% c("65293", "65458")) {
                 return(TRUE) # TRUE kills the event, blocking the newline
             }            
