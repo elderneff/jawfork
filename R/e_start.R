@@ -846,25 +846,25 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }, data = list(session_name, outer_env)
       )
 
-      u__button(
-        box = outer_env[[session_name]]$data_view_list$file_source_bar,
-        start = T, padding = 2,
-        but_txt = "time",
-        tool_tip = "Print timeline to console",
-        call_back_fct = function(widget, event, data) {
-          session_name <- data[[1]]
-          outer_env <- data[[2]]
+      # u__button(
+      #   box = outer_env[[session_name]]$data_view_list$file_source_bar,
+      #   start = T, padding = 2,
+      #   but_txt = "time",
+      #   tool_tip = "Print timeline to console",
+      #   call_back_fct = function(widget, event, data) {
+      #     session_name <- data[[1]]
+      #     outer_env <- data[[2]]
 
-          print("Printing timeline...")
-          timeline <- outer_env[[session_name]]$timeline
-          for (i in 1:length(timeline)) {
-            print(paste0(i, ": ", timeline[i]))
-          }
-          print("Done")
+      #     print("Printing timeline...")
+      #     timeline <- outer_env[[session_name]]$timeline
+      #     for (i in 1:length(timeline)) {
+      #       print(paste0(i, ": ", timeline[i]))
+      #     }
+      #     print("Done")
           
-          return(FALSE)
-        }, data = list(session_name, outer_env)
-      )
+      #     return(FALSE)
+      #   }, data = list(session_name, outer_env)
+      # )
 
 
 
