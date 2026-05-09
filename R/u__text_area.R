@@ -93,25 +93,21 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                     if (!(single_key %in% c("65507", "65505", "65513", "16777215", "65506", "65508", "65514", "65361", "65362", "65363", "65364", "65360", "65367", "65289"))
                          & !(single_key == "122" & ctrl) & !(single_key == "121" & ctrl) & !(single_key == "114" & ctrl)) {
                       
-                      t <- outer_env[[session]]$time
-                      #Only save to timeline if the string actually changed
-                      if (str != outer_env[[session]]$timeline[t]) {                      
-                        #Truncate alternate history branches if user types after an Undo
-                        if (length(outer_env[[session]]$timeline) > t) {
-                            outer_env[[session]]$timeline <- outer_env[[session]]$timeline[1:t]
-                        }
-                        
-                        #Increment time and store the new state
-                        t <- t + 1
-                        outer_env[[session]]$timeline[t] <- str
-                        outer_env[[session]]$time <- t
-                      }
+                      # Categorize the keystroke
+                      current_state <- "word"
+                      if (single_key == "32") current_state <- "space"
+                      else if (single_key %in% c("65293", "65458")) current_state <- "enter"
+                      else if (single_key %in% c("65288", "65535")) current_state <- "delete"
+                      
+                      # Send to universal tracker
+                      outer_env$u__log_history(session, str, current_state)
                     }
 
                     # Undo (Ctrl+Z)
                     if (single_key == "122" & ctrl & outer_env[[session]]$time > 1) {
                       t <- outer_env[[session]]$time - 1
                       outer_env[[session]]$time <- t
+                      outer_env[[session]]$last_edit_state <- "undo"
                       RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                     }
                     
@@ -119,6 +115,7 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                     if (single_key == "121" & ctrl & outer_env[[session]]$time < length(outer_env[[session]]$timeline)) {
                       t <- outer_env[[session]]$time + 1
                       outer_env[[session]]$time <- t
+                      outer_env[[session]]$last_edit_state <- "redo"
                       RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                     }
                   
