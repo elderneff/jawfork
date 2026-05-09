@@ -15,9 +15,10 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             
             single_key <- event[["keyval"]]
             state_int <- as.integer(event[["state"]])
-            ctrl <- bitwAnd(state_int, 4) > 0            
+            ctrl <- bitwAnd(state_int, 4) > 0
+            shift <- bitwAnd(state_int, 1) > 0
             #If no modifiers are currently being held down, reset the cancel flag
-            if (state_int == 0) {
+            if (!ctrl && !shift) {
                 outer_env[[session]]$cancel_ctrl_shift <- FALSE
             }            
             #If the key pressed is NOT Ctrl (65507, 65508) and NOT Shift (65505, 65506) do not run code
