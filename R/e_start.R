@@ -32,7 +32,33 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$timeline <- c("")
       outer_env[[session_name]]$time <- 1
       #Global flag for if a key has been pressed along with ctrl+shift
-      outer_env[[session_name]]$cancel_ctrl_shift <- FALSE
+      outer_env[[session_name]]$cancel_ctrl_shift <- FALSE      
+      # Universal tracking function to intelligently group undo states
+      outer_env[[session_name]]$last_edit_state <- ""
+      outer_env$u__log_history <- function(session_name, str, current_state) {
+          t <- outer_env[[session_name]]$time
+          
+          if (str != outer_env[[session_name]]$timeline[t]) {
+              # Truncate alternate history branches
+              if (length(outer_env[[session_name]]$timeline) > t) {
+                  outer_env[[session_name]]$timeline <- outer_env[[session_name]]$timeline[1:t]
+              }
+              
+              last_state <- outer_env[[session_name]]$last_edit_state
+              
+              # Group together continuous words, continuous spaces, and continuous deletes
+              if (!is.null(last_state) && current_state == last_state && current_state %in% c("word", "delete", "space")) {
+                  outer_env[[session_name]]$timeline[t] <- str
+              } else {
+                  # Break the chain! Create a new undo step.
+                  t <- t + 1
+                  outer_env[[session_name]]$timeline[t] <- str
+                  outer_env[[session_name]]$time <- t
+              }
+              
+              outer_env[[session_name]]$last_edit_state <- current_state
+          }
+      }
 
 
 
