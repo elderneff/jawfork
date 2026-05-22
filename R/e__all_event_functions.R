@@ -211,10 +211,23 @@ e__all_event_functions <- function(outer_env = totem) {
 
   i__all_event_functions[["Full Data Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+    col_to_toggle <- obj_env$table_objects_list$current_row$column
+    
     if (st != "") {
-      st <- paste0(st, ", ", obj_env$table_objects_list$current_row$column)
+      # Split by comma, but use negative lookahead to ignore commas inside parentheses
+      current_cols <- trimws(strsplit(st, split = ",(?![^(]*\\))", perl = TRUE)[[1]])
+      
+      if (col_to_toggle %in% current_cols) {
+        # If it's already there, remove it (toggle off)
+        current_cols <- setdiff(current_cols, col_to_toggle)
+      } else {
+        # If it's not there, add it (toggle on)
+        current_cols <- c(current_cols, col_to_toggle)
+      }
+      # Rebuild the comma-separated string
+      st <- paste0(current_cols, collapse = ", ")
     } else {
-      st <- obj_env$table_objects_list$current_row$column
+      st <- col_to_toggle
     }
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
   }
