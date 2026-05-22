@@ -116,10 +116,20 @@ e__filter_setup <- function(header_table, row_1,obj_env=inner_env) {
     }
     
     if (is.numeric(df[[column]])) {
-      if (x == "") {
-        RGtk2::gtkEntrySetText(filter_entry, paste0("round(", clean_column, ", 5) %in% round(c(", trimws(value), "), 5)"))
+      # Safely convert string back to numeric to test the decimal length
+      val_num <- as.numeric(value)
+      needs_rounding <- !is.na(val_num) && any(val_num != round(val_num, 4))
+      
+      if (needs_rounding) {
+        new_cond <- paste0("round(", clean_column, ", 5) %in% round(c(", trimws(value), "), 5)")
       } else {
-        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & round(", clean_column, ", 5) %in% round(c(", trimws(value), "), 5)"))
+        new_cond <- paste0(clean_column, " %in% c(", trimws(value), ")")
+      }
+      
+      if (x == "") {
+        RGtk2::gtkEntrySetText(filter_entry, new_cond)
+      } else {
+        RGtk2::gtkEntrySetText(filter_entry, paste0(x, " & ", new_cond))
       }
     } else {
       if (x == "") {
