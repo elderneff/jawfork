@@ -16,14 +16,14 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
 
   df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
 
-  #Get format by variable
+  # Get format by variable
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
     format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry)
   } else {
     format_var <- "USUBJID"
   }
   
-  #Get add'l format by variable
+  # Get add'l format by variable
   if ("format_by_entry2" %in% names(outer_env[[session_name]])) {
     format_var2 <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry2)
   } else {
@@ -55,9 +55,12 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
         vals2[is.na(vals2)] <- "NA_VAL"
         vals2_prev <- c("FIRST_ROW_DUMMY", vals2[1:(length(vals2) - 1)])
 
-        # 2. SAS first. logic: format_var2 resets if format_var1 changes OR format_var2 changes
+        # 2. SAS first. logic: flags true if format_var1 changes OR format_var2 changes
         changed2 <- changed1 | (vals2 != vals2_prev)
-        levels2 <- cumsum(changed2)
+        
+        # KEY FIX: Reset the secondary level counter for each primary level block!
+        # ave() calculates cumsum within each group defined by 'levels'
+        levels2 <- ave(changed2, levels, FUN = cumsum)
 
         df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
                     ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1"),
