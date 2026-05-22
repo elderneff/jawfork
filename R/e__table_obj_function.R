@@ -108,22 +108,26 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   obj_env$table_objects_list <- list()
   obj_env$table_objects_list$current_row <- NA
 
-
   obj_env$table_objects_list$inner_box <- RGtk2::gtkVBox()
   RGtk2::gtkBoxPackStart(box, obj_env$table_objects_list$inner_box, T, T)
 
-
   obj_env$table_objects_list$current_columns <- c("x")
+  obj_env$table_objects_list$current_classes <- c("y") # Track classes
   obj_env$table_objects_list$raw_df <- data.frame("x" = character())
   obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(obj_env$table_objects_list$raw_df)
   obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
   obj_env$table_objects_list$allColumns <- vector("list", 1)
 
   update_table <- function(df) {
+    # Generate a string representing the current classes of the incoming dataframe
+    new_classes_str <- paste0(sapply(df, function(col) paste0(class(col), collapse="/")), collapse = "|")
 
-
-    if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F) {
+    # Rebuild the table if the column names OR the column classes have changed
+    if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F ||
+        (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F) {
+      
       obj_env$table_objects_list$current_columns <- colnames(df)
+      obj_env$table_objects_list$current_classes <- sapply(df, function(col) paste0(class(col), collapse="/"))
 
       df2 <- obj_env$table_obj_function_df2(df)
       df <- cbind(df, df2)
