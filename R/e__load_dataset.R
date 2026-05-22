@@ -121,10 +121,6 @@ e__load_dataset <- function(session_name,outer_env=totem) {
 e__load_dataset_filter <- function(session_name,outer_env=totem) {
 
   df <- outer_env$u__load_dataset_filter_inner(session_name)
-
-  # outer_env[[session_name]]$data_row_num <- seq_len(nrow(df))
-  # df <- df[c("r__2", setdiff(colnames(df), 'r__2'))]
-
   outer_env[[session_name]]$data2 <- df
 
   if (nrow(outer_env[[session_name]]$data1) == nrow(outer_env[[session_name]]$data2)) {
@@ -142,13 +138,42 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
   str_dim <- paste0(str_row, " x ", str_col)
   RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, str_dim)
 
+  ##################
+  # Cache metadata #
+  ##################
+  #Check if the code area is effectively empty (ignoring comments and whitespace)
+  raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+  clean_code <- gsub("#.*", "", raw_code) # Strips everything from '#' to the end of the line
+  is_code_empty <- (trimws(clean_code) == "")
 
-  outer_env[[session_name]]$data3 <- df_meta_contents(outer_env[[session_name]]$data2, outer_env[[session_name]]$data1_contents)
+  #Check if the select statement is empty or disabled via checkbox
+  is_select_empty <- TRUE
+  if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$select_cb)) {
+    select_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry))
+    if (select_txt != "") {
+      is_select_empty <- FALSE
+    }
+  }
+  
+  # Determine if the data is currently completely unfiltered
+  is_unfiltered <- (is_code_empty && is_select_empty)
+  
+  if (is_unfiltered && !is.null(outer_env[[session_name]]$data1_meta_cache)) {
+    # Use the cached metadata to save massive calculation time
+    outer_env[[session_name]]$data3 <- outer_env[[session_name]]$data1_meta_cache
+  } else {
+    # Calculate metadata from scratch
+    outer_env[[session_name]]$data3 <- df_meta_contents(outer_env[[session_name]]$data2, outer_env[[session_name]]$data1_contents)
+    
+    # If this is the unfiltered base data, cache it!
+    if (is_unfiltered) {
+      outer_env[[session_name]]$data1_meta_cache <- outer_env[[session_name]]$data3
+    }
+  }
 
   outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
   outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
   RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
-
 }
 
 #' e__load_dataset_filter_inner_select
