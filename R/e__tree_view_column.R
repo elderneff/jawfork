@@ -26,10 +26,18 @@ e__tree_view_column_btn_press <- function(widget, event, data) {
   if (is.null(info$path)) {
     return(TRUE)
   }
+  
+  RGtk2::gtkTreeViewSetCursor(widget, info$path, NULL, FALSE)
+  
   row.idx <- RGtk2::gtkTreePathGetIndices(info$path) + 1
-
   col.idx <- z__tree_view_column_get_col_idx(info$column)
+  
   data$table_cell_events(event, row.idx, col.idx)
+
+  #Prevent GTK's default selection behavior from clearing the highlight on right-clicks
+  if (event[["button"]] == 3) {
+    return(TRUE)
+  }
 
   return(FALSE)
 }
