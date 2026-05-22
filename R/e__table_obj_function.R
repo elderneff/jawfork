@@ -252,7 +252,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
           hadj <- RGtk2::gtkScrolledWindowGetHadjustment(sw_main)
           
           # Determine scroll amount (multiplying the default step by 3 usually feels natural)
-          step <- hadj$stepIncrement * 3
+          step <- hadj$stepIncrement * 1.5
           if (is.null(step) || step == 0) step <- 50
           
           if (direction == RGtk2::GdkScrollDirection["up"]) {
