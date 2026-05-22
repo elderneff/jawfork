@@ -17,7 +17,7 @@ e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select,
 
   e$df <- df
 
-  # 1. Only execute filter if there is actually a filter applied
+  #Only execute filter if there is actually a filter applied
   if (u__filter != "") {
     cmd <- paste0("df <- df %>% filter(", u__filter, ")")
 
