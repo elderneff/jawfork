@@ -1439,6 +1439,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
 
+        #Clear metadata cache on refreshes
+        outer_env[[session_name]]$data1_meta_cache <- NULL
 
         outer_env$u__load_dataset(session_name)
 
