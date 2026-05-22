@@ -345,11 +345,66 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
 
 e__append_before_code <- function(session_name, cmd, outer_env = totem) {
   source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
-  if (source_file == T) {
-    outer_env$u__code_r_add_cmd(session_name, cmd)
-  } else {
-    u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
+
+  #Try to combine appended coe with previous line if the filter is the same
+  replaced <- FALSE
+  
+  if (source_file == F) {
+    raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+    code_lines <- strsplit(raw_code, "\n")[[1]]
+
+    # Find the last active line (ignore blanks and comments)
+    active_idx <- -1
+    if (length(code_lines) > 0) {
+      for (i in length(code_lines):1) {
+        clean_line <- trimws(gsub("#.*", "", code_lines[i]))
+        if (clean_line != "") {
+          active_idx <- i
+          break
+        }
+      }
+    }
+
+    # Greedy match up to the last 'c(', then grab values, then grab the suffix
+    rgx <- "^(.*%in%.*c\\()([^)]+)(\\).*)$"
+
+    if (active_idx > 0 && grepl(rgx, code_lines[active_idx]) && grepl(rgx, cmd)) {
+      last_line <- code_lines[active_idx]
+
+      last_pfx <- sub(rgx, "\\1", last_line)
+      last_val <- sub(rgx, "\\2", last_line)
+      last_sfx <- sub(rgx, "\\3", last_line)
+
+      cmd_pfx <- sub(rgx, "\\1", cmd)
+      cmd_val <- sub(rgx, "\\2", cmd)
+      cmd_sfx <- sub(rgx, "\\3", cmd)
+
+      # If the structures match perfectly, combine them!
+      if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
+        # Prevent exact duplicate additions if the user spams the same button
+        if (last_val != cmd_val) {
+          # Combine the values! (R's %in% logic naturally handles duplicates 
+          # if they accidentally click a value already inside the larger vector string)
+          combined_val <- paste0(last_val, ", ", cmd_val)
+          code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+        }
+        replaced <- TRUE
+      }
+    }
   }
+
+  if (replaced) {
+    # Overwrite the text area with the updated, combined block
+    u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+  } else {
+    # Fallback to normal appending if it's a new logic block or writing to Source file
+    if (source_file == T) {
+      outer_env$u__code_r_add_cmd(session_name, cmd)
+    } else {
+      u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
+    }
+  }
+
   # Fetch the newly injected text
   buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
   end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
