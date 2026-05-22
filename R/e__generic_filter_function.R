@@ -11,85 +11,83 @@
 #' @return TODO
 
 e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select, table_obj,outer_env=totem) {
-
-
-
   if (nrow(df) == 0) {
     return(df)
   }
 
-
-
   e$df <- df
 
+  # 1. Only execute filter if there is actually a filter applied
+  if (u__filter != "") {
+    cmd <- paste0("df <- df %>% filter(", u__filter, ")")
 
-
-  cmd <- paste0("df <- df %>% filter(", u__filter, ")")
-
-  tryCatch(
-    {
-      eval(parse(text = cmd), envir = e)
-      df <- e$df
-    },
-    error = function(e) {
-      dialog <- RGtk2::gtkMessageDialog(
-        parent = outer_env[[session_name]]$windows$main_window,
-        flags = "destroy-with-parent",
-        type = "question",
-        buttons = "ok-cancel",
-        "filter Error: Should entry by cleared?"
-      )
-      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
-
-
-      ###################################################
-      ### code chunk number 62: Pre-defined-dialogs.Rnw:49-58
-      ###################################################
-      response <- RGtk2::gtkDialogRun(dialog)
-      if (response == RGtk2::GtkResponseType["cancel"] ||
-        response == RGtk2::GtkResponseType["close"] ||
-        response == RGtk2::GtkResponseType["delete-event"]) {
-        ## pass
-      } else if (response == RGtk2::GtkResponseType["ok"]) {
-        table_obj$clear_filters()
+    tryCatch(
+      {
+        eval(parse(text = cmd), envir = e)
+        df <- e$df
+      },
+      error = function(e) {
+        dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window,
+          flags = "destroy-with-parent",
+          type = "question",
+          buttons = "ok-cancel",
+          "filter Error: Should entry by cleared?"
+        )
+        dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
+  
+  
+        ###################################################
+        ### code chunk number 62: Pre-defined-dialogs.Rnw:49-58
+        ###################################################
+        response <- RGtk2::gtkDialogRun(dialog)
+        if (response == RGtk2::GtkResponseType["cancel"] ||
+          response == RGtk2::GtkResponseType["close"] ||
+          response == RGtk2::GtkResponseType["delete-event"]) {
+          ## pass
+        } else if (response == RGtk2::GtkResponseType["ok"]) {
+          table_obj$clear_filters()
+        }
+        RGtk2::gtkWidgetDestroy(dialog)
       }
-      RGtk2::gtkWidgetDestroy(dialog)
-    }
-  )
+    )
+  }
 
+  #Only execute arrange if there is actually an arrange applied
+  if (u__order_by != "") {
+    cmd <- paste0("df <- df  %>% arrange(", u__order_by, ")")
 
-  cmd <- paste0("df <- df  %>% arrange(", u__order_by, ")")
-
-  tryCatch(
-    {
-      eval(parse(text = cmd), envir = e)
-      df <- e$df
-    },
-    error = function(e) {
-      dialog <- RGtk2::gtkMessageDialog(
-        parent = outer_env[[session_name]]$windows$main_window,
-        flags = "destroy-with-parent",
-        type = "question",
-        buttons = "ok-cancel",
-        "arrange Error: Should entry by cleared?"
-      )
-      dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
-
-
-      ###################################################
-      ### code chunk number 62: Pre-defined-dialogs.Rnw:49-58
-      ###################################################
-      response <- RGtk2::gtkDialogRun(dialog)
-      if (response == RGtk2::GtkResponseType["cancel"] ||
-        response == RGtk2::GtkResponseType["close"] ||
-        response == RGtk2::GtkResponseType["delete-event"]) {
-        ## pass
-      } else if (response == RGtk2::GtkResponseType["ok"]) {
-        table_obj$clear_arrange()
+    tryCatch(
+      {
+        eval(parse(text = cmd), envir = e)
+        df <- e$df
+      },
+      error = function(e) {
+        dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window,
+          flags = "destroy-with-parent",
+          type = "question",
+          buttons = "ok-cancel",
+          "arrange Error: Should entry by cleared?"
+        )
+        dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
+  
+  
+        ###################################################
+        ### code chunk number 62: Pre-defined-dialogs.Rnw:49-58
+        ###################################################
+        response <- RGtk2::gtkDialogRun(dialog)
+        if (response == RGtk2::GtkResponseType["cancel"] ||
+          response == RGtk2::GtkResponseType["close"] ||
+          response == RGtk2::GtkResponseType["delete-event"]) {
+          ## pass
+        } else if (response == RGtk2::GtkResponseType["ok"]) {
+          table_obj$clear_arrange()
+        }
+        RGtk2::gtkWidgetDestroy(dialog)
       }
-      RGtk2::gtkWidgetDestroy(dialog)
-    }
-  )
+    )
+  }
 
   if (is_full_data_table) {
     max_size <- 400
