@@ -44,8 +44,8 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
       # One format by variable
       if (format_var2 %in% colnames(df) == F) {
         df2[, 2] <- ifelse((levels %% 2) == 1,
-          ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
-          ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4")
+          ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
+          ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1")
         )
       }
       
@@ -62,10 +62,10 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
         # ave() calculates cumsum within each group defined by 'levels'
         levels2 <- ave(changed2, levels, FUN = cumsum)
 
-        df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
-                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1"),
-                    ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
-                    ifelse((1:nrow(df) %% 2) == 1, "#D1D1EC", "#C9C9E9")
+        df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
+                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#D1D1EC", "#C9C9E9"),
+                    ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
+                    ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1")
         )))
       }
     }, 
