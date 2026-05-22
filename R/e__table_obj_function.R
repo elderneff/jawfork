@@ -119,15 +119,15 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   obj_env$table_objects_list$allColumns <- vector("list", 1)
 
   update_table <- function(df) {
-    # Generate a string representing the current classes of the incoming dataframe
-    new_classes_str <- paste0(sapply(df, function(col) paste0(class(col), collapse="/")), collapse = "|")
+    # Grab the true column classes directly from the Meta Table data (data3)
+    new_classes_str <- paste0(outer_env[[session_name]]$data3$class, collapse = "|")
 
-    # Rebuild the table if the column names OR the column classes have changed
+    # Rebuild if the column names OR the true column classes change
     if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F ||
         (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F) {
       
       obj_env$table_objects_list$current_columns <- colnames(df)
-      obj_env$table_objects_list$current_classes <- sapply(df, function(col) paste0(class(col), collapse="/"))
+      obj_env$table_objects_list$current_classes <- new_classes_str
 
       df2 <- obj_env$table_obj_function_df2(df)
       df <- cbind(df, df2)
