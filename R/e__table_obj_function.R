@@ -303,7 +303,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
               if (is.na(my_row[, "label"])) { pre_y <- "---" }
               else { pre_y <- my_row[, "label"] }
               
-              col_length <- max(nchar((outer_env[[session_name]]$data2[[j - 1]])))
+              col_length <- max(nchar(as.character(head(outer_env[[session_name]]$data2[[j - 1]], 500))))
               if (is.na(col_length)) {col_length <- 0}
               ############################################################
               # Insert line breaks to prevent labels from being too long #
