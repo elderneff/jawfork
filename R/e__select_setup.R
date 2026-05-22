@@ -103,7 +103,7 @@ e__select_setup <- function(header_table, row_1,obj_env=inner_env) {
       RGtk2::gtkEntrySetText(select_entry, txt)
     } else {
       x <- trimws(strsplit(x, ",", T)[[1]])
-      RGtk2::gtkEntrySetText(select_entry, paste0(x, ", ", txt))
+      RGtk2::gtkEntrySetText(select_entry, paste0(c(x, txt), collapse = ", "))
     }
 
     # df_obj$update_filter()
