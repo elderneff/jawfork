@@ -247,26 +247,24 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         state_int <- as.integer(event[["state"]])
         is_shift <- bitwAnd(state_int, 1) > 0
         
-        if (is_shift) {
-          direction <- event[["direction"]]
-          hadj <- RGtk2::gtkScrolledWindowGetHadjustment(sw_main)
+        direction <- event[["direction"]]
+        hadj <- RGtk2::gtkScrolledWindowGetHadjustment(sw_main)
+        
+        # Determine scroll amount (originally 3, settled on 1 to be last drastic)
+        step <- hadj$stepIncrement * 1
+        if (is.null(step) || step == 0) step <- 50
+        
+        if ((is_shift && direction == RGtk2::GdkScrollDirection["up"]) || direction == RGtk2::GdkScrollDirection["left"]) {
+          # Scroll Up = Move Left
+          new_val <- max(hadj$lower, hadj$value - step)
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(TRUE) # Return TRUE to tell GTK we handled the event (stops vertical scroll)
           
-          # Determine scroll amount (multiplying the default step by 3 usually feels natural)
-          step <- hadj$stepIncrement * 1000
-          if (is.null(step) || step == 0) step <- 50
-          
-          if (direction == RGtk2::GdkScrollDirection["up"]) {
-            # Scroll Up = Move Left
-            new_val <- max(hadj$lower, hadj$value - step)
-            RGtk2::gtkAdjustmentSetValue(hadj, new_val)
-            return(TRUE) # Return TRUE to tell GTK we handled the event (stops vertical scroll)
-            
-          } else if (direction == RGtk2::GdkScrollDirection["down"]) {
-            # Scroll Down = Move Right
-            new_val <- min(hadj$upper - hadj$pageSize, hadj$value + step)
-            RGtk2::gtkAdjustmentSetValue(hadj, new_val)
-            return(TRUE) # Return TRUE to tell GTK we handled the event (stops vertical scroll)
-          }
+        } else if ((is_shift && direction == RGtk2::GdkScrollDirection["down"]) || direction == RGtk2::GdkScrollDirection["right"]) {
+          # Scroll Down = Move Right
+          new_val <- min(hadj$upper - hadj$pageSize, hadj$value + step)
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(TRUE) # Return TRUE to tell GTK we handled the event (stops vertical scroll)
         }
         
         return(FALSE) # Return FALSE to let GTK handle normal vertical scrolling
