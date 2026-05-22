@@ -68,8 +68,15 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", paste0(sort(unique(filtered_data[, x, drop = T]), na.last = T), collapse = "\", \""), "\")")
     } 
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
+    #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", paste0(trimws(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = ", "), "), 5)")
+      vals <- sort(unique(filtered_data[, x, drop = T]), na.last = T)
+      
+      if (any(vals != round(vals, 4), na.rm = TRUE)) {
+        my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", paste0(trimws(vals), collapse = ", "), "), 5)")
+      } else {
+        my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(trimws(vals), collapse = ", "), ")")
+      }
     }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
@@ -129,8 +136,15 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } 
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
+    #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(current_row$row[, x, drop = T]), "), 5)")
+      vals <- current_row$row[, x, drop = T] 
+      
+      if (any(vals != round(vals, 4), na.rm = TRUE)) {
+        my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
+      } else {
+        my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
+      }
     }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
@@ -188,8 +202,15 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", current_row$row[, x, drop = T], "\")")
     } 
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
+    #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(current_row$row[, x, drop = T]), "), 5)")
+      vals <- current_row$row[, x, drop = T] 
+      
+      if (any(vals != round(vals, 4), na.rm = TRUE)) {
+        my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
+      } else {
+        my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
+      }
     }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
@@ -254,8 +275,15 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
         my_title[[i]] <- paste0(clean_x, " %in% c(\"", meta_row[, x, drop = T], "\")")
       } 
       #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
+      #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
       else if (is.numeric(temp_df[[x]])) {
-        my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(meta_row[, x, drop = T]), "), 5)")
+        vals <- meta_row[, x, drop = T] 
+        
+        if (any(vals != round(vals, 4), na.rm = TRUE)) {
+          my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
+        } else {
+          my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
+        }
       }
       #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
       else if (lubridate::is.Date(temp_df[[x]])) {
