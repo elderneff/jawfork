@@ -122,7 +122,48 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                     return(TRUE)
                 },data=list(session,shift_function, outer_env))
 
+  # Enable Horizontal Scrolling in the Text Area
+  RGtk2::gSignalConnect(temp_list$View, "scroll-event", function(widget, event, data) {
+      # 1. Safely determine if Shift is held
+      shift_held <- bitwAnd(as.integer(event[["state"]]), 1) > 0
+      direction <- event[["direction"]]
+      
+      # 2. If it's a normal vertical scroll without Shift, let GTK handle it natively!
+      if (!shift_held && !(direction %in% c(RGtk2::GdkScrollDirection["left"], RGtk2::GdkScrollDirection["right"]))) {
+          return(FALSE)
+      }
+      
+      # 3. Fetch the adjustment from the parent Scrolled Window
+      parent_sw <- RGtk2::gtkWidgetGetParent(widget)
+      hadj <- RGtk2::gtkScrolledWindowGetHadjustment(parent_sw)
+      
+      # Text areas often have very small default steps (pixels vs columns), 
+      # so you might actually want a LARGER multiplier here (e.g., 2.0 or 3.0) to speed it up
+      speed_modifier <- 2
+      step <- RGtk2::gtkAdjustmentGetStepIncrement(hadj)
+      actual_step <- step * speed_modifier
+      
+      # 4. Moving Left: Native Left Scroll -OR- (Shift + Up Scroll)
+      if (direction == RGtk2::GdkScrollDirection["left"] || 
+         (direction == RGtk2::GdkScrollDirection["up"] && shift_held)) {
+          
+          new_val <- max(hadj$lower, hadj$value - actual_step)
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(TRUE) 
+          
+      # 5. Moving Right: Native Right Scroll -OR- (Shift + Down Scroll)
+      } else if (direction == RGtk2::GdkScrollDirection["right"] || 
+                (direction == RGtk2::GdkScrollDirection["down"] && shift_held)) {
+          
+          new_val <- min(hadj$upper - hadj$pageSize, hadj$value + actual_step)
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(TRUE) 
+      }
+      
+      return(FALSE)
+  })
 
+  
 
   temp_list$Scroll <- RGtk2::gtkScrolledWindow()
   RGtk2::gtkScrolledWindowSetPolicy(temp_list$Scroll, "automatic", "automatic")
