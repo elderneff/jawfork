@@ -70,7 +70,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      vals <- sort(unique(filtered_data[, x, drop = T]), na.last = T)
+      vals <- as.numeric(sort(unique(filtered_data[, x, drop = T]), na.last = T))
       
       if (any(vals != round(vals, 4), na.rm = TRUE)) {
         my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", paste0(trimws(vals), collapse = ", "), "), 5)")
@@ -138,7 +138,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      vals <- current_row$row[, x, drop = T] 
+      vals <- as.numeric(current_row$row[, x, drop = T])
       
       if (any(vals != round(vals, 4), na.rm = TRUE)) {
         my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
@@ -204,7 +204,7 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
     #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
     else if (is.numeric(temp_df[[x]])) {
-      vals <- current_row$row[, x, drop = T] 
+      vals <- as.numeric(current_row$row[, x, drop = T])
       
       if (any(vals != round(vals, 4), na.rm = TRUE)) {
         my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
@@ -277,7 +277,7 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
       #Numeric - no quotes around values, wrapped in rounding for float precision and trimws for spacing
       #Check if values extend to 5+ decimal places to avoid unnecessary round() clutter
       else if (is.numeric(temp_df[[x]])) {
-        vals <- meta_row[, x, drop = T] 
+        vals <- as.numeric(meta_row[, x, drop = T])
         
         if (any(vals != round(vals, 4), na.rm = TRUE)) {
           my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", trimws(vals), "), 5)")
