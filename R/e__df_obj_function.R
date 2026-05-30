@@ -191,7 +191,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     }
 
     #Add output directory options
-    choices_dir <- c("Temporary directory", "Working directory (Data\Test)")
+    choices_dir <- c("Temporary directory", "Working directory (Data\\Test)")
     radio_buttons_dir <- NULL
     vbox_dir <- gtkVBox(F, 0)
     for (choice in choices_dir) {
