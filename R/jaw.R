@@ -78,6 +78,8 @@ jaw <- function(settings_dir=NULL) {
   totem$u__code_r_add <- e__with_env(e__code_r_add)
   totem$u__code_r_add_cmd <- e__with_env(e__code_r_add_cmd)
 
+  totem$u__check_code_prefs <- e__with_env(e__check_code_prefs)
+
   # Objects
 
   totem$u__df_tree <- e__with_env(e__df_tree)
