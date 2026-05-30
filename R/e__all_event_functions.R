@@ -95,11 +95,17 @@ e__all_event_functions <- function(outer_env = totem) {
   }
 
   i__all_event_functions[["Copy"]][["Column=Cell"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # 1. Check preferences (and prompt if needed)
+    if (!outer_env$u__check_code_prefs(session_name)) return()
+    
+    # 2. Extract spacing
+    sp <- ifelse(outer_env$settings_list$code_spacing == "Spaced (x = y)", " = ", "=")
+    
     column_classes <- obj_env$df_obj$get_column_classes()
     if (column_classes[obj_env$table_objects_list$current_row$column] == "numeric") {
-      utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, "=", obj_env$table_objects_list$current_row$value, " ")), format = 1)
+      utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, sp, obj_env$table_objects_list$current_row$value, " ")), format = 1)
     } else {
-      utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, "=\"", obj_env$table_objects_list$current_row$value, "\" ")), format = 1)
+      utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, sp, "\"", obj_env$table_objects_list$current_row$value, "\" ")), format = 1)
     }
   }
 
