@@ -39,7 +39,7 @@ create_dataset_layout <- function(full_df) {
 #'
 #' @return TODO
 
-create_dataset_layout_label <- function(full_df) {
+create_dataset_layout_label <- function(full_df, sp = "=") {
   string_builder <- c()
   if (any(is.na(full_df$label) == F)) {
     string_builder <- c(string_builder, "\tlabel")
@@ -47,15 +47,12 @@ create_dataset_layout_label <- function(full_df) {
       if (is.na(full_df$label[i]) == F) {
         string_builder <- c(
           string_builder,
-          paste0("\t\t", full_df$variable[i], "=\"", full_df$label[i], "\"")
+          paste0("\t\t", full_df$variable[i], sp, "\"", full_df$label[i], "\"")
         )
       }
     }
-
     string_builder <- c(string_builder, "\t;")
   }
-
-
   return(paste0(string_builder, collapse = "\n"))
 }
 
