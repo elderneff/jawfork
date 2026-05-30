@@ -1399,21 +1399,16 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$status_bar$info_label, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$status_bar$info_label_cell, F, F, padding = 2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+      #Record initial settings for smart saving
+      allocation <- RGtk2::gtkWidgetGetAllocation(outer_env[[session_name]]$windows$main_window)$allocation
+      
+      outer_env[[session_name]]$initial_sizes <- list(
+        main_pane = RGtk2::gtkPanedGetPosition(outer_env[[session_name]]$data_view_list$main_paned),
+        top_pane = RGtk2::gtkPanedGetPosition(outer_env[[session_name]]$data_view_list$top_paned),
+        slot_pane = RGtk2::gtkPanedGetPosition(outer_env[[session_name]]$data_view_list$paned),
+        window = c(allocation$width, allocation$height),
+        simplicity = outer_env[[session_name]]$status_bar$simplicity_view
+      )
 
 
 
