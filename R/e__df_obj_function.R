@@ -184,11 +184,20 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       button <- gtkCheckButton(choice)
       #Column names selected by default
       if (choice == "Column names") {
-        # gtkCheckMenuItemSetActive(button)
         button$setActive(T)
       }
       vbox_header$add(button)
       check_buttons_header <- c(check_buttons_header, button)
+    }
+
+    #Add output directory options
+    choices_dir <- c("Temporary directory", "Working directory (Test folder)")
+    radio_buttons_dir <- NULL
+    vbox_dir <- gtkVBox(F, 0)
+    for (choice in choices_dir) {
+      button <- gtkRadioButton(radio_buttons_dir, choice)
+      vbox_dir$add(button)
+      radio_buttons_dir <- c(radio_buttons_dir, button)
     }
     
     #Make a frame for NA
@@ -205,12 +214,17 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     frame <- gtkFrame("Settings for header rows")
     frame$add(vbox_header)
     dialog[["vbox"]]$add(frame)
+
+    #Make a frame for destination directory
+    frame_dir <- gtkFrame("Destination Directory")
+    frame_dir$add(vbox_dir)
+    dialog[["vbox"]]$add(frame_dir)
     
     #Require response before interacting with table
     response <- dialog$run()
   
     #Find selections
-    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header)
+    radio_buttons_all <- c(radio_buttons_NA, radio_buttons_index, check_buttons_header, radio_buttons_dir)
     selections <- logical(length(radio_buttons_all))
     for (i in 1:length(radio_buttons_all)) {
       if (gtkToggleButtonGetActive(radio_buttons_all[[i]])) {
@@ -228,7 +242,40 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     sas_w_ext <- outer_env[[session_name]]$sas_file_basename
     sas_ext <- unlist(gregexpr('.', sas_w_ext, fixed = T))[1]
     sas_no_ext <- substr(sas_w_ext, 1, sas_ext - 1)
-    temp <- paste0(tempdir(), "\\", sas_no_ext, ".csv")
+    
+    # Default to temporary directory
+    out_file <- paste0(tempdir(), "\\", sas_no_ext, ".csv")
+
+    # Interpret user settings for output directory
+    if (selections[8]) { # "Working directory" was selected
+      sas_full_path <- outer_env[[session_name]]$sas_file_path
+      
+      # Use ignore.case to match "/Data/" flexibly, as paths are sanitized to forward slashes in e__start
+      if (grepl("/data/", sas_full_path, ignore.case = TRUE)) {
+        # Extract the path up to and including the /Data folder
+        base_data_path <- sub("(/data)/.*", "\\1", sas_full_path, ignore.case = TRUE)
+        test_folder_path <- paste0(base_data_path, "/Test")
+        
+        # Create Test directory if it doesn't already exist
+        if (!dir.exists(test_folder_path)) {
+          dir.create(test_folder_path, recursive = TRUE, showWarnings = FALSE)
+        }
+        
+        out_file <- paste0(test_folder_path, "/", sas_no_ext, ".csv")
+      } else {
+        # Path validation failed: Throw an error message and fallback to tempdir
+        err_dialog <- gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window, 
+          flags = "destroy-with-parent", 
+          type = "error", 
+          buttons = "close", 
+          "Could not parse a 'Data' folder from the file path. Falling back to the temporary directory."
+        )
+        err_dialog$run()
+        gtkWidgetDestroy(err_dialog)
+      }
+    }
+
     #Interpret user settings
     if (selections[1]) {
       user_na <- ""
@@ -249,20 +296,21 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       append_data <- T
     }
     labels <- sapply(temp_df, function(x) attr(x, "label"))
+    
     #Only write file if user selected "OK"
     if (response == GtkResponseType["ok"]) {
       if (selections[5]) {
         #Write column names
-        write.table(t(colnames(temp_df)), sep = ",", file=temp, row.names = F, na = user_na, col.names = F)
+        write.table(t(colnames(temp_df)), sep = ",", file=out_file, row.names = F, na = user_na, col.names = F)
       }
       if (selections[6]) {
         #Write column labels
-        write.table(t(labels), sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_labels)
+        write.table(t(labels), sep = ",", file=out_file, row.names = F, na = user_na, col.names = F, append = append_labels)
       }
       #Write data
-      write.table(temp_df, sep = ",", file=temp, row.names = F, na = user_na, col.names = F, append = append_data)
+      write.table(temp_df, sep = ",", file=out_file, row.names = F, na = user_na, col.names = F, append = append_data)
+      shell.exec(out_file)
     }
-    shell.exec(temp)
   }
 
   copy_filter <- function(pass_columns = NULL, vector = F) {
