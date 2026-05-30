@@ -196,7 +196,7 @@ e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = to
   j <- 2
   for (i in column_values) {
     if (toupper(c_case) == "UPPERCASE") {
-      string_builder[j] <- paste0("ELSE IF ", current_row$column, sp, sep, i, sep, " THEN DO;\n    VAR, sp, "\"\";\nEND;")
+      string_builder[j] <- paste0("ELSE IF ", current_row$column, sp, sep, i, sep, " THEN DO;\n    VAR", sp, "\"\";\nEND;")
     } else {
       string_builder[j] <- paste0("else if ", current_row$column, sp, sep, i, sep, " then do;\n    var", sp, "\"\";\nend;")
     }
