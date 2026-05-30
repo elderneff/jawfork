@@ -296,7 +296,13 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
 
 
   copy_label <- function() {
-    x <- create_dataset_layout_label(obj_env$df_obj_list$full_df)
+    # 1. Check preferences (and prompt if needed)
+    if (!outer_env$u__check_code_prefs(session_name)) return()
+    
+    # 2. Extract spacing
+    sp <- ifelse(outer_env$settings_list$code_spacing == "Spaced (x = y)", " = ", "=")
+    
+    x <- create_dataset_layout_label(obj_env$df_obj_list$full_df, sp)
     clipr::write_clip(x, allow_non_interactive = T)
   }
 
