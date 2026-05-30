@@ -1409,6 +1409,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         window = c(allocation$width, allocation$height),
         simplicity = outer_env[[session_name]]$status_bar$simplicity_view
       )
+      
+      outer_env[[session_name]]$initial_settings_snapshot <- list(
+        maximize = totem$settings_list$maximize,
+        ctrlshift = totem$settings_list$ctrlshift,
+        columnlabel = totem$settings_list$columnlabel,
+        columnunique = totem$settings_list$columnunique,
+        professionalloading = totem$settings_list$professionalloading,
+        table_events = totem$settings_list$table_events
+      )
 
 
 
