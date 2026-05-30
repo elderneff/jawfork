@@ -30,13 +30,37 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
   initial <- outer_env[[session_name]]$initial_sizes
 
   # --- CRITICAL FIX: Cross-Process Memory Sync ---
-  # Pull the absolute latest sizes from the hard drive immediately before evaluating changes.
-  # This prevents an older session from overwriting a newer session's settings!
   try({
     disk_settings <- readRDS(outer_env$local_settings_rds)
-    if (is.list(disk_settings) && !is.null(disk_settings$default_sizes)) {
-      outer_env$settings_list$default_sizes <- disk_settings$default_sizes
-      outer_env$settings_list$simplicity <- disk_settings$simplicity
+    if (is.list(disk_settings)) {
+      
+      # 1. Sync global checkboxes and keybinds
+      for (setting_name in c("maximize", "ctrlshift", "columnlabel", "columnunique", "professionalloading", "table_events")) {
+        # If this session DID NOT change the setting from its initial state...
+        if (identical(outer_env$settings_list[[setting_name]], outer_env[[session_name]]$initial_settings_snapshot[[setting_name]])) {
+          # ...safely inherit the latest version from the disk
+          if (!is.null(disk_settings[[setting_name]])) {
+            outer_env$settings_list[[setting_name]] <- disk_settings[[setting_name]]
+          }
+        }
+      }
+
+      # 2. Merge running histories so we don't drop entries from other concurrent sessions
+      if (!is.null(disk_settings$file_history)) {
+        merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
+        outer_env$settings_list$file_history <- merged_history[duplicated(merged_history[, -(1:3)]) == F, ]
+      }
+      
+      if (!is.null(disk_settings$previous_code)) {
+        merged_code <- rbind(outer_env$settings_list$previous_code, disk_settings$previous_code)
+        outer_env$settings_list$previous_code <- merged_code[duplicated(merged_code[, -1]) == F, ]
+      }
+
+      # 3. Handle window sizes
+      if (!is.null(disk_settings$default_sizes)) {
+        outer_env$settings_list$default_sizes <- disk_settings$default_sizes
+        outer_env$settings_list$simplicity <- disk_settings$simplicity
+      }
     }
   }, silent = TRUE)
 
