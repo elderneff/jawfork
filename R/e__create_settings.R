@@ -149,35 +149,24 @@ e__create_settings <- function(outer_env = totem) {
 
 
       for (evbx in c(evbl, evb)) {
-        RGtk2::gSignalConnect(evbx, "button-press-event", function(widget,
-                                                                   event, data) {
+        RGtk2::gSignalConnect(evbx, "button-press-event", function(widget, event, data) {
           config_ia <- data[[1]]
           item_ia <- data[[2]]
           item_name <- data[[3]]
           outer_env <- data[[4]]
           current_state <- z__event_state(event)
-
-          # if ("General" == config_ia) {
-          #   config_set <- names(settings_config)
-          # } else {
-          #   config_set <- c(config_ia, "General")
-          # }
-          # for (config_i in config_set) {
-          #   for (item_i in names(settings_config[[config_i]])) {
-          #     item_name_i <- paste0(config_i, "|", item_i)
-
-          #     if (outer_env$settings_window$settings_config_objs[[item_name_i]]$val == current_state) {
-          #       RGtk2::gtkLabelSetLabel(outer_env$settings_window$settings_config_objs[[item_name_i]]$label, "-")
-          #       outer_env$settings_window$settings_config_objs[[item_name_i]]$val <- "-"
-
-          #       outer_env$settings_list$table_events[[config_i]][[item_i]] <- "-"
-          #     }
-          #   }
-          # }
-
-          RGtk2::gtkLabelSetLabel(outer_env$settings_window$settings_config_objs[[item_name]]$label, current_state)
-          outer_env$settings_window$settings_config_objs[[item_name]]$val <- current_state
-          outer_env$settings_list$table_events[[config_ia]][[item_ia]] <- current_state
+          
+          # If the user triggers the exact same keybind currently assigned, clear it
+          if (outer_env$settings_window$settings_config_objs[[item_name]]$val == current_state) {
+            RGtk2::gtkLabelSetLabel(outer_env$settings_window$settings_config_objs[[item_name]]$label, "-")
+            outer_env$settings_window$settings_config_objs[[item_name]]$val <- "-"
+            outer_env$settings_list$table_events[[config_ia]][[item_ia]] <- "-"
+          } else {
+            # Otherwise, assign the new keybind
+            RGtk2::gtkLabelSetLabel(outer_env$settings_window$settings_config_objs[[item_name]]$label, current_state)
+            outer_env$settings_window$settings_config_objs[[item_name]]$val <- current_state
+            outer_env$settings_list$table_events[[config_ia]][[item_ia]] <- current_state
+          }
 
           return(T)
         }, data = list(config_i, item_i, item_name, outer_env))
