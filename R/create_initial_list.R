@@ -215,6 +215,13 @@ check_settings <- function(settings) {
   if (("professionalloading" %in% names(settings)) == F) {
     settings$professionalloading <- F
   }
+  # Default code generation preferences to "Prompt" if there is no previous setting
+  if (("code_case" %in% names(settings)) == F) {
+    settings$code_case <- "Prompt"
+  }
+  if (("code_spacing" %in% names(settings)) == F) {
+    settings$code_spacing <- "Prompt"
+  }
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)
 
