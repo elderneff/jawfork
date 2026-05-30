@@ -251,7 +251,36 @@ e__create_settings <- function(outer_env = totem) {
   profloading <- RGtk2::gtkCheckButtonNewWithLabel("Show professional loading screen rather than Bob", show = TRUE)
   RGtk2::gtkToggleButtonSetActive(profloading, outer_env$settings_list$professionalloading)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, profloading, F, F, padding = 4) 
+
+  # Add combo box for Code Case
+  case_box <- RGtk2::gtkHBox()
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, case_box, F, F, padding = 4)
+  RGtk2::gtkBoxPackStart(case_box, RGtk2::gtkLabel("Generated Code Case: "), F, F, padding = 2)
+  case_combo <- RGtk2::gtkComboBoxNewText()
+  case_combo$show()
+  for (choice in c("Prompt", "Lowercase", "Uppercase")) case_combo$appendText(choice)
+  case_combo$setActive(which(c("Prompt", "Lowercase", "Uppercase") == outer_env$settings_list$code_case) - 1)
+  RGtk2::gtkBoxPackStart(case_box, case_combo, F, F, padding = 2)
   
+  RGtk2::gSignalConnect(case_combo, "changed", function(widget, data) {
+    outer_env <- data
+    outer_env$settings_list$code_case <- RGtk2::gtkComboBoxGetActiveText(widget)
+  }, data = outer_env)
+
+  # Add combo box for Code Spacing
+  space_box <- RGtk2::gtkHBox()
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, space_box, F, F, padding = 4)
+  RGtk2::gtkBoxPackStart(space_box, RGtk2::gtkLabel("Generated Code Spacing: "), F, F, padding = 2)
+  space_combo <- RGtk2::gtkComboBoxNewText()
+  space_combo$show()
+  for (choice in c("Prompt", "Spaced (x = y)", "Compact (x=y)")) space_combo$appendText(choice)
+  space_combo$setActive(which(c("Prompt", "Spaced (x = y)", "Compact (x=y)") == outer_env$settings_list$code_spacing) - 1)
+  RGtk2::gtkBoxPackStart(space_box, space_combo, F, F, padding = 2)
+
+  RGtk2::gSignalConnect(space_combo, "changed", function(widget, data) {
+    outer_env <- data
+    outer_env$settings_list$code_spacing <- RGtk2::gtkComboBoxGetActiveText(widget)
+  }, data = outer_env)  
   
   #Define function to call when maximization button clicked
   RGtk2::gSignalConnect(max, "toggled", function(max) {
@@ -289,15 +318,27 @@ e__create_settings <- function(outer_env = totem) {
   })
   
   #Define function to call when reset button clicked
-  RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, cb) {
+  RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
+    cb <- data[[1]]
+    case_combo <- data[[2]]
+    space_combo <- data[[3]]
+    outer_env <- data[[4]]
+    
     RGtk2::gtkToggleButtonSetActive(cb, T)
     outer_env$settings_list$maximize <- T
     outer_env$settings_list$ctrlshift <- T
     outer_env$settings_list$columnlabel <- T
     outer_env$settings_list$columnunique <- T
     outer_env$settings_list$professionalloading <- F
+    
+    # Reset code preferences to Prompt
+    outer_env$settings_list$code_case <- "Prompt"
+    outer_env$settings_list$code_spacing <- "Prompt"
+    case_combo$setActive(0)
+    space_combo$setActive(0)
+    
     return(T)
-  }, cb)
+  }, data = list(cb, case_combo, space_combo, outer_env))
 
 
 
