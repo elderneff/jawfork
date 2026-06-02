@@ -274,6 +274,8 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$code_case <- RGtk2::gtkComboBoxGetActiveText(widget)
   }, data = outer_env)
 
+  outer_env$settings_window$case_combo <- case_combo
+
   # Add combo box for Code Spacing
   space_box <- RGtk2::gtkHBox()
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, space_box, F, F, padding = 4)
@@ -288,6 +290,8 @@ e__create_settings <- function(outer_env = totem) {
     outer_env <- data
     outer_env$settings_list$code_spacing <- RGtk2::gtkComboBoxGetActiveText(widget)
   }, data = outer_env)  
+
+  outer_env$settings_window$space_combo <- space_combo
 
   # Initialize lists to store widget references for syncing
   outer_env$settings_window$ccd_name_entries <- list()
