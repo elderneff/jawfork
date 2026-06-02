@@ -893,12 +893,24 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               buttons = "ok-cancel", 
               "Define Custom Code Slots:")
             
-            # Create a notebook to hold multiple tabs
             notebook <- RGtk2::gtkNotebook()
             buffers <- list()
+            entries <- list()
             
-            # Create a text view for each slot
-            for (slot_name in names(slots)) {
+            for (i in 1:length(slots)) {
+              slot_data <- slots[[i]]
+              
+              vbox_tab <- RGtk2::gtkVBox(F, 5)
+              
+              # Nickname Box
+              hbox_name <- RGtk2::gtkHBox(F, 5)
+              RGtk2::gtkBoxPackStart(hbox_name, RGtk2::gtkLabel("Nickname:"), F, F, 0)
+              entry_name <- RGtk2::gtkEntry()
+              RGtk2::gtkEntrySetText(entry_name, slot_data$name)
+              RGtk2::gtkBoxPackStart(hbox_name, entry_name, T, T, 0)
+              RGtk2::gtkBoxPackStart(vbox_tab, hbox_name, F, F, 0)
+              
+              # Code Box
               sw <- RGtk2::gtkScrolledWindow()
               RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
               tv <- RGtk2::gtkTextView()
@@ -906,11 +918,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               RGtk2::gtkWidgetSetSizeRequest(sw, 400, 200)
               
               buf <- RGtk2::gtkTextViewGetBuffer(tv)
-              RGtk2::gtkTextBufferSetText(buf, slots[[slot_name]])
-              buffers[[slot_name]] <- buf
+              RGtk2::gtkTextBufferSetText(buf, slot_data$code)
+              RGtk2::gtkBoxPackStart(vbox_tab, sw, T, T, 0)
               
-              label <- RGtk2::gtkLabel(slot_name)
-              RGtk2::gtkNotebookAppendPage(notebook, sw, label)
+              buffers[[i]] <- buf
+              entries[[i]] <- entry_name
+              
+              label <- RGtk2::gtkLabel(paste("Slot", i))
+              RGtk2::gtkNotebookAppendPage(notebook, vbox_tab, label)
             }
             
             vbox <- dialog[["vbox"]]
@@ -919,13 +934,25 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             
             response <- dialog$run()
             if (response == RGtk2::GtkResponseType["ok"]) {
-              # Save all buffers back to the settings
-              for (slot_name in names(slots)) {
-                buf <- buffers[[slot_name]]
+              for (i in 1:length(slots)) {
+                # Pull from Dialog
+                buf <- buffers[[i]]
                 end_iter <- RGtk2::gtkTextBufferGetEndIter(buf)
                 start_iter <- RGtk2::gtkTextBufferGetStartIter(buf)
                 new_code <- RGtk2::gtkTextBufferGetText(buf, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
-                outer_env$settings_list$custom_code_slots[[slot_name]] <- new_code
+                new_name <- RGtk2::gtkEntryGetText(entries[[i]])
+                
+                # Save to Settings
+                outer_env$settings_list$custom_code_slots[[i]]$code <- new_code
+                outer_env$settings_list$custom_code_slots[[i]]$name <- new_name
+                
+                # Sync directly with Global Settings Window to fix the bug
+                if (!is.null(outer_env$settings_window$ccd_name_entries[[i]])) {
+                    RGtk2::gtkEntrySetText(outer_env$settings_window$ccd_name_entries[[i]], new_name)
+                }
+                if (!is.null(outer_env$settings_window$ccd_code_buffers[[i]])) {
+                    RGtk2::gtkTextBufferSetText(outer_env$settings_window$ccd_code_buffers[[i]], new_code)
+                }
               }
               save_settings(outer_env)
             }
@@ -936,19 +963,20 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             menu <- RGtk2::gtkMenu()
             has_code <- FALSE
             
-            for (slot_name in names(slots)) {
-              code <- slots[[slot_name]]
+            for (i in 1:length(slots)) {
+              slot_data <- slots[[i]]
+              code <- slot_data$code
+              name <- slot_data$name
+              
               if (code != "") {
                 has_code <- TRUE
                 
-                # Create a preview string to show in the menu
-                preview <- gsub("\n", " ", code) # Flatten to one line for the menu
+                preview <- gsub("\n", " ", code) 
                 if (nchar(preview) > 30) preview <- paste0(substr(preview, 1, 27), "...")
-                item_label <- paste0(slot_name, ": ", preview)
+                item_label <- paste0(name, ": ", preview)
                 
                 menu_item <- RGtk2::gtkMenuItem(label = item_label)
                 
-                # When clicked, append the code
                 RGtk2::gSignalConnect(menu_item, "activate", function(widget, cb_data) {
                   sn <- cb_data[[1]]
                   oe <- cb_data[[2]]
@@ -961,10 +989,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               }
             }
             
-            # Fallback if no slots are filled out yet
             if (!has_code) {
               menu_item <- RGtk2::gtkMenuItem(label = "No code defined. Right-click to edit.")
-              RGtk2::gtkWidgetSetSensitive(menu_item, FALSE) # Gray out
+              RGtk2::gtkWidgetSetSensitive(menu_item, FALSE)
               RGtk2::gtkMenuShellAppend(menu, menu_item)
             }
             
