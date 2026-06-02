@@ -45,6 +45,9 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     return()
   }
 
+  # Escape the target column with backticks for eval(parse())
+  safe_col <- paste0("`", current_row$column, "`")
+
   #Check if group by checkbox is checked before pulling value
   if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
     group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
@@ -57,6 +60,7 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     
     # 1. Prepare for an overall group
     group_vars <- stringr::str_split(group_by_entry, ", ")[[1]]
+    safe_group_vars <- paste0("`", group_vars, "`") # Escape group vars
     temp_df_combined <- temp_df
     
     # Convert grouping vars to character to prevent factor level warnings
@@ -78,16 +82,16 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     }
     temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
 
-    # 3. Calculate metrics using the combined dataframe!
-    Output <- temp_df_combined %>% group_by_(.dots = group_vars) %>% summarise(N = sum(!is.na(eval(parse(text = current_row$column)))),
-                                                                                                  Mean = mean(eval(parse(text = current_row$column)), na.rm = T),
-                                                                                                  SD = sd(eval(parse(text = current_row$column)), na.rm = T),
-                                                                                                  Median = quantile(eval(parse(text = current_row$column)), prob = c(0.50), type = 2, na.rm = T, names = F),
-                                                                                                  Q1 = quantile(eval(parse(text = current_row$column)), prob = c(0.25), type = 2, na.rm = T, names = F),
-                                                                                                  Q3 = quantile(eval(parse(text = current_row$column)), prob = c(0.75), type = 2, na.rm = T, names = F),
-                                                                                                  Min = quantile(eval(parse(text = current_row$column)), prob = c(0.00), type = 2, na.rm = T, names = F),
-                                                                                                  Max = quantile(eval(parse(text = current_row$column)), prob = c(1.00), type = 2, na.rm = T, names = F),
-                                                                                                  preSum = sum(eval(parse(text = current_row$column)), na.rm = T))
+    # 3. Calculate metrics using the combined dataframe (using escaped variables)
+    Output <- temp_df_combined %>% group_by_(.dots = safe_group_vars) %>% summarise(N = sum(!is.na(eval(parse(text = safe_col)))),
+                                                                                                  Mean = mean(eval(parse(text = safe_col)), na.rm = T),
+                                                                                                  SD = sd(eval(parse(text = safe_col)), na.rm = T),
+                                                                                                  Median = quantile(eval(parse(text = safe_col)), prob = c(0.50), type = 2, na.rm = T, names = F),
+                                                                                                  Q1 = quantile(eval(parse(text = safe_col)), prob = c(0.25), type = 2, na.rm = T, names = F),
+                                                                                                  Q3 = quantile(eval(parse(text = safe_col)), prob = c(0.75), type = 2, na.rm = T, names = F),
+                                                                                                  Min = quantile(eval(parse(text = safe_col)), prob = c(0.00), type = 2, na.rm = T, names = F),
+                                                                                                  Max = quantile(eval(parse(text = safe_col)), prob = c(1.00), type = 2, na.rm = T, names = F),
+                                                                                                  preSum = sum(eval(parse(text = safe_col)), na.rm = T))
     Output$MeanSD <- paste0(round(Output$Mean, digits = 4), " (", round(Output$SD, digits = 4), ")")
     Output$Mean <- Output$MeanSD
     Output$Q1Q3 <- paste0("(", Output$Q1, ", ", Output$Q3, ")")
