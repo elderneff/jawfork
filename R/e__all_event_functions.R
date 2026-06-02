@@ -348,7 +348,7 @@ e__all_event_functions <- function(outer_env = totem) {
     outer_env$u__add_before_filter_table(session_name, current_row)
   }
   i__all_event_functions[["Summary Table"]][["Copy Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__copy_mapping_if_then(session_name, current_row)
+    outer_env$u__copy_mapping(session_name, current_row)
   }
 
   i__all_event_functions[["Summary Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
