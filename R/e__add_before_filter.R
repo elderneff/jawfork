@@ -394,9 +394,9 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     }
 
     # Greedy match up to the last 'c(', then grab values (ignoring parentheses inside strings), then grab the suffix
-    rgx <- "^([^&]*%in%[^&]*?c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\)[^&]*)$"
+    rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
 
-    if (active_idx > 0 && grepl(rgx, code_lines[active_idx]) && grepl(rgx, cmd)) {
+    if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
       last_line <- code_lines[active_idx]
 
       last_pfx <- sub(rgx, "\\1", last_line)
