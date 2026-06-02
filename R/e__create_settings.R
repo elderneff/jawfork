@@ -281,6 +281,42 @@ e__create_settings <- function(outer_env = totem) {
     outer_env <- data
     outer_env$settings_list$code_spacing <- RGtk2::gtkComboBoxGetActiveText(widget)
   }, data = outer_env)  
+
+  # Add frame and notebook for Custom Code editing in settings
+  frame_ccd <- RGtk2::gtkFrame("Custom Button Codes (ccd)")
+  notebook_ccd <- RGtk2::gtkNotebook()
+
+  for (slot_name in names(outer_env$settings_list$custom_code_slots)) {
+    sw_ccd <- RGtk2::gtkScrolledWindow()
+    RGtk2::gtkScrolledWindowSetPolicy(sw_ccd, "automatic", "automatic")
+    RGtk2::gtkWidgetSetSizeRequest(sw_ccd, -1, 150)
+
+    tv_ccd <- RGtk2::gtkTextView()
+    buf_ccd <- RGtk2::gtkTextViewGetBuffer(tv_ccd)
+    RGtk2::gtkTextBufferSetText(buf_ccd, outer_env$settings_list$custom_code_slots[[slot_name]])
+    
+    RGtk2::gtkContainerAdd(sw_ccd, tv_ccd)
+    label <- RGtk2::gtkLabel(slot_name)
+    RGtk2::gtkNotebookAppendPage(notebook_ccd, sw_ccd, label)
+
+    # Auto-save changes dynamically as the user types in the settings window
+    RGtk2::gSignalConnect(buf_ccd, "changed", function(buf, data) {
+      slot <- data[[1]]
+      oe <- data[[2]]
+      end_iter <- RGtk2::gtkTextBufferGetEndIter(buf)
+      start_iter <- RGtk2::gtkTextBufferGetStartIter(buf)
+      new_code <- RGtk2::gtkTextBufferGetText(buf, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+      
+      oe$settings_list$custom_code_slots[[slot]] <- new_code
+      save_settings(oe)
+      return(TRUE)
+    }, data = list(slot_name, outer_env))
+  }
+
+  RGtk2::gtkContainerAdd(frame_ccd, notebook_ccd)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, frame_ccd, F, F, padding = 4)
+
+  
   
   #Define function to call when maximization button clicked
   RGtk2::gSignalConnect(max, "toggled", function(max) {
