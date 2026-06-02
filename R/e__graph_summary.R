@@ -24,8 +24,23 @@ e__graph_summary <- function(session_name, current_row,outer_env=totem) {
   }
 
   ################################################################
-  # Begin JNEFF code, I do not even want to touch anything above #
+  # Begin JNEFF code
   ################################################################
+  
+  # ERROR CATCH: Ensure the selected column is numeric
+  if (!(class(temp_df[[current_row$column]]) %in% c("numeric", "integer"))) {
+    err_dialog <- RGtk2::gtkMessageDialog(
+      parent = outer_env[[session_name]]$windows$main_window, 
+      flags = "destroy-with-parent", 
+      type = "error", 
+      buttons = "close", 
+      paste0("Cannot produce boxplot: '", current_row$column, "' is not a numeric variable.")
+    )
+    err_dialog$run()
+    RGtk2::gtkWidgetDestroy(err_dialog)
+    return()
+  }
+  
   #Output graphics in separate window
   options(device = "windows")
   
@@ -38,38 +53,18 @@ e__graph_summary <- function(session_name, current_row,outer_env=totem) {
 
   ### Handle when there are grouping variables ###
   if (group_by_entry != "") {
-    ### Get sum if the selected column is numeric ###
-    if (class(temp_df[[current_row$column]]) %in% c("numeric", "integer")) {
-      #utils::writeClipboard(str = "Group by, target column is numeric", format = 1)
-
-      #Separate group_by_entry by asterisks instead of commas
-      group_by_entry_asterisks <- gsub(", ", "*", group_by_entry)
-      #Concatenate the independent and dependent variables into a string
-      title <- sprintf('%s ~ %s', current_row$column, group_by_entry_asterisks)
-      eval(parse(text = sprintf('plot <- boxplot(%s ~ %s, temp_df, ylab = "%s", main = "%s")', current_row$column, group_by_entry_asterisks, current_row$column, title)))
-      text(1:length(plot$n), min(temp_df[[current_row$column]], na.rm = T) - ((max(temp_df[[current_row$column]], na.rm = T) - min(temp_df[[current_row$column]], na.rm = T)) * 0.02), paste("n=", plot$n))
-      grid()
-    ### Otherwise no boxplot ###
-    } else {   
-      #utils::writeClipboard(str = "Group by, target column is not numeric", format = 1)
-
-      stop('Cannot produce boxplot of character values')
-    }
+    #Separate group_by_entry by asterisks instead of commas
+    group_by_entry_asterisks <- gsub(", ", "*", group_by_entry)
+    #Concatenate the independent and dependent variables into a string
+    title <- sprintf('%s ~ %s', current_row$column, group_by_entry_asterisks)
+    eval(parse(text = sprintf('plot <- boxplot(%s ~ %s, temp_df, ylab = "%s", main = "%s")', current_row$column, group_by_entry_asterisks, current_row$column, title)))
+    text(1:length(plot$n), min(temp_df[[current_row$column]], na.rm = T) - ((max(temp_df[[current_row$column]], na.rm = T) - min(temp_df[[current_row$column]], na.rm = T)) * 0.02), paste("n=", plot$n))
+    grid()
+    
   ### Handle when there are no grouping variables ###
   } else {
-    ### Make boxplot if the selected column is numeric ###
-    if (class(temp_df[[current_row$column]]) %in% c("numeric", "integer")) {   
-      #utils::writeClipboard(str = "Target column is numeric", format = 1) 
-
-      #boxplot(temp_df[[current_row$column]])
-      eval(parse(text = sprintf('plot <- boxplot(temp_df[[current_row$column]], xlab = "", ylab = "%s", main = "%s")', current_row$column, current_row$column)))
-      text(1:length(plot$n), min(temp_df[[current_row$column]], na.rm = T) - ((max(temp_df[[current_row$column]], na.rm = T) - min(temp_df[[current_row$column]], na.rm = T)) * 0.02), paste("n=", plot$n))
-      grid()
-    ### Otherwise no boxplot ###
-    } else {    
-      #utils::writeClipboard(str = "Target column is not numeric", format = 1)
-
-      stop('Cannot produce boxplot of character values')
-    }
+    eval(parse(text = sprintf('plot <- boxplot(temp_df[[current_row$column]], xlab = "", ylab = "%s", main = "%s")', current_row$column, current_row$column)))
+    text(1:length(plot$n), min(temp_df[[current_row$column]], na.rm = T) - ((max(temp_df[[current_row$column]], na.rm = T) - min(temp_df[[current_row$column]], na.rm = T)) * 0.02), paste("n=", plot$n))
+    grid()
   }
 }
