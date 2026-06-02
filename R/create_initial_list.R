@@ -222,14 +222,14 @@ check_settings <- function(settings) {
   if (("code_spacing" %in% names(settings)) == F) {
     settings$code_spacing <- "Prompt"
   }
-  # Default custom code slots to empty strings
+  # Default custom code slots to list of name/code pairs
   if (("custom_code_slots" %in% names(settings)) == F) {
     settings$custom_code_slots <- list(
-      "Slot 1" = "",
-      "Slot 2" = "",
-      "Slot 3" = "",
-      "Slot 4" = "",
-      "Slot 5" = ""
+      list(name = "Slot 1", code = ""),
+      list(name = "Slot 2", code = ""),
+      list(name = "Slot 3", code = ""),
+      list(name = "Slot 4", code = ""),
+      list(name = "Slot 5", code = "")
     )
   }
 
