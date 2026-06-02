@@ -24,7 +24,7 @@ e__copy_if_then <- function(session_name, current_row, df_obj, outer_env = totem
   vbox <- dialog[["vbox"]]
   
   # Missing check toggle
-  cb_missing <- RGtk2::gtkCheckButtonNewWithLabel("Include check for missing values as the first branch")
+  cb_missing <- RGtk2::gtkCheckButtonNewWithLabel("Include branch for missing values")
   RGtk2::gtkToggleButtonSetActive(cb_missing, TRUE)
   RGtk2::gtkBoxPackStart(vbox, cb_missing, FALSE, FALSE, 5)
   
@@ -34,12 +34,12 @@ e__copy_if_then <- function(session_name, current_row, df_obj, outer_env = totem
   RGtk2::gtkBoxPackStart(vbox, cb_warning, FALSE, FALSE, 5)
   
   # Var Type Radio Buttons inside a Frame
-  frame_type <- RGtk2::gtkFrameNew("Target Variable Type")
+  frame_type <- RGtk2::gtkFrameNew("Result Variable Type")
   vbox_type <- RGtk2::gtkVBoxNew(FALSE, 5)
   RGtk2::gtkContainerSetBorderWidth(vbox_type, 5)
   
-  rb_char <- RGtk2::gtkRadioButtonNewWithLabel(group = NULL, label = "Character (\"\")")
-  rb_num <- RGtk2::gtkRadioButtonNewWithLabelFromWidget(group = rb_char, label = "Numeric (.)")
+  rb_char <- RGtk2::gtkRadioButtonNewWithLabel(group = NULL, label = "Character")
+  rb_num <- RGtk2::gtkRadioButtonNewWithLabelFromWidget(group = rb_char, label = "Numeric")
   
   RGtk2::gtkBoxPackStart(vbox_type, rb_char, FALSE, FALSE, 0)
   RGtk2::gtkBoxPackStart(vbox_type, rb_num, FALSE, FALSE, 0)
@@ -141,7 +141,7 @@ e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = to
   vbox <- dialog[["vbox"]]
   
   # Missing check toggle
-  cb_missing <- RGtk2::gtkCheckButtonNewWithLabel("Include check for missing values as the first branch")
+  cb_missing <- RGtk2::gtkCheckButtonNewWithLabel("Include branch for missing values")
   RGtk2::gtkToggleButtonSetActive(cb_missing, TRUE)
   RGtk2::gtkBoxPackStart(vbox, cb_missing, FALSE, FALSE, 5)
   
@@ -155,8 +155,8 @@ e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = to
   vbox_type <- RGtk2::gtkVBoxNew(FALSE, 5)
   RGtk2::gtkContainerSetBorderWidth(vbox_type, 5)
   
-  rb_char <- RGtk2::gtkRadioButtonNewWithLabel(group = NULL, label = "Character (\"\")")
-  rb_num <- RGtk2::gtkRadioButtonNewWithLabelFromWidget(group = rb_char, label = "Numeric (.)")
+  rb_char <- RGtk2::gtkRadioButtonNewWithLabel(group = NULL, label = "Character")
+  rb_num <- RGtk2::gtkRadioButtonNewWithLabelFromWidget(group = rb_char, label = "Numeric")
   
   RGtk2::gtkBoxPackStart(vbox_type, rb_char, FALSE, FALSE, 0)
   RGtk2::gtkBoxPackStart(vbox_type, rb_num, FALSE, FALSE, 0)
