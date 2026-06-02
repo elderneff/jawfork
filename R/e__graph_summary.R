@@ -97,3 +97,81 @@ e__graph_summary <- function(session_name, current_row,outer_env=totem) {
     grid()
   }
 }
+
+
+#' e__scatter_summary
+#'
+#' @param session_name TODO
+#' @param current_row TODO
+#' @param outer_env TODO
+#'
+#' @return TODO
+
+e__scatter_summary <- function(session_name, current_row, outer_env = totem) {
+  # Trigger loading screen. on.exit ensures it hides even if the function errors out early.
+  outer_env$show_load_window()
+  on.exit(try({ outer_env$hide_load_window() }, silent = TRUE), add = TRUE)
+  
+  temp_df <- outer_env[[session_name]]$data2
+  y_col <- current_row$column
+  
+  # Constraint 1: Target column must be numeric
+  if (!any(class(temp_df[[y_col]]) %in% c("numeric", "integer"))) {
+    err_dialog <- RGtk2::gtkMessageDialog(
+      parent = outer_env[[session_name]]$windows$main_window, 
+      flags = "destroy-with-parent", 
+      type = "error", 
+      buttons = "close", 
+      paste0("Cannot produce scatterplot: Target column '", y_col, "' is not numeric.")
+    )
+    err_dialog$run()
+    RGtk2::gtkWidgetDestroy(err_dialog)
+    return()
+  }
+
+  if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
+    group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+  } else {
+    group_by_entry <- ""
+  }
+
+  # Clean the group by input to count unique variables
+  group_vars <- trimws(strsplit(group_by_entry, ",")[[1]])
+  group_vars <- group_vars[group_vars != ""]
+
+  # Constraint 2: Exactly 1 grouping variable
+  if (length(group_vars) != 1) {
+    err_dialog <- RGtk2::gtkMessageDialog(
+      parent = outer_env[[session_name]]$windows$main_window, 
+      flags = "destroy-with-parent", 
+      type = "error", 
+      buttons = "close", 
+      "Scatterplot requires exactly 1 Group By variable."
+    )
+    err_dialog$run()
+    RGtk2::gtkWidgetDestroy(err_dialog)
+    return()
+  }
+
+  x_col <- group_vars[1]
+
+  # Constraint 3: Group By column must be numeric
+  if (!any(class(temp_df[[x_col]]) %in% c("numeric", "integer"))) {
+    err_dialog <- RGtk2::gtkMessageDialog(
+      parent = outer_env[[session_name]]$windows$main_window, 
+      flags = "destroy-with-parent", 
+      type = "error", 
+      buttons = "close", 
+      paste0("Cannot produce scatterplot: Group By column '", x_col, "' is not numeric.")
+    )
+    err_dialog$run()
+    RGtk2::gtkWidgetDestroy(err_dialog)
+    return()
+  }
+
+  # Render Plot
+  options(device = "windows")
+  title <- sprintf('%s vs %s', y_col, x_col)
+  eval(parse(text = sprintf('plot(%s ~ %s, data = temp_df, xlab = "%s", ylab = "%s", main = "%s")', y_col, x_col, x_col, y_col, title)))
+  grid()
+}
