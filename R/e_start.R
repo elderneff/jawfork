@@ -872,6 +872,67 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }, data = list(session_name, outer_env)
       )
 
+      u__button(
+        box = outer_env[[session_name]]$data_view_list$file_source_bar,
+        start = T, padding = 2,
+        but_txt = "ccd",
+        tool_tip = "Custom code (Left-click to insert, Right-click to edit)",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          
+          # In GTK, event[["button"]] == 1 is left click, 3 is right click
+          is_right_click <- event[["button"]] == 3
+          current_code <- outer_env$settings_list$custom_code_button
+          
+          # Trigger the dialog if it's a right click or if no code has been set yet
+          if (is_right_click || current_code == "") {
+            dialog <- RGtk2::gtkMessageDialog(
+              parent = outer_env[[session_name]]$windows$main_window, 
+              flags = "destroy-with-parent", 
+              type = "question", 
+              buttons = "ok-cancel", 
+              "Define Custom Code:")
+            
+            # Setup a scrolled window with a text view for multi-line support
+            sw <- RGtk2::gtkScrolledWindow()
+            RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
+            tv <- RGtk2::gtkTextView()
+            RGtk2::gtkContainerAdd(sw, tv)
+            RGtk2::gtkWidgetSetSizeRequest(sw, 400, 200)
+            
+            buffer <- RGtk2::gtkTextViewGetBuffer(tv)
+            RGtk2::gtkTextBufferSetText(buffer, current_code)
+            
+            vbox <- dialog[["vbox"]]
+            RGtk2::gtkBoxPackStart(vbox, sw, TRUE, TRUE, 0)
+            RGtk2::gtkWidgetShowAll(vbox)
+            
+            response <- dialog$run()
+            if (response == RGtk2::GtkResponseType["ok"]) {
+              end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+              start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+              new_code <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+              
+              outer_env$settings_list$custom_code_button <- new_code
+              save_settings(outer_env)
+              current_code <- new_code
+            }
+            RGtk2::gtkWidgetDestroy(dialog)
+            
+            # If they just left-clicked to initially define it, instantly paste it after saving
+            if (!is_right_click && current_code != "") {
+              outer_env$u__append_before_code(session_name, cmd = current_code)
+            }
+          } else {
+            # Normal left click with existing code
+            outer_env$u__append_before_code(session_name, cmd = current_code)
+          }
+          
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
+
       # u__button(
       #   box = outer_env[[session_name]]$data_view_list$file_source_bar,
       #   start = T, padding = 2,
