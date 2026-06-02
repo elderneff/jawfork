@@ -60,6 +60,16 @@ e__check_code_prefs <- function(session_name, outer_env = totem) {
     for (i in 1:length(radio_buttons_space)) {
       if (gtkToggleButtonGetActive(radio_buttons_space[[i]])) outer_env$settings_list$code_spacing <- choices_space[i]
     }
+
+    #Update the settings UI if it is currently loaded
+    if (!is.null(outer_env$settings_window$case_combo)) {
+      case_idx <- which(c("Prompt", "Lowercase", "Uppercase") == outer_env$settings_list$code_case) - 1
+      if (length(case_idx) > 0) outer_env$settings_window$case_combo$setActive(case_idx)
+    }
+    if (!is.null(outer_env$settings_window$space_combo)) {
+      space_idx <- which(c("Prompt", "Spaced (x = y)", "Compact (x=y)") == outer_env$settings_list$code_spacing) - 1
+      if (length(space_idx) > 0) outer_env$settings_window$space_combo$setActive(space_idx)
+    }
     
     gtkWidgetDestroy(dialog)
     save_settings(outer_env)
