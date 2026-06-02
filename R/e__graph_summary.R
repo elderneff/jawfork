@@ -44,6 +44,9 @@ e__graph_summary <- function(session_name, current_row,outer_env=totem) {
     RGtk2::gtkWidgetDestroy(err_dialog)
     return()
   }
+
+  # Escape target variable for formula evaluation
+  safe_y <- paste0("`", current_row$column, "`")
   
   #Output graphics in separate window
   options(device = "windows")
@@ -80,13 +83,15 @@ e__graph_summary <- function(session_name, current_row,outer_env=totem) {
     }
     temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
 
-    #Separate group_by_entry by asterisks instead of commas
-    group_by_entry_asterisks <- gsub(", ", "*", group_by_entry)
-    #Concatenate the independent and dependent variables into a string
-    title <- sprintf('%s ~ %s', current_row$column, group_by_entry_asterisks)
+    # 3. Escape variables for the formula parser
+    safe_group_vars <- paste0("`", group_vars, "`")
+    group_by_entry_asterisks <- paste(safe_group_vars, collapse = " * ")
     
-    # 3. Plot using the combined dataframe
-    eval(parse(text = sprintf('plot <- boxplot(%s ~ %s, temp_df_combined, ylab = "%s", main = "%s")', current_row$column, group_by_entry_asterisks, current_row$column, title)))
+    # Unescaped string for plot titles
+    title <- sprintf('%s ~ %s', current_row$column, paste(group_vars, collapse = " * "))
+    
+    # 4. Plot using the combined dataframe
+    eval(parse(text = sprintf('plot <- boxplot(%s ~ %s, temp_df_combined, ylab = "%s", main = "%s")', safe_y, group_by_entry_asterisks, current_row$column, title)))
     text(1:length(plot$n), min(temp_df_combined[[current_row$column]], na.rm = T) - ((max(temp_df_combined[[current_row$column]], na.rm = T) - min(temp_df_combined[[current_row$column]], na.rm = T)) * 0.02), paste("n=", plot$n))
     grid()
     
@@ -169,9 +174,15 @@ e__scatter_summary <- function(session_name, current_row, outer_env = totem) {
     return()
   }
 
+  # Escape variables for parsing logic
+  safe_y <- paste0("`", y_col, "`")
+  safe_x <- paste0("`", x_col, "`")
+
   # Render Plot
   options(device = "windows")
   title <- sprintf('%s vs %s', y_col, x_col)
-  eval(parse(text = sprintf('plot(%s ~ %s, data = temp_df, xlab = "%s", ylab = "%s", main = "%s")', y_col, x_col, x_col, y_col, title)))
+  
+  # Pass escaped variables to the formula, but raw names to the axis titles
+  eval(parse(text = sprintf('plot(%s ~ %s, data = temp_df, xlab = "%s", ylab = "%s", main = "%s")', safe_y, safe_x, x_col, y_col, title)))
   grid()
 }
