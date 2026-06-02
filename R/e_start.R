@@ -876,57 +876,100 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         box = outer_env[[session_name]]$data_view_list$file_source_bar,
         start = T, padding = 2,
         but_txt = "ccd",
-        tool_tip = "Custom code (Left-click to insert, Right-click to edit)",
+        tool_tip = "Custom code (Left-click to select, Right-click to edit)",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
           
-          # In GTK, event[["button"]] == 1 is left click, 3 is right click
           is_right_click <- event[["button"]] == 3
-          current_code <- outer_env$settings_list$custom_code_button
+          slots <- outer_env$settings_list$custom_code_slots
           
-          # Trigger the dialog if it's a right click or if no code has been set yet
-          if (is_right_click || current_code == "") {
+          if (is_right_click) {
+            # --- Right Click: Open Tabbed Editor Dialog ---
             dialog <- RGtk2::gtkMessageDialog(
               parent = outer_env[[session_name]]$windows$main_window, 
               flags = "destroy-with-parent", 
               type = "question", 
               buttons = "ok-cancel", 
-              "Define Custom Code:")
+              "Define Custom Code Slots:")
             
-            # Setup a scrolled window with a text view for multi-line support
-            sw <- RGtk2::gtkScrolledWindow()
-            RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
-            tv <- RGtk2::gtkTextView()
-            RGtk2::gtkContainerAdd(sw, tv)
-            RGtk2::gtkWidgetSetSizeRequest(sw, 400, 200)
+            # Create a notebook to hold multiple tabs
+            notebook <- RGtk2::gtkNotebook()
+            buffers <- list()
             
-            buffer <- RGtk2::gtkTextViewGetBuffer(tv)
-            RGtk2::gtkTextBufferSetText(buffer, current_code)
+            # Create a text view for each slot
+            for (slot_name in names(slots)) {
+              sw <- RGtk2::gtkScrolledWindow()
+              RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
+              tv <- RGtk2::gtkTextView()
+              RGtk2::gtkContainerAdd(sw, tv)
+              RGtk2::gtkWidgetSetSizeRequest(sw, 400, 200)
+              
+              buf <- RGtk2::gtkTextViewGetBuffer(tv)
+              RGtk2::gtkTextBufferSetText(buf, slots[[slot_name]])
+              buffers[[slot_name]] <- buf
+              
+              label <- RGtk2::gtkLabel(slot_name)
+              RGtk2::gtkNotebookAppendPage(notebook, sw, label)
+            }
             
             vbox <- dialog[["vbox"]]
-            RGtk2::gtkBoxPackStart(vbox, sw, TRUE, TRUE, 0)
+            RGtk2::gtkBoxPackStart(vbox, notebook, TRUE, TRUE, 0)
             RGtk2::gtkWidgetShowAll(vbox)
             
             response <- dialog$run()
             if (response == RGtk2::GtkResponseType["ok"]) {
-              end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
-              start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
-              new_code <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
-              
-              outer_env$settings_list$custom_code_button <- new_code
+              # Save all buffers back to the settings
+              for (slot_name in names(slots)) {
+                buf <- buffers[[slot_name]]
+                end_iter <- RGtk2::gtkTextBufferGetEndIter(buf)
+                start_iter <- RGtk2::gtkTextBufferGetStartIter(buf)
+                new_code <- RGtk2::gtkTextBufferGetText(buf, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+                outer_env$settings_list$custom_code_slots[[slot_name]] <- new_code
+              }
               save_settings(outer_env)
-              current_code <- new_code
             }
             RGtk2::gtkWidgetDestroy(dialog)
             
-            # If they just left-clicked to initially define it, instantly paste it after saving
-            if (!is_right_click && current_code != "") {
-              outer_env$u__append_before_code(session_name, cmd = current_code)
-            }
           } else {
-            # Normal left click with existing code
-            outer_env$u__append_before_code(session_name, cmd = current_code)
+            # --- Left Click: Pop-up Menu ---
+            menu <- RGtk2::gtkMenu()
+            has_code <- FALSE
+            
+            for (slot_name in names(slots)) {
+              code <- slots[[slot_name]]
+              if (code != "") {
+                has_code <- TRUE
+                
+                # Create a preview string to show in the menu
+                preview <- gsub("\n", " ", code) # Flatten to one line for the menu
+                if (nchar(preview) > 30) preview <- paste0(substr(preview, 1, 27), "...")
+                item_label <- paste0(slot_name, ": ", preview)
+                
+                menu_item <- RGtk2::gtkMenuItem(label = item_label)
+                
+                # When clicked, append the code
+                RGtk2::gSignalConnect(menu_item, "activate", function(widget, cb_data) {
+                  sn <- cb_data[[1]]
+                  oe <- cb_data[[2]]
+                  cd <- cb_data[[3]]
+                  oe$u__append_before_code(sn, cmd = cd)
+                  return(TRUE)
+                }, data = list(session_name, outer_env, code))
+                
+                RGtk2::gtkMenuShellAppend(menu, menu_item)
+              }
+            }
+            
+            # Fallback if no slots are filled out yet
+            if (!has_code) {
+              menu_item <- RGtk2::gtkMenuItem(label = "No code defined. Right-click to edit.")
+              RGtk2::gtkWidgetSetSensitive(menu_item, FALSE) # Gray out
+              RGtk2::gtkMenuShellAppend(menu, menu_item)
+            }
+            
+            RGtk2::gtkWidgetShowAll(menu)
+            RGtk2::gtkMenuPopup(menu, button = event[["button"]], activate.time = RGtk2::gdkEventGetTime(event))
           }
           
           return(FALSE)
