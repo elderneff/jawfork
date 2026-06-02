@@ -51,6 +51,7 @@ jaw <- function(settings_dir=NULL) {
   # Actions
   totem$copy_if_then <- e__with_env(e__copy_if_then)
   totem$copy_if_then_do <- e__with_env(e__copy_if_then_do)
+  totem$copy_mapping <- e__with_env(e__copy_mapping)
   totem$move_column <- e__with_env(e__move_column)
 
   totem$add_session <- e__with_env(e__add_session)
