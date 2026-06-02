@@ -247,9 +247,11 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
 
   temp_df <- outer_env[[session_name]]$data2
 
-  # 2. Extract grouping columns from the Summary Table context
-  # The last column is the Target, everything before it are the Conditions
-  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
+  # 2. Extract grouping columns and guarantee they exist in the raw data
+  raw_cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
+  
+  # FIX: Intersect strictly with dataset columns to drop any hidden UI metrics 
+  cross_tab_names <- intersect(raw_cross_tab_names, colnames(temp_df))
 
   if (length(cross_tab_names) < 2) {
     err_dialog <- RGtk2::gtkMessageDialog(
