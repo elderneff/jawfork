@@ -8,11 +8,11 @@
 #'
 #' @return TODO
 
-e__copy_if_then <- function(session_name, current_row, outer_env = totem) {
+e__copy_if_then <- function(session_name, current_row, df_obj, outer_env = totem) {
   # 1. Check if we need to prompt the user for code preferences (Case/Spacing)
   if (!outer_env$u__check_code_prefs(session_name)) return()
   
-  # 2. Build a custom Dialog instead of a MessageDialog to safely hold complex UI elements
+  # 2. Build a custom Dialog safely
   dialog <- RGtk2::gtkDialogNewWithButtons(
     "IF THEN Generation Options",
     outer_env[[session_name]]$windows$main_window,
@@ -51,24 +51,23 @@ e__copy_if_then <- function(session_name, current_row, outer_env = totem) {
   # Require response
   response <- dialog$run()
   
-  # Extract values BEFORE destroying the dialog
-  inc_missing <- RGtk2::gtkToggleButtonGetActive(cb_missing)
-  inc_warning <- RGtk2::gtkToggleButtonGetActive(cb_warning)
-  is_num_target <- RGtk2::gtkToggleButtonGetActive(rb_num)
-  
-  RGtk2::gtkWidgetDestroy(dialog)
-  
-  if (response != RGtk2::GtkResponseType["ok"]) {
+  # 3. Extract logic preferences (accounting for GTK 'ok' integer response)
+  if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+    inc_missing <- RGtk2::gtkToggleButtonGetActive(cb_missing)
+    inc_warning <- RGtk2::gtkToggleButtonGetActive(cb_warning)
+    is_num_target <- RGtk2::gtkToggleButtonGetActive(rb_num)
+    RGtk2::gtkWidgetDestroy(dialog)
+  } else {
+    RGtk2::gtkWidgetDestroy(dialog)
     return()
   }
 
-  # 3. Extract logic preferences
   c_case <- outer_env$settings_list$code_case
   c_space <- outer_env$settings_list$code_spacing
   sp <- ifelse(c_space == "Spaced (x = y)", " = ", "=")
   tgt_val <- ifelse(is_num_target, ".", '""')
   
-  # 4. Safely extract column data and distinct values
+  # 4. Safely extract column data directly from the active environment data
   temp_df <- outer_env[[session_name]]$data2
   target_col <- temp_df[[current_row$column]]
   
@@ -126,11 +125,11 @@ e__copy_if_then <- function(session_name, current_row, outer_env = totem) {
 #'
 #' @return TODO
 
-e__copy_if_then_do <- function(session_name, current_row, outer_env = totem) {
+e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = totem) {
   # 1. Check if we need to prompt the user for code preferences (Case/Spacing)
   if (!outer_env$u__check_code_prefs(session_name)) return()
   
-  # 2. Build a custom Dialog instead of a MessageDialog to safely hold complex UI elements
+  # 2. Build a custom Dialog safely
   dialog <- RGtk2::gtkDialogNewWithButtons(
     "IF THEN DO Generation Options",
     outer_env[[session_name]]$windows$main_window,
@@ -169,24 +168,23 @@ e__copy_if_then_do <- function(session_name, current_row, outer_env = totem) {
   # Require response
   response <- dialog$run()
   
-  # Extract values BEFORE destroying the dialog
-  inc_missing <- RGtk2::gtkToggleButtonGetActive(cb_missing)
-  inc_warning <- RGtk2::gtkToggleButtonGetActive(cb_warning)
-  is_num_target <- RGtk2::gtkToggleButtonGetActive(rb_num)
-  
-  RGtk2::gtkWidgetDestroy(dialog)
-  
-  if (response != RGtk2::GtkResponseType["ok"]) {
+  # 3. Extract logic preferences (accounting for GTK 'ok' integer response)
+  if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+    inc_missing <- RGtk2::gtkToggleButtonGetActive(cb_missing)
+    inc_warning <- RGtk2::gtkToggleButtonGetActive(cb_warning)
+    is_num_target <- RGtk2::gtkToggleButtonGetActive(rb_num)
+    RGtk2::gtkWidgetDestroy(dialog)
+  } else {
+    RGtk2::gtkWidgetDestroy(dialog)
     return()
   }
 
-  # 3. Extract logic preferences
   c_case <- outer_env$settings_list$code_case
   c_space <- outer_env$settings_list$code_spacing
   sp <- ifelse(c_space == "Spaced (x = y)", " = ", "=")
   tgt_val <- ifelse(is_num_target, ".", '""')
   
-  # 4. Safely extract column data and distinct values
+  # 4. Safely extract column data directly from the active environment data
   temp_df <- outer_env[[session_name]]$data2
   target_col <- temp_df[[current_row$column]]
   
