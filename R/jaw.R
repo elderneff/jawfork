@@ -64,6 +64,7 @@ jaw <- function(settings_dir=NULL) {
   totem$u__add_count_to_df_summary <- e__with_env(e__add_count_to_df_summary)
   totem$u__get_summary <- e__with_env(e__get_summary)
   totem$u__graph_summary <- e__with_env(e__graph_summary)
+  totem$u__scatter_summary <- e__with_env(e__scatter_summary)
   totem$u__append_before_code <- e__with_env(e__append_before_code)
   totem$u__set_before_code <- e__with_env(e__set_before_code)
 
