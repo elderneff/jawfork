@@ -7,6 +7,10 @@
 #' @return TODO
 
 e__get_summary <- function(session_name, current_row,outer_env=totem) {
+  # Trigger loading screen. on.exit ensures it hides even if the function errors out early.
+  outer_env$show_load_window()
+  on.exit(try({ outer_env$hide_load_window() }, silent = TRUE), add = TRUE)
+
   temp_df <- outer_env[[session_name]]$data2
   temp_df$random_char_str <- "a"
   temp_df2 <- as.matrix(temp_df)
@@ -28,7 +32,7 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
   ################################################################
   
   # ERROR CATCH: Ensure the selected column is numeric
-  if (!(class(temp_df[[current_row$column]]) %in% c("numeric", "integer"))) {
+  if (!any(class(temp_df[[current_row$column]]) %in% c("numeric", "integer"))) {
     err_dialog <- RGtk2::gtkMessageDialog(
       parent = outer_env[[session_name]]$windows$main_window, 
       flags = "destroy-with-parent", 
@@ -50,7 +54,32 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
 
   ### Handle when there are grouping variables ###
   if (group_by_entry != "") {
-    Output <- temp_df %>% group_by_(.dots = stringr::str_split(group_by_entry, ", ")[[1]]) %>% summarise(N = sum(!is.na(eval(parse(text = current_row$column)))),
+    
+    # 1. Prepare for an overall group
+    group_vars <- stringr::str_split(group_by_entry, ", ")[[1]]
+    temp_df_combined <- temp_df
+    
+    # Convert grouping vars to character to prevent factor level warnings
+    for (g in group_vars) {
+      if (is.factor(temp_df_combined[[g]])) {
+        temp_df_combined[[g]] <- as.character(temp_df_combined[[g]])
+      }
+    }
+    
+    # 2. Duplicate data and assign a safe "OVERALL" category
+    temp_df_overall <- temp_df_combined
+    for (g in group_vars) {
+      safe_overall <- "OVERALL"
+      # Append spaces dynamically to guarantee a unique label if "OVERALL" already exists
+      while (safe_overall %in% temp_df_combined[[g]]) {
+        safe_overall <- paste0(safe_overall, " ")
+      }
+      temp_df_overall[[g]] <- safe_overall
+    }
+    temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
+
+    # 3. Calculate metrics using the combined dataframe!
+    Output <- temp_df_combined %>% group_by_(.dots = group_vars) %>% summarise(N = sum(!is.na(eval(parse(text = current_row$column)))),
                                                                                                   Mean = mean(eval(parse(text = current_row$column)), na.rm = T),
                                                                                                   SD = sd(eval(parse(text = current_row$column)), na.rm = T),
                                                                                                   Median = quantile(eval(parse(text = current_row$column)), prob = c(0.50), type = 2, na.rm = T, names = F),
