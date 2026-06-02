@@ -61,6 +61,10 @@ e__create_settings <- function(outer_env = totem) {
         outer_env$settings_window$settings_config_objs[[item_name]]$item <- item_i
         outer_env$settings_list$table_events[[config_i]][[item_i]] <- outer_env$settings_list$default_table_events[[config_i]][[item_i]]
       }
+
+      #Save immediately when shortcuts are reset
+      save_settings(outer_env)
+      
       return(T)
     }, data = list(config_i, outer_env))
 
@@ -167,6 +171,9 @@ e__create_settings <- function(outer_env = totem) {
             outer_env$settings_window$settings_config_objs[[item_name]]$val <- current_state
             outer_env$settings_list$table_events[[config_ia]][[item_ia]] <- current_state
           }
+
+          #Save immediately when a shortcut is updated
+          save_settings(outer_env)
 
           return(T)
         }, data = list(config_i, item_i, item_name, outer_env))
@@ -405,6 +412,9 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$code_spacing <- "Prompt"
     case_combo$setActive(0)
     space_combo$setActive(0)
+
+    #Save immediately when shortcuts are reset
+    save_settings(outer_env)
     
     return(T)
   }, data = list(cb, case_combo, space_combo, outer_env))
