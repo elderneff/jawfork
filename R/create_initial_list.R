@@ -222,9 +222,15 @@ check_settings <- function(settings) {
   if (("code_spacing" %in% names(settings)) == F) {
     settings$code_spacing <- "Prompt"
   }
-  # Default custom code button to an empty string
-  if (("custom_code_button" %in% names(settings)) == F) {
-    settings$custom_code_button <- ""
+  # Default custom code slots to empty strings
+  if (("custom_code_slots" %in% names(settings)) == F) {
+    settings$custom_code_slots <- list(
+      "Slot 1" = "",
+      "Slot 2" = "",
+      "Slot 3" = "",
+      "Slot 4" = "",
+      "Slot 5" = ""
+    )
   }
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)
