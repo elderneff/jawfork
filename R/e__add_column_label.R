@@ -106,18 +106,20 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
     }
   }
 
+  is_dark <- totem$settings_list$dark_mode
+  header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
 
   if (is.null(var_class) == F) {
     if (var_class == "numeric") {
-      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#FFFFFF")
+      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = header_bg)
     } else {
-      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#FFFFFF")
+      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = header_bg)
     }
   } else {
     if ((j %% 2) == 0) {
-      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#FFFFFF")
+      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = header_bg)
     } else {
-      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#FFFFFF")
+      RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = header_bg)
     }
   }
 
