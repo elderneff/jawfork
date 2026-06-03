@@ -106,6 +106,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
 
   # Extract alternating theme sets based on style preferences
+  print(paste0("Print 1:", is_dark))
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
   c_secondary_1 <- ifelse(is_dark, "#2E2A24", "#fcf7e8")
@@ -176,7 +177,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   # } else {
   #   df2[, 1] <- ifelse(is_dark, "#1A365D", "#9bb5f5")
   # }
-    print(is_dark)
+    print(paste0("Print 2:", is_dark))
   
     if (has_filter || has_arrange || has_select) {
       df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
