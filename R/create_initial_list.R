@@ -215,6 +215,10 @@ check_settings <- function(settings) {
   if (("professionalloading" %in% names(settings)) == F) {
     settings$professionalloading <- F
   }
+  # Default dark_mode to F if there is no previous setting
+  if (("dark_mode" %in% names(settings)) == F) {
+    settings$dark_mode <- F
+  }
   # Default code generation preferences to "Prompt" if there is no previous setting
   if (("code_case" %in% names(settings)) == F) {
     settings$code_case <- "Prompt"
