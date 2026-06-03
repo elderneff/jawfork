@@ -257,7 +257,12 @@ e__create_settings <- function(outer_env = totem) {
   #Add button for professional loading
   profloading <- RGtk2::gtkCheckButtonNewWithLabel("Show professional loading screen rather than Bob", show = TRUE)
   RGtk2::gtkToggleButtonSetActive(profloading, outer_env$settings_list$professionalloading)
-  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, profloading, F, F, padding = 4) 
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, profloading, F, F, padding = 4)  
+  
+  #Add button for dark mode
+  darkmode <- RGtk2::gtkCheckButtonNewWithLabel("Dark mode", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(darkmode, outer_env$settings_list$dark_mode)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, darkmode, F, F, padding = 4) 
 
   # Add combo box for Code Case
   case_box <- RGtk2::gtkHBox()
