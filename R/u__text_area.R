@@ -50,12 +50,18 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                   session<- data[[1]]
                   shift_function <- data[[2]]
                   outer_env <- data[[3]]
+
+                    #Clean up the key state to ignore Caps/Num Lock keys
+                    raw_state <- as.numeric(event[["state"]])
+                    lock_masks <- bitwOr(2, 16) # Caps Lock = 2, Num Lock = 16
+                    clean_state <- bitwAnd(raw_state, bitwNot(lock_masks))
+                  
                     ###################################
                     # Run code for select key strokes #
                     ###################################
                     key_state <- z__event_state_key(event)
                     single_key <- event[["keyval"]]
-                    ctrl <- event[["state"]] == "4"
+                    ctrl <- clean_state == 4
                   
                     run_triggered <- FALSE                    
                     #Look for Ctrl+Enter
