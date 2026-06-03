@@ -1398,12 +1398,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }
       }
 
-      # Create the Moon (Dark Mode) Button shaped like a clear canvas button
+      # Dark mode button
       u__button(
         box = outer_env[[session_name]]$status_bar$box,
         start = F, padding = 5,
-        stock_id = "gtk-orientation-portrait", # Close visual approximation of a moon crescent in stock GTK2
-        tool_tip = "Toggle Dark Mode",
+        stock_id = "gtk-select-color", 
+        tool_tip = "Toggle dark mode",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
@@ -1443,7 +1443,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         box = outer_env[[session_name]]$status_bar$box,
         start = F, padding = 5,
         stock_id = "gtk-add",
-        tool_tip = "Open new session.",
+        tool_tip = "Open new session",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
