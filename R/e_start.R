@@ -78,18 +78,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           RGtk2::gtkWindowMaximize(main_window)
       }
 
-      ### Ignore caps lock ###
-      #Get the current global accelerator mask that GTK is using
-      current_mask <- RGtk2::gtkAcceleratorGetDefaultModMask()
-      #Define the masks for GTK to completely ignore from now on
-      #lock-mask = Caps Lock, mod2-mask = Num Lock
-      ignore_masks <- bitwOr(RGtk2::GdkModifierType["lock-mask"], RGtk2::GdkModifierType["mod2-mask"])
-      #Strip those specific keys out of the current mask using bitwise logic
-      new_mask <- bitwAnd(current_mask, bitwNot(ignore_masks))
-      #Set the new, clean mask globally for the entire application
-      RGtk2::gtkAcceleratorSetDefaultModMask(as.numeric(new_mask))
-
-
 
 
 
