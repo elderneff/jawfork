@@ -1338,6 +1338,90 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         data = list(session_name, outer_env)
       )
 
+      ### Dark mode ###
+      outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
+
+      apply_theme <- function(session_name, outer_env = totem) {
+        is_dark <- outer_env[[session_name]]$status_bar$dark_mode
+        
+        # Color Palettes
+        bg_color   <- ifelse(is_dark, "#202020", "#FFFFFF")
+        text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
+        frame_bg   <- ifelse(is_dark, "#2D2D2D", "#F9F9F9")
+        entry_bg   <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
+        
+        # 1. Main Application Windows and Containers
+        RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
+        RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)
+        RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$frame, "normal", frame_bg)
+        RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$box, "normal", frame_bg)
+        
+        # 2. Text Input Area 
+        RGtk2::gtkWidgetModifyBase(outer_env[[session_name]]$text_area_1$View, "normal", entry_bg)
+        RGtk2::gtkWidgetModifyText(outer_env[[session_name]]$text_area_1$View, "normal", text_color)
+        RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$text_area_1$Frame, "normal", frame_bg)
+        
+        # 3. Text Entries and Labels
+        entries_list <- list(
+          outer_env[[session_name]]$data_view_list$select_entry,
+          outer_env[[session_name]]$data_view_list$group_by_entry,
+          outer_env[[session_name]]$data_view_list$unique_by_entry,
+          outer_env[[session_name]]$status_bar$box_bucket_entry,
+          outer_env[[session_name]]$export_name_entry,
+          outer_env[[session_name]]$format_by_entry,
+          outer_env[[session_name]]$format_by_entry2
+        )
+        for (ent in entries_list) {
+          if (!is.null(ent)) {
+            RGtk2::gtkWidgetModifyBase(ent, "normal", entry_bg)
+            RGtk2::gtkWidgetModifyText(ent, "normal", text_color)
+          }
+        }
+        
+        labels_list <- list(
+          outer_env[[session_name]]$status_bar$info_label,
+          outer_env[[session_name]]$status_bar$info_label_cell,
+          outer_env[[session_name]]$data_view_list$select_label,
+          outer_env[[session_name]]$data_view_list$group_by_label,
+          outer_env[[session_name]]$data_view_list$unique_by_label
+        )
+        for (lbl in labels_list) {
+          if (!is.null(lbl)) RGtk2::gtkWidgetModifyText(lbl, "normal", text_color)
+        }
+        
+        # 4. Refresh Data Views to inherit changes
+        outer_env[[session_name]]$data_view_list$slot1_list$full_table$draw_table()
+        outer_env[[session_name]]$data_view_list$slot1_list$meta_table$draw_table()
+      }
+
+      # Create the Moon (Dark Mode) Button shaped like a clear canvas button
+      u__button(
+        box = outer_env[[session_name]]$status_bar$box,
+        start = F, padding = 5,
+        stock_id = "gtk-orientation-portrait", # Close visual approximation of a moon crescent in stock GTK2
+        tool_tip = "Toggle Dark Mode",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          
+          # Flip states
+          current_state <- outer_env[[session_name]]$status_bar$dark_mode
+          outer_env[[session_name]]$status_bar$dark_mode <- !current_state
+          
+          # Sync back to global runtime profile settings
+          totem$settings_list$dark_mode <- !current_state
+          save_settings(outer_env)
+          
+          # Process structural UI color transformations
+          apply_theme(session_name, outer_env)
+          return(FALSE)
+        },
+        data = list(session_name, outer_env)
+      )
+      
+      # Run the theme loader instantly on startup to render selected mode
+      apply_theme(session_name, outer_env)
+
 
 
 
