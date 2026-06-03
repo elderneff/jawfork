@@ -7,14 +7,112 @@
 #'
 #' @return TODO
 
+# e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
+#   if (nrow(df) == 0) {
+#     df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
+#     colnames(df2) <- c("f___1", "f___2")
+#     return(df2)
+#   }
+
+#   df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
+
+#   # Get format by variable
+#   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
+#     format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry)
+#   } else {
+#     format_var <- "USUBJID"
+#   }
+  
+#   # Get add'l format by variable
+#   if ("format_by_entry2" %in% names(outer_env[[session_name]])) {
+#     format_var2 <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry2)
+#   } else {
+#     format_var2 <- ""
+#   }
+
+#   if (format_var %in% colnames(df)) {
+#     tryCatch({
+      
+#       # 1. Base grouping logic (Detect when format_var changes)
+#       vals1 <- df[, format_var, drop = T]
+#       vals1[is.na(vals1)] <- "NA_VAL" # Explicitly handle NAs for clean comparison
+#       vals1_prev <- c("FIRST_ROW_DUMMY", vals1[1:(length(vals1) - 1)])
+      
+#       changed1 <- (vals1 != vals1_prev)
+#       levels <- cumsum(changed1)
+
+#       # One format by variable
+#       if (format_var2 %in% colnames(df) == F) {
+#         df2[, 2] <- ifelse((levels %% 2) == 1,
+#           ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
+#           ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1")
+#         )
+#       }
+      
+#       # Two format by variables (SAS first. logic)
+#       else if (format_var2 %in% colnames(df)) {
+#         vals2 <- df[, format_var2, drop = T]
+#         vals2[is.na(vals2)] <- "NA_VAL"
+#         vals2_prev <- c("FIRST_ROW_DUMMY", vals2[1:(length(vals2) - 1)])
+
+#         # 2. SAS first. logic: flags true if format_var1 changes OR format_var2 changes
+#         changed2 <- changed1 | (vals2 != vals2_prev)
+        
+#         # KEY FIX: Reset the secondary level counter for each primary level block!
+#         # ave() calculates cumsum within each group defined by 'levels'
+#         levels2 <- ave(changed2, levels, FUN = cumsum)
+
+#         df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
+#                     ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#D1D1EC", "#C9C9E9"),
+#                     ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
+#                     ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1")
+#         )))
+#       }
+#     }, 
+#     error = function(e) {
+#       # Colors for when grouping evaluation fails
+#       df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#F1F1F1", "#FFFFFF")
+#     })
+#   } else {
+#     # Colors for when there is no Format by variable present
+#     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#FFFFFF", "#F1F1F1")
+#   }
+
+#   # Check local filter states to see if any contain text
+#   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
+#   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
+#   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
+  
+#   # r__ Color
+#   if (has_filter || has_arrange || has_select) {
+#     df2[, 1] <- "#F4D9D9"
+#   } else {
+#     df2[, 1] <- "#9bb5f5"
+#   }
+
+#   colnames(df2) <- c("f___1", "f___2")
+#   return(df2)
+# }
+
 e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
+  is_dark <- outer_env[[session_name]]$status_bar$dark_mode
+
   if (nrow(df) == 0) {
-    df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
+    df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
     colnames(df2) <- c("f___1", "f___2")
     return(df2)
   }
 
-  df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
+  df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
+
+  # Extract alternating theme sets based on style preferences
+  c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
+  c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
+  c_secondary_1 <- ifelse(is_dark, "#2E2A24", "#fcf7e8")
+  c_secondary_2 <- ifelse(is_dark, "#2A241F", "#f4efe1")
+  
+  c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
+  c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
 
   # Get format by variable
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
@@ -32,62 +130,51 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
 
   if (format_var %in% colnames(df)) {
     tryCatch({
-      
-      # 1. Base grouping logic (Detect when format_var changes)
       vals1 <- df[, format_var, drop = T]
-      vals1[is.na(vals1)] <- "NA_VAL" # Explicitly handle NAs for clean comparison
+      vals1[is.na(vals1)] <- "NA_VAL" 
       vals1_prev <- c("FIRST_ROW_DUMMY", vals1[1:(length(vals1) - 1)])
       
       changed1 <- (vals1 != vals1_prev)
       levels <- cumsum(changed1)
 
-      # One format by variable
       if (format_var2 %in% colnames(df) == F) {
         df2[, 2] <- ifelse((levels %% 2) == 1,
-          ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
-          ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1")
+          ifelse((1:nrow(df) %% 2) == 1, c_primary_1, c_primary_2),
+          ifelse((1:nrow(df) %% 2) == 1, c_secondary_1, c_secondary_2)
         )
       }
-      
-      # Two format by variables (SAS first. logic)
       else if (format_var2 %in% colnames(df)) {
         vals2 <- df[, format_var2, drop = T]
         vals2[is.na(vals2)] <- "NA_VAL"
         vals2_prev <- c("FIRST_ROW_DUMMY", vals2[1:(length(vals2) - 1)])
 
-        # 2. SAS first. logic: flags true if format_var1 changes OR format_var2 changes
         changed2 <- changed1 | (vals2 != vals2_prev)
-        
-        # KEY FIX: Reset the secondary level counter for each primary level block!
-        # ave() calculates cumsum within each group defined by 'levels'
         levels2 <- ave(changed2, levels, FUN = cumsum)
 
-        df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
-                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#D1D1EC", "#C9C9E9"),
-                    ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
-                    ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1")
+        df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_primary_1, c_primary_2),
+                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#373752", "#C9C9E9"),
+                    ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_secondary_1, c_secondary_2),
+                    ifelse((1:nrow(df) %% 2) == 1, "#4A3232", "#F4E3E1")
         )))
       }
     }, 
     error = function(e) {
-      # Colors for when grouping evaluation fails
-      df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#F1F1F1", "#FFFFFF")
+      df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_2, c_fallback_1)
     })
   } else {
-    # Colors for when there is no Format by variable present
-    df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#FFFFFF", "#F1F1F1")
+    df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_1, c_fallback_2)
   }
 
-  # Check local filter states to see if any contain text
+  # Local filter state checking remains unchanged
   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
   
-  # r__ Color
+  # r__ Index Column Color
   if (has_filter || has_arrange || has_select) {
-    df2[, 1] <- "#F4D9D9"
+    df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
   } else {
-    df2[, 1] <- "#9bb5f5"
+    df2[, 1] <- ifelse(is_dark, "#1A365D", "#9bb5f5")
   }
 
   colnames(df2) <- c("f___1", "f___2")
