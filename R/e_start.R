@@ -87,7 +87,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       #Strip those specific keys out of the current mask using bitwise logic
       new_mask <- bitwAnd(current_mask, bitwNot(ignore_masks))
       #Set the new, clean mask globally for the entire application
-      # RGtk2::gtkAcceleratorSetDefaultModMask(new_mask)
+      RGtk2::gtkAcceleratorSetDefaultModMask(as.numeric(new_mask))
 
 
 
