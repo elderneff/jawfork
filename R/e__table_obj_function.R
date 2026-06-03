@@ -177,7 +177,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   #   df2[, 1] <- ifelse(is_dark, "#1A365D", "#9bb5f5")
   # }
     if (has_filter || has_arrange || has_select) {
-      df2[, 1] <- "#5C2E2E"
+      df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
     } else {
       df2[, 1] <- "#1A365D"
     }
