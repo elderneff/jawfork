@@ -405,7 +405,7 @@ e__create_settings <- function(outer_env = totem) {
   #Define function to call when dark mode button clicked
   RGtk2::gSignalConnect(darkmode, "toggled", function(darkmode) {
     current_state <- RGtk2::gtkToggleButtonGetActive(darkmode)
-    outer_env$settings_list$darkmode <- current_state
+    outer_env$settings_list$dark_mode <- current_state
     return(T)
   })
   
