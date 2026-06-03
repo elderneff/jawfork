@@ -1349,6 +1349,25 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
         frame_bg   <- ifelse(is_dark, "#2D2D2D", "#F9F9F9")
         entry_bg   <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
+
+        # Input fields and headers
+        if (is_dark) {
+          rc_style <- "
+            style 'jaw_dark' {
+              base[NORMAL]      = '#3D3D3D'
+              base[INSENSITIVE] = '#2D2D2D'
+              bg[NORMAL]        = '#2D2D2D'
+              text[NORMAL]      = '#FFFFFF'
+              fg[NORMAL]        = '#FFFFFF'
+            }
+            class 'GtkEntry' style 'jaw_dark'
+            class 'GtkLabel' style 'jaw_dark'
+          "
+          RGtk2::gtkRcParseString(rc_style)
+        } else {
+          # Reset to standard fallback layouts if dark mode is turned off
+          RGtk2::gtkRcResetStyles(RGtk2::gtkSettingsGetDefault())
+        }
         
         # 1. Main Application Windows and Containers
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
