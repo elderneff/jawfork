@@ -107,7 +107,7 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                   # Undo / Redo Tracking  #
                   #########################
                   if (!(single_key %in% c("65507", "65505", "65513", "16777215", "65506", "65508", "65514", "65361", "65362", "65363", "65364", "65360", "65367", "65289"))
-                     & !(single_key == "122" & ctrl) & !(single_key == "121" & ctrl) & !(single_key == "114" & ctrl)) {
+                     & !(single_key %in% c("122", "90") & ctrl) & !(single_key %in% c("121", "89") & ctrl) & !(single_key == "114" & ctrl)) {
                     
                     # Categorize the keystroke
                     current_state <- "word"
@@ -119,16 +119,18 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                     outer_env$u__log_history(session, str, current_state)
                   }
 
-                  # Undo (Ctrl+Z) - Now safely using our fixed 'ctrl' evaluation
-                  if (single_key == "122" & ctrl & outer_env[[session]]$time > 1) {
+                  # Undo (Ctrl+Z or Ctrl+Shift+Z / Caps Lock variants)
+                  # 122 = 'z', 90 = 'Z'
+                  if ((single_key == "122" | single_key == "90") & ctrl & outer_env[[session]]$time > 1) {
                     t <- outer_env[[session]]$time - 1
                     outer_env[[session]]$time <- t
                     outer_env[[session]]$last_edit_state <- "undo"
                     RGtk2::gtkTextBufferSetText(buffer, outer_env[[session]]$timeline[t])
                   }
                   
-                  # Redo (Ctrl+Y) - Now safely using our fixed 'ctrl' evaluation
-                  if (single_key == "121" & ctrl & outer_env[[session]]$time < length(outer_env[[session]]$timeline)) {
+                  # Redo (Ctrl+Y or Caps Lock variants)
+                  # 121 = 'y', 89 = 'Y'
+                  if ((single_key == "121" | single_key == "89") & ctrl & outer_env[[session]]$time < length(outer_env[[session]]$timeline)) {
                     t <- outer_env[[session]]$time + 1
                     outer_env[[session]]$time <- t
                     outer_env[[session]]$last_edit_state <- "redo"
