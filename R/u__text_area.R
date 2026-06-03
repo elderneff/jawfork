@@ -14,10 +14,13 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             outer_env <- data[[2]]
             
             single_key <- as.character(event[["keyval"]])
-            state_str <- as.character(event[["state"]])
+            raw_state_int <- as.numeric(event[["state"]])
+            # Strip out Caps Lock (2) and Num Lock (16)
+            clean_state_int <- bitwAnd(raw_state_int, bitwNot(bitwOr(2, 16)))
+            state_str <- as.character(clean_state_int)            
             # Helper lists for states: Base, +NumLock, +CapsLock, +Both
-            is_ctrl_shift <- state_str %in% c("5", "21", "69", "85")
-            is_ctrl <- state_str %in% c("4", "20", "68", "84")
+            is_ctrl_shift <- state_str == "5"  # 5 is exactly Ctrl+Shift without locks 
+            is_ctrl <- state_str == "4"        # 4 is exactly Ctrl without locks
           
             #If no modifiers are currently being held down, reset the cancel flag
             if (single_key %in% c("65505", "65506", "65507", "65508")) {
