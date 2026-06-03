@@ -1362,6 +1362,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             }
             class 'GtkEntry' style 'jaw_dark'
             class 'GtkLabel' style 'jaw_dark'
+            class 'GtkScrollbar' style 'jaw_dark'
           "
           RGtk2::gtkRcParseString(rc_style)
         } else {
