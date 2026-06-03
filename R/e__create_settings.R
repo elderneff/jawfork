@@ -396,9 +396,16 @@ e__create_settings <- function(outer_env = totem) {
   })
   
   #Define function to call when professional loading button clicked
-  RGtk2::gSignalConnect(profloading, "toggled", function(colunique) {
+  RGtk2::gSignalConnect(profloading, "toggled", function(profloading) {
     current_state <- RGtk2::gtkToggleButtonGetActive(profloading)
     outer_env$settings_list$professionalloading <- current_state
+    return(T)
+  })
+  
+  #Define function to call when dark mode button clicked
+  RGtk2::gSignalConnect(darkmode, "toggled", function(darkmode) {
+    current_state <- RGtk2::gtkToggleButtonGetActive(darkmode)
+    outer_env$settings_list$darkmode <- current_state
     return(T)
   })
   
@@ -415,6 +422,7 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$columnlabel <- T
     outer_env$settings_list$columnunique <- T
     outer_env$settings_list$professionalloading <- F
+    outer_env$settings_list$darkmode <- F
     
     # Reset code preferences to Prompt
     outer_env$settings_list$code_case <- "Prompt"
