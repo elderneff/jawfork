@@ -95,8 +95,7 @@
 # }
 
 e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
-  is_dark <- outer_env[[session_name]]$status_bar$dark_mode
-
+  is_dark <- totem$settings_list$dark_mode
   if (nrow(df) == 0) {
     df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
     colnames(df2) <- c("f___1", "f___2")
