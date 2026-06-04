@@ -18,10 +18,12 @@ e__new_tree_view_column <- function(df, j,outer_env=totem,obj_env=inner_env) {
 
   RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "text", j - 1)
   if ((is_full_data_table & j == 1) | j == 1) {
-    RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "background", as.integer(ncol(df) - 2))
+    RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "background", as.integer(ncol(df) - 3))
   } else {
-    RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "background", as.integer(ncol(df) - 1))
+    RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "background", as.integer(ncol(df) - 2))
   }
+  #Set text color based on f__3
+  RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "foreground", as.integer(ncol(df) - 1))
 
 
   RGtk2::gtkTreeViewColumnSetSizing(column, RGtk2::GtkTreeViewColumnSizing["autosize"])
