@@ -1340,7 +1340,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       ### Dark mode toggle ###
       outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
 
-      #Dark mode button
+      # Dark mode button
       u__button(
         box = outer_env[[session_name]]$status_bar$box,
         start = F, padding = 5,
@@ -1358,8 +1358,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           totem$settings_list$dark_mode <- !current_state
           save_settings(outer_env)
           
-          # Process structural UI color transformations via the environment-bound function
-          outer_env$u__apply_theme(session_name, outer_env)
+          # Call the new globally bound function
+          outer_env$apply_theme(session_name, outer_env)          
           return(FALSE)
         },
         data = list(session_name, outer_env)
@@ -1603,7 +1603,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       
       #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
       if (outer_env[[session_name]]$status_bar$dark_mode) {
-        outer_env$u__apply_theme(session_name, outer_env)
+        outer_env$apply_theme(session_name, outer_env)
       }
 
       refresh(session_name)
