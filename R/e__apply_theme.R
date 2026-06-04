@@ -42,7 +42,7 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   } else {
     rc_style <- "
       style 'jaw_light' {
-        engine \"wimp\" {}  # Restores the native Windows look
+        engine \"wimp\" {}  # Actively tells GTK to restore the native Windows look
         font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
@@ -54,18 +54,26 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[PRELIGHT]      = '#000000'
       }
       
-      # Bind the base style, but leave out the wildcards so Windows 
-      # can natively draw the structural elements!
-      class 'GtkWidget' style 'jaw_light'
-      class 'GtkTreeView' style 'jaw_light'
-      class 'GtkTextView' style 'jaw_light'
+      # We MUST include these so they actively overwrite the dark mode wildcards in memory!
+      widget_class '*' style 'jaw_light'
+      widget_class '*Menu*' style 'jaw_light'
+      widget_class '*MenuItem*' style 'jaw_light'
     "
   }
   
   RGtk2::gtkRcResetStyles(RGtk2::gtkSettingsGetDefault())
   RGtk2::gtkRcParseString(rc_style)
-  
-  RGtk2::gtkWidgetResetRcStyles(outer_env[[session_name]]$windows$main_window)
+
+  #Reset styles recursively
+  reset_rc_recursive <- function(widget) {
+    RGtk2::gtkWidgetResetRcStyles(widget)
+    if (inherits(widget, "GtkContainer")) {
+      for (child in RGtk2::gtkContainerGetChildren(widget)) {
+        reset_rc_recursive(child)
+      }
+    }
+  }
+  reset_rc_recursive(outer_env[[session_name]]$windows$main_window)
   
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)
