@@ -243,10 +243,10 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view, "none")
       RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, "none")
       
-      obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 2)
+      obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 3)
 
       # Append columns to their respective views
-      for (j in seq_len(ncol(df) - 2)) {
+      for (j in seq_len(ncol(df) - 3)) {
         tmp <- obj_env$new_tree_view_column(df, j)
 
         # If it's the row number column, put it in the frozen view
@@ -379,7 +379,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view_frozen)
       
       if (is_full_data_table) {
-        for (j in setdiff(seq_len(ncol(df) - 2), 1)) {
+        for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
           data3 <- outer_env[[session_name]]$data3
           my_row <- data3[j - 1, ]
           my_tool_tip <- paste0(
@@ -447,7 +447,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       max_newlines <- 0
       
       # 1. Loop through all data columns to find the maximum number of newlines
-      for (j in setdiff(seq_len(ncol(df) - 2), 1)) {
+      for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
          col_text <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
          if (!is.null(col_text) && col_text != "") {
             newlines <- stringr::str_count(col_text, "\n")
