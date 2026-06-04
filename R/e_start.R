@@ -1368,18 +1368,16 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       ### Dark mode toggle ###
       outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
 
-      apply_theme <- function(session_name, outer_env = totem) {
-        is_dark <- outer_env[[session_name]]$status_bar$dark_mode
+      apply_theme = function(session_name, outer_env = totem) {
+        is_dark = outer_env[[session_name]]$status_bar$dark_mode
         
-        # Color Palettes
-        bg_color   <- ifelse(is_dark, "#202020", "#FFFFFF")
-        text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
-        frame_bg   <- ifelse(is_dark, "#2D2D2D", "#F9F9F9")
-        entry_bg   <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
+        bg_color = ifelse(is_dark, "#202020", "#FFFFFF")
+        text_color = ifelse(is_dark, "#E0E0E0", "#000000")
+        frame_bg = ifelse(is_dark, "#2D2D2D", "#F9F9F9")
+        entry_bg = ifelse(is_dark, "#3D3D3D", "#FFFFFF")
 
-        # Input fields and headers
         if (is_dark) {
-          rc_style <- "
+          rc_style = "
             style 'jaw_dark' {
               engine '' {} 
               base[NORMAL]      = '#202020' 
@@ -1389,6 +1387,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
               bg[ACTIVE]        = '#1A1A1A' 
               text[NORMAL]      = '#E0E0E0'
               fg[NORMAL]        = '#E0E0E0' 
+              fg[PRELIGHT]      = '#FFFFFF'
             }
             class 'GtkEntry' style 'jaw_dark'
             class 'GtkScrollbar' style 'jaw_dark'
@@ -1398,6 +1397,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             class 'GtkScrolledWindow' style 'jaw_dark'
             class 'GtkTextView' style 'jaw_dark'
             class 'GtkButton' style 'jaw_dark'
+            class 'GtkLabel' style 'jaw_dark'
             widget_class '*TreeView*Button*' style 'jaw_dark'
           "
           RGtk2::gtkRcParseString(rc_style)
@@ -1405,22 +1405,18 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           RGtk2::gtkRcResetStyles(RGtk2::gtkSettingsGetDefault())
         }
         
-        # Force the main window and all its children to immediately absorb the new RC styles
         RGtk2::gtkWidgetResetRcStyles(outer_env[[session_name]]$windows$main_window)
         
-        # 1. Main Application Windows and Containers
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$frame, "normal", frame_bg)
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$box, "normal", frame_bg)
         
-        # 2. Text Input Area 
         RGtk2::gtkWidgetModifyBase(outer_env[[session_name]]$text_area_1$View, "normal", entry_bg)
         RGtk2::gtkWidgetModifyText(outer_env[[session_name]]$text_area_1$View, "normal", text_color)
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$text_area_1$Frame, "normal", frame_bg)
         
-        # 3. Text Entries and Labels
-        entries_list <- list(
+        entries_list = list(
           outer_env[[session_name]]$data_view_list$select_entry,
           outer_env[[session_name]]$data_view_list$group_by_entry,
           outer_env[[session_name]]$data_view_list$unique_by_entry,
@@ -1436,27 +1432,31 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           }
         }
         
-        labels_list <- list(
+        labels_list = list(
           outer_env[[session_name]]$status_bar$info_label,
           outer_env[[session_name]]$status_bar$info_label_cell,
           outer_env[[session_name]]$data_view_list$select_label,
           outer_env[[session_name]]$data_view_list$group_by_label,
-          outer_env[[session_name]]$data_view_list$unique_by_label
+          outer_env[[session_name]]$data_view_list$unique_by_label,
+          outer_env[[session_name]]$export_label,
+          outer_env[[session_name]]$format_by_label,
+          outer_env[[session_name]]$format_by_label2
         )
         for (lbl in labels_list) {
           if (!is.null(lbl)) RGtk2::gtkWidgetModifyFg(lbl, "normal", text_color)
         }
         
-        # 4. Refresh views using their proper top-level update triggers
         if (!is.null(outer_env[[session_name]]$data2)) {
           outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
         }
         if (!is.null(outer_env[[session_name]]$data3)) {
           outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
         }
-        if (!is.null(outer_env[[session_name]]$data_view_list$slot3_list$summary_table)) {
-          print("Trying to update summary table")
-          outer_env[[session_name]]$data_view_list$slot2_list$summary_table$draw_table()
+        if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$value_table)) {
+          current_df = outer_env[[session_name]]$data_view_list$slot2_list$value_table$current_data()
+          if (!is.null(current_df)) {
+            outer_env[[session_name]]$data_view_list$slot2_list$value_table$update_table(current_df)
+          }
         }
       }
 
@@ -1595,7 +1595,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         tool_tip = "Reload dataset",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
-          outer_env <- data[[2]]
+          outer_env <- data[[2]]settin
           refresh(session_name)
           return(FALSE)
         },
@@ -1642,8 +1642,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       export_name <- make.names(gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename))
 
-
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Export: "), F, F, padding = 2)
+      outer_env[[session_name]]$export_label = RGtk2::gtkLabel("Export: ")
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$export_label, F, F, padding = 2)
       RGtk2::gtkEntrySetText(outer_env[[session_name]]$export_name_entry, export_name)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$export_name_entry, F, F)
 
@@ -1666,9 +1666,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       )
 
 
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Format by: "), F, F, padding = 2)
+      outer_env[[session_name]]$format_by_label = RGtk2::gtkLabel("Format by: ")
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry, F, F)
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, RGtk2::gtkLabel("Add'l format: "), F, F, padding = 2)
+      outer_env[[session_name]]$format_by_label2 = RGtk2::gtkLabel("Add'l format: ")
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label2, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry2, F, F)
 
 
@@ -1708,7 +1710,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
 
-
+      #If dark mode is on at startup, force styling apply
+      if (outer_env[[session_name]]$status_bar$dark_mode) {
+        apply_theme(session_name, outer_env)
+      }
 
       refresh <- function(session_name, outer_env = totem) {
         outer_env$show_load_window()
