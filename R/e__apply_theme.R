@@ -30,6 +30,7 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[NORMAL]        = '#000000'
         text[NORMAL]      = '#000000'
       }
+      class 'GtkWidget' style 'jaw_dark'
       class 'GtkEntry' style 'jaw_dark'
       class 'GtkScrollbar' style 'jaw_dark'
       class 'GtkTreeView' style 'jaw_dark'
@@ -39,6 +40,10 @@ e__apply_theme <- function(session_name, outer_env = totem) {
       class 'GtkTextView' style 'jaw_dark'
       class 'GtkButton' style 'jaw_dark'
       class 'GtkLabel' style 'jaw_dark'
+      
+      # Wildcards to catch the stubborn sub-widgets
+      widget_class '*Scrollbar*' style 'jaw_dark'
+      widget_class '*Paned*' style 'jaw_dark'
       widget_class '*TreeView*Button*' style 'jaw_dark'
       
       # Keep context menus legible by overriding their specific hierarchy
@@ -57,6 +62,7 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[NORMAL]        = '#000000' 
         fg[PRELIGHT]      = '#000000'
       }
+      class 'GtkWidget' style 'jaw_light'
       class 'GtkEntry' style 'jaw_light'
       class 'GtkScrollbar' style 'jaw_light'
       class 'GtkTreeView' style 'jaw_light'
