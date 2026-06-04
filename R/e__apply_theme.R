@@ -42,8 +42,6 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   } else {
     rc_style <- "
       style 'jaw_light' {
-        engine \"\" {}
-        font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
         bg[NORMAL]        = '#F0F0F0' 
