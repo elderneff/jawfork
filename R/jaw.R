@@ -67,6 +67,7 @@ jaw <- function(settings_dir=NULL) {
   totem$u__scatter_summary <- e__with_env(e__scatter_summary)
   totem$u__append_before_code <- e__with_env(e__append_before_code)
   totem$u__set_before_code <- e__with_env(e__set_before_code)
+  totem$u__apply_theme <- e__with_env(e__apply_theme)
 
 
 
