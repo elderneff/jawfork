@@ -1354,15 +1354,21 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         if (is_dark) {
           rc_style <- "
             style 'jaw_dark' {
-              base[NORMAL]      = '#3D3D3D'
+              engine '' {} # Kills the Windows native 3D styling engine for these widgets
+              base[NORMAL]      = '#202020' # Fixes the white grid lines by darkening the base canvas
               base[INSENSITIVE] = '#2D2D2D'
-              bg[NORMAL]        = '#2D2D2D'
-              text[NORMAL]      = '#FFFFFF'
-              fg[NORMAL]        = '#FFFFFF'
+              bg[NORMAL]        = '#2D2D2D' # Fixes header backgrounds and scrollbars
+              bg[PRELIGHT]      = '#404040' # Hover state for headers
+              bg[ACTIVE]        = '#1A1A1A' # Click state
+              text[NORMAL]      = '#E0E0E0'
+              fg[NORMAL]        = '#E0E0E0' # Fixes header text colors
             }
             class 'GtkEntry' style 'jaw_dark'
             class 'GtkLabel' style 'jaw_dark'
             class 'GtkScrollbar' style 'jaw_dark'
+            class 'GtkButton' style 'jaw_dark'
+            class 'GtkTreeView' style 'jaw_dark'
+            widget_class '*TreeView*Button*' style 'jaw_dark'
           "
           RGtk2::gtkRcParseString(rc_style)
         } else {
