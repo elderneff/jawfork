@@ -17,15 +17,17 @@ e__apply_theme <- function(session_name, outer_env = totem) {
     rc_style <- "
       style 'jaw_dark' {
         engine \"\" {} 
-        font_name = \"Segoe UI 9\"  # Restores the default Windows font
+        font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#202020' 
         base[INSENSITIVE] = '#2D2D2D'
         bg[NORMAL]        = '#2D2D2D' 
         bg[PRELIGHT]      = '#404040' 
         bg[ACTIVE]        = '#1A1A1A' 
         text[NORMAL]      = '#E0E0E0'
+        text[ACTIVE]      = '#FFFFFF'  # Fixes checked box text
         fg[NORMAL]        = '#E0E0E0' 
         fg[PRELIGHT]      = '#FFFFFF'
+        fg[ACTIVE]        = '#FFFFFF'  # Fixes checked box text
       }
       style 'jaw_menu_light' {
         engine \"\" {}
@@ -74,6 +76,14 @@ e__apply_theme <- function(session_name, outer_env = totem) {
     }
   }
   reset_rc_recursive(outer_env[[session_name]]$windows$main_window)
+  #Reset styles for settings
+  if (!is.null(outer_env$settings_window$settings_window)) {
+    reset_rc_recursive(outer_env$settings_window$settings_window)
+  }
+  #Reset styles for file history
+  if (!is.null(outer_env$file_history$file_history_window)) {
+    reset_rc_recursive(outer_env$file_history$file_history_window)
+  }
   
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)
