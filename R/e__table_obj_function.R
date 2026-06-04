@@ -157,9 +157,8 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
       obj_env$table_objects_list$view_frozen <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
 
-      grid_style <- ifelse(is_dark, "none", "both")
-      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view, grid_style)
-      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, grid_style)
+      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view, "none")
+      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, "none")
       
       obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 3)
 
