@@ -122,10 +122,10 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   if (!is.null(outer_env[[session_name]]$data3)) {
     outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
   }
-  if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$value_table)) {
-    current_df <- outer_env[[session_name]]$data_view_list$slot2_list$value_table$current_data()
-    if (!is.null(current_df)) {
-      outer_env[[session_name]]$data_view_list$slot2_list$value_table$update_table(current_df)
-    }
-  }
+  # if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$value_table)) {
+  #   current_df <- outer_env[[session_name]]$data_view_list$slot2_list$value_table$current_data()
+  #   if (!is.null(current_df)) {
+  #     outer_env[[session_name]]$data_view_list$slot2_list$value_table$update_table(current_df)
+  #   }
+  # }
 }
