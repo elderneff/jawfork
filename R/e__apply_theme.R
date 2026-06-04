@@ -28,35 +28,22 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[PRELIGHT]      = '#FFFFFF'
       }
       style 'jaw_menu_light' {
+        engine \"\" {}
+        font_name = \"Segoe UI 9\"
         bg[NORMAL]        = '#F0F0F0'
         fg[NORMAL]        = '#000000'
         text[NORMAL]      = '#000000'
       }
-      class 'GtkWidget' style 'jaw_dark'
-      class 'GtkEntry' style 'jaw_dark'
-      class 'GtkScrollbar' style 'jaw_dark'
-      class 'GtkTreeView' style 'jaw_dark'
-      class 'GtkFrame' style 'jaw_dark'
-      class 'GtkPaned' style 'jaw_dark'
-      class 'GtkScrolledWindow' style 'jaw_dark'
-      class 'GtkTextView' style 'jaw_dark'
-      class 'GtkButton' style 'jaw_dark'
-      class 'GtkLabel' style 'jaw_dark'
       
-      # Wildcards to catch the stubborn sub-widgets
-      widget_class '*Scrollbar*' style 'jaw_dark'
-      widget_class '*Paned*' style 'jaw_dark'
-      widget_class '*TreeView*Button*' style 'jaw_dark'
-      
-      # Keep context menus legible by overriding their specific hierarchy
+      widget_class '*' style 'jaw_dark'
       widget_class '*Menu*' style 'jaw_menu_light'
       widget_class '*MenuItem*' style 'jaw_menu_light'
     "
   } else {
     rc_style <- "
       style 'jaw_light' {
-        engine \"\" {} 
-        font_name = \"Segoe UI 9\"  # Restores the default Windows font
+        engine \"\" {}
+        font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
         bg[NORMAL]        = '#F0F0F0' 
@@ -66,17 +53,8 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[NORMAL]        = '#000000' 
         fg[PRELIGHT]      = '#000000'
       }
-      class 'GtkWidget' style 'jaw_light'
-      class 'GtkEntry' style 'jaw_light'
-      class 'GtkScrollbar' style 'jaw_light'
-      class 'GtkTreeView' style 'jaw_light'
-      class 'GtkFrame' style 'jaw_light'
-      class 'GtkPaned' style 'jaw_light'
-      class 'GtkScrolledWindow' style 'jaw_light'
-      class 'GtkTextView' style 'jaw_light'
-      class 'GtkButton' style 'jaw_light'
-      class 'GtkLabel' style 'jaw_light'
-      widget_class '*TreeView*Button*' style 'jaw_light'
+      
+      widget_class '*' style 'jaw_light'
       widget_class '*Menu*' style 'jaw_light'
       widget_class '*MenuItem*' style 'jaw_light'
     "
