@@ -1368,16 +1368,16 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       ### Dark mode toggle ###
       outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
 
-      apply_theme = function(session_name, outer_env = totem) {
-        is_dark = outer_env[[session_name]]$status_bar$dark_mode
+      outer_env[[session_name]]$apply_theme <- function(session_name, outer_env = totem) {
+        is_dark <- outer_env[[session_name]]$status_bar$dark_mode
         
-        bg_color = ifelse(is_dark, "#202020", "#FFFFFF")
-        text_color = ifelse(is_dark, "#E0E0E0", "#000000")
-        frame_bg = ifelse(is_dark, "#2D2D2D", "#F9F9F9")
-        entry_bg = ifelse(is_dark, "#3D3D3D", "#FFFFFF")
+        bg_color <- ifelse(is_dark, "#202020", "#FFFFFF")
+        text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
+        frame_bg <- ifelse(is_dark, "#2D2D2D", "#F9F9F9")
+        entry_bg <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
 
         if (is_dark) {
-          rc_style = "
+          rc_style <- "
             style 'jaw_dark' {
               engine '' {} 
               base[NORMAL]      = '#202020' 
@@ -1416,7 +1416,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         RGtk2::gtkWidgetModifyText(outer_env[[session_name]]$text_area_1$View, "normal", text_color)
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$text_area_1$Frame, "normal", frame_bg)
         
-        entries_list = list(
+        entries_list <- list(
           outer_env[[session_name]]$data_view_list$select_entry,
           outer_env[[session_name]]$data_view_list$group_by_entry,
           outer_env[[session_name]]$data_view_list$unique_by_entry,
@@ -1432,7 +1432,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           }
         }
         
-        labels_list = list(
+        labels_list <- list(
           outer_env[[session_name]]$status_bar$info_label,
           outer_env[[session_name]]$status_bar$info_label_cell,
           outer_env[[session_name]]$data_view_list$select_label,
@@ -1452,15 +1452,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         if (!is.null(outer_env[[session_name]]$data3)) {
           outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
         }
-        if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$value_table)) {
-          current_df = outer_env[[session_name]]$data_view_list$slot2_list$value_table$current_data()
-          if (!is.null(current_df)) {
-            outer_env[[session_name]]$data_view_list$slot2_list$value_table$update_table(current_df)
-          }
-        }
       }
 
-      # Dark mode button
+      #Dark mode button
       u__button(
         box = outer_env[[session_name]]$status_bar$box,
         start = F, padding = 5,
@@ -1478,8 +1472,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           totem$settings_list$dark_mode <- !current_state
           save_settings(outer_env)
           
-          # Process structural UI color transformations
-          apply_theme(session_name, outer_env)
+          # Process structural UI color transformations via the environment-bound function
+          outer_env[[session_name]]$apply_theme(session_name, outer_env)
           return(FALSE)
         },
         data = list(session_name, outer_env)
@@ -1723,7 +1717,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       
       #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
       if (outer_env[[session_name]]$status_bar$dark_mode) {
-        apply_theme(session_name, outer_env)
+        outer_env[[session_name]]$apply_theme(session_name, outer_env)
       }
 
       refresh(session_name)
