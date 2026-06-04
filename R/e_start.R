@@ -1426,7 +1426,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
         }
         if (!is.null(outer_env[[session_name]]$data4) && !is.null(outer_env[[session_name]]$data_view_list$slot2_list$summary_table)) {
-          outer_env[[session_name]]$data_view_list$slot2_list$value_table$update(outer_env[[session_name]]$data4)
+          outer_env[[session_name]]$data_view_list$slot2_list$value_table <- build_value_data(session_name)
         }
       }
 
