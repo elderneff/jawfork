@@ -7,93 +7,6 @@
 #'
 #' @return TODO
 
-# e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
-#   if (nrow(df) == 0) {
-#     df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
-#     colnames(df2) <- c("f___1", "f___2")
-#     return(df2)
-#   }
-
-#   df2 <- matrix("#F1F1F1", ncol = 2, nrow = nrow(df))
-
-#   # Get format by variable
-#   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
-#     format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry)
-#   } else {
-#     format_var <- "USUBJID"
-#   }
-  
-#   # Get add'l format by variable
-#   if ("format_by_entry2" %in% names(outer_env[[session_name]])) {
-#     format_var2 <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry2)
-#   } else {
-#     format_var2 <- ""
-#   }
-
-#   if (format_var %in% colnames(df)) {
-#     tryCatch({
-      
-#       # 1. Base grouping logic (Detect when format_var changes)
-#       vals1 <- df[, format_var, drop = T]
-#       vals1[is.na(vals1)] <- "NA_VAL" # Explicitly handle NAs for clean comparison
-#       vals1_prev <- c("FIRST_ROW_DUMMY", vals1[1:(length(vals1) - 1)])
-      
-#       changed1 <- (vals1 != vals1_prev)
-#       levels <- cumsum(changed1)
-
-#       # One format by variable
-#       if (format_var2 %in% colnames(df) == F) {
-#         df2[, 2] <- ifelse((levels %% 2) == 1,
-#           ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
-#           ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1")
-#         )
-#       }
-      
-#       # Two format by variables (SAS first. logic)
-#       else if (format_var2 %in% colnames(df)) {
-#         vals2 <- df[, format_var2, drop = T]
-#         vals2[is.na(vals2)] <- "NA_VAL"
-#         vals2_prev <- c("FIRST_ROW_DUMMY", vals2[1:(length(vals2) - 1)])
-
-#         # 2. SAS first. logic: flags true if format_var1 changes OR format_var2 changes
-#         changed2 <- changed1 | (vals2 != vals2_prev)
-        
-#         # KEY FIX: Reset the secondary level counter for each primary level block!
-#         # ave() calculates cumsum within each group defined by 'levels'
-#         levels2 <- ave(changed2, levels, FUN = cumsum)
-
-#         df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#e8edfc", "#e1e5f4"),
-#                     ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#D1D1EC", "#C9C9E9"),
-#                     ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, "#fcf7e8", "#f4efe1"),
-#                     ifelse((1:nrow(df) %% 2) == 1, "#FCEEE8", "#F4E3E1")
-#         )))
-#       }
-#     }, 
-#     error = function(e) {
-#       # Colors for when grouping evaluation fails
-#       df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#F1F1F1", "#FFFFFF")
-#     })
-#   } else {
-#     # Colors for when there is no Format by variable present
-#     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, "#FFFFFF", "#F1F1F1")
-#   }
-
-#   # Check local filter states to see if any contain text
-#   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
-#   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
-#   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
-  
-#   # r__ Color
-#   if (has_filter || has_arrange || has_select) {
-#     df2[, 1] <- "#F4D9D9"
-#   } else {
-#     df2[, 1] <- "#9bb5f5"
-#   }
-
-#   colnames(df2) <- c("f___1", "f___2")
-#   return(df2)
-# }
-
 e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
   is_dark <- totem$settings_list$dark_mode
   #is_dark_mode_active <- !is.null(outer_env$settings_list$dark_mode) && outer_env$settings_list$dark_mode
@@ -209,7 +122,8 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   RGtk2::gtkBoxPackStart(box, obj_env$table_objects_list$inner_box, T, T)
 
   obj_env$table_objects_list$current_columns <- c("x")
-  obj_env$table_objects_list$current_classes <- c("y") # Track classes
+  obj_env$table_objects_list$current_classes <- c("y")
+  obj_env$table_objects_list$current_dark_mode <- NA
   obj_env$table_objects_list$raw_df <- data.frame("x" = character())
   obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(obj_env$table_objects_list$raw_df)
   obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
@@ -218,13 +132,16 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   update_table <- function(df) {
     # Grab the true column classes directly from the Meta Table data (data3)
     new_classes_str <- paste0(outer_env[[session_name]]$data3$class, collapse = "|")
+    is_dark <- totem$settings_list$dark_mode
 
-    # Rebuild if the column names OR the true column classes change
+    # Rebuild if the column names, column classes, OR the theme state change
     if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F ||
-        (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F) {
+        (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F ||
+        !identical(obj_env$table_objects_list$current_dark_mode, is_dark)) {
       
       obj_env$table_objects_list$current_columns <- colnames(df)
       obj_env$table_objects_list$current_classes <- new_classes_str
+      obj_env$table_objects_list$current_dark_mode <- is_dark
 
       df2 <- obj_env$table_obj_function_df2(df)
       df <- cbind(df, df2)
@@ -240,8 +157,9 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       obj_env$table_objects_list$view <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
       obj_env$table_objects_list$view_frozen <- RGtk2::gtkTreeViewNewWithModel(obj_env$table_objects_list$model)
 
-      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view, "none")
-      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, "none")
+      grid_style <- ifelse(is_dark, "none", "both")
+      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view, grid_style)
+      RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, grid_style)
       
       obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 3)
 
@@ -273,12 +191,6 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], "#e7e3cd")
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
-
-      #Failed attempt at dark mode
-      #RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], "#302459")
-      #RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], "#302459")
-      #RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("grey"))
-      #RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("grey"))
 
       # Main Scrolled Window
       sw <- RGtk2::gtkScrolledWindow()
