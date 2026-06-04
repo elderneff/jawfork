@@ -20,7 +20,32 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       message(paste0("Only works on files ending in: ",paste0(okay_files, collapse=", ")))
       return(F)
     }
-    
+  }
+
+  ### Dark mode initialization ###
+  is_dark_startup <- !is.null(totem$settings_list$dark_mode) && totem$settings_list$dark_mode
+  
+  if (is_dark_startup) {
+    startup_rc <- "
+      style 'jaw_dark' {
+        engine '' {} 
+        base[NORMAL]      = '#202020' 
+        base[INSENSITIVE] = '#2D2D2D'
+        bg[NORMAL]        = '#2D2D2D' 
+        bg[PRELIGHT]      = '#404040' 
+        bg[ACTIVE]        = '#1A1A1A' 
+        text[NORMAL]      = '#E0E0E0'
+        fg[NORMAL]        = '#E0E0E0' 
+      }
+      class 'GtkEntry' style 'jaw_dark'
+      class 'GtkScrollbar' style 'jaw_dark'
+      class 'GtkTreeView' style 'jaw_dark'
+      class 'GtkFrame' style 'jaw_dark'
+      class 'GtkPaned' style 'jaw_dark'
+      class 'GtkScrolledWindow' style 'jaw_dark'
+      widget_class '*TreeView*Button*' style 'jaw_dark'
+    "
+    RGtk2::gtkRcParseString(startup_rc)
   }
 
   tryCatch(
@@ -1338,7 +1363,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         data = list(session_name, outer_env)
       )
 
-      ### Dark mode ###
+      ### Dark mode toggle ###
       outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
 
       apply_theme <- function(session_name, outer_env = totem) {
