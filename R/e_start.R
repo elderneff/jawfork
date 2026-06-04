@@ -22,6 +22,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
     }
   }
 
+  print("I am using the most up-to-date version")
+
   tryCatch(
     {
       outer_env$show_load_window()
