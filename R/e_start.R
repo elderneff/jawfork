@@ -22,8 +22,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
     }
   }
 
-  print("I am using the most up-to-date version")
-
   tryCatch(
     {
       outer_env$show_load_window()
@@ -1003,26 +1001,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }, data = list(session_name, outer_env)
       )
 
-      # u__button(
-      #   box = outer_env[[session_name]]$data_view_list$file_source_bar,
-      #   start = T, padding = 2,
-      #   but_txt = "time",
-      #   tool_tip = "Print timeline to console",
-      #   call_back_fct = function(widget, event, data) {
-      #     session_name <- data[[1]]
-      #     outer_env <- data[[2]]
-
-      #     print("Printing timeline...")
-      #     timeline <- outer_env[[session_name]]$timeline
-      #     for (i in 1:length(timeline)) {
-      #       print(paste0(i, ": ", timeline[i]))
-      #     }
-      #     print("Done")
-          
-      #     return(FALSE)
-      #   }, data = list(session_name, outer_env)
-      # )
-
 
 
 
@@ -1359,10 +1337,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           # Sync back to global runtime profile settings
           totem$settings_list$dark_mode <- !current_state
           save_settings(outer_env)
-
-          print("=== WHAT IS IN OUTER_ENV? 1 ===")
-          print(ls(outer_env))
-          print("=============================")
           
           # Call the new globally bound function
           outer_env$u__apply_theme(session_name, outer_env)          
@@ -1606,10 +1580,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env[[session_name]]$objects$current_view <- outer_env[[session_name]]$objects$next_view
         outer_env$hide_load_window()
       }
-
-      print("=== WHAT IS IN OUTER_ENV? 2 ===")
-      print(ls(outer_env))
-      print("=============================")
       
       #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
       if (outer_env[[session_name]]$status_bar$dark_mode) {
