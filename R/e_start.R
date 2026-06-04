@@ -43,6 +43,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       class 'GtkFrame' style 'jaw_dark'
       class 'GtkPaned' style 'jaw_dark'
       class 'GtkScrolledWindow' style 'jaw_dark'
+      class 'GtkTextView' style 'jaw_dark'
+      class 'GtkButton' style 'jaw_dark'
       widget_class '*TreeView*Button*' style 'jaw_dark'
     "
     RGtk2::gtkRcParseString(startup_rc)
@@ -1394,6 +1396,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             class 'GtkFrame' style 'jaw_dark'
             class 'GtkPaned' style 'jaw_dark'
             class 'GtkScrolledWindow' style 'jaw_dark'
+            class 'GtkTextView' style 'jaw_dark'
+            class 'GtkButton' style 'jaw_dark'
             widget_class '*TreeView*Button*' style 'jaw_dark'
           "
           RGtk2::gtkRcParseString(rc_style)
@@ -1450,7 +1454,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         if (!is.null(outer_env[[session_name]]$data3)) {
           outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
         }
-        if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$summary_table)) {
+        if (!is.null(outer_env[[session_name]]$data_view_list$slot3_list$summary_table)) {
           print("Trying to update summary table")
           outer_env[[session_name]]$data_view_list$slot2_list$summary_table$draw_table()
         }
