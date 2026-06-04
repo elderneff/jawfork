@@ -1698,28 +1698,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         table_events = totem$settings_list$table_events
       )
 
-
-
-
       #----------------------------------------
-
       # tail
-
       #----------------------------------------
-
-
-
-
-      #If dark mode is on at startup, force styling apply
-      if (outer_env[[session_name]]$status_bar$dark_mode) {
-        apply_theme(session_name, outer_env)
-      }
 
       refresh <- function(session_name, outer_env = totem) {
         outer_env$show_load_window()
 
         #Update version number here with substantial updates
-        title <- paste0(
+        title <- paste0( [cite: 495]
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
           " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4", " | ", as.character(Sys.time())
         )
@@ -1733,10 +1720,19 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env[[session_name]]$objects$current_view <- outer_env[[session_name]]$objects$next_view
         outer_env$hide_load_window()
       }
+      
+      #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
+      if (outer_env[[session_name]]$status_bar$dark_mode) {
+        apply_theme(session_name, outer_env)
+      }
+
+      refresh(session_name)
+      RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
+      outer_env$hide_load_window()
     },
     error = function(e) {
       message("\n*********************************")
-      message("STARTUP ERROR:")
+      message("STARTUP ERROR:"
       message(as.character(e))
       message("*********************************\n")
       
@@ -1746,7 +1742,4 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       try({ outer_env$hide_load_window() })
     }
   )
-  refresh(session_name)
-  RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
-  outer_env$hide_load_window()
 } # End of start function
