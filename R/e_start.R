@@ -1415,7 +1415,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           outer_env[[session_name]]$data_view_list$unique_by_label
         )
         for (lbl in labels_list) {
-          if (!is.null(lbl)) RGtk2::gtkWidgetModifyText(lbl, "normal", text_color)
+          if (!is.null(lbl)) RGtk2::gtkWidgetModifyFg(lbl, "normal", text_color)
         }
         
         # 4. Refresh views using their proper top-level update triggers
@@ -1425,9 +1425,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         if (!is.null(outer_env[[session_name]]$data3)) {
           outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
         }
-        if (!is.null(outer_env[[session_name]]$data4) && !is.null(outer_env[[session_name]]$data_view_list$slot2_list$summary_table)) {
+        if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$summary_table)) {
           print("Trying to update summary table")
-          outer_env[[session_name]]$data_view_list$slot2_list$value_table <- build_value_data(session_name)
+          outer_env[[session_name]]$data_view_list$slot2_list$summary_table$draw_table()
         }
       }
 
