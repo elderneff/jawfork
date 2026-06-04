@@ -344,12 +344,15 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
             else if (totem$settings_list$columnlabel & !totem$settings_list$columnunique) { RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[j]]$evt$y, paste0(result, " ")) }
             else if (!totem$settings_list$columnlabel & totem$settings_list$columnunique) { RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[j]]$evt$y, paste0("U: ", my_row[, "unique"])) }
           }
+
+          is_dark <- totem$settings_list$dark_mode
+          header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
           
           RGtk2::gtkWidgetSetTooltipText(obj_env$table_objects_list$allColumns[[j]]$evt$evb, my_tool_tip)
           if (my_row[, "class"] == "numeric") {
-            RGtk2::gtkWidgetModifyBg(object = obj_env$table_objects_list$allColumns[[j]]$evt$evb, state = "normal", color = "#FFFFFF")
+            RGtk2::gtkWidgetModifyBg(object = obj_env$table_objects_list$allColumns[[j]]$evt$evb, state = "normal", color = header_bg)
           } else {
-            RGtk2::gtkWidgetModifyBg(object = obj_env$table_objects_list$allColumns[[j]]$evt$evb, state = "normal", color = "#FFFFFF")
+            RGtk2::gtkWidgetModifyBg(object = obj_env$table_objects_list$allColumns[[j]]$evt$evb, state = "normal", color = header_bg)
           }
         }
       }
