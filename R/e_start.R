@@ -1359,6 +1359,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           # Sync back to global runtime profile settings
           totem$settings_list$dark_mode <- !current_state
           save_settings(outer_env)
+
+          print("=== WHAT IS IN OUTER_ENV? 1 ===")
+          print(ls(outer_env))
+          print("=============================")
           
           # Call the new globally bound function
           outer_env$u__apply_theme(session_name, outer_env)          
@@ -1602,6 +1606,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env[[session_name]]$objects$current_view <- outer_env[[session_name]]$objects$next_view
         outer_env$hide_load_window()
       }
+
+      print("=== WHAT IS IN OUTER_ENV? 2 ===")
+      print(ls(outer_env))
+      print("=============================")
       
       #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
       if (outer_env[[session_name]]$status_bar$dark_mode) {
