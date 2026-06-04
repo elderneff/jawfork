@@ -86,11 +86,11 @@ e__create_settings <- function(outer_env = totem) {
       evbl <- RGtk2::gtkEventBox()
 
 
-      if (inner_table_i %% 2) {
-        RGtk2::gtkWidgetModifyBg(object = evbl, state = "normal", color = "#DEE1D3")
-      } else {
-        RGtk2::gtkWidgetModifyBg(object = evbl, state = "normal", color = "#DEDEDE")
-      }
+      # if (inner_table_i %% 2) {
+      #   RGtk2::gtkWidgetModifyBg(object = evbl, state = "normal", color = "#DEE1D3")
+      # } else {
+      #   RGtk2::gtkWidgetModifyBg(object = evbl, state = "normal", color = "#DEDEDE")
+      # }
 
       vb <- RGtk2::gtkVBox()
       RGtk2::gtkContainerAdd(evbl, vb)
@@ -110,11 +110,11 @@ e__create_settings <- function(outer_env = totem) {
       evb <- RGtk2::gtkEventBox()
 
 
-      if (inner_table_i %% 2) {
-        RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#F7FAEB")
-      } else {
-        RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#f7f7f7")
-      }
+      # if (inner_table_i %% 2) {
+      #   RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#F7FAEB")
+      # } else {
+      #   RGtk2::gtkWidgetModifyBg(object = evb, state = "normal", color = "#f7f7f7")
+      # }
 
       hb <- RGtk2::gtkHBox()
       RGtk2::gtkContainerAdd(evb, hb)
@@ -403,11 +403,26 @@ e__create_settings <- function(outer_env = totem) {
   })
   
   #Define function to call when dark mode button clicked
-  RGtk2::gSignalConnect(darkmode, "toggled", function(darkmode) {
+  RGtk2::gSignalConnect(darkmode, "toggled", function(darkmode, data) {
+    outer_env <- data
     current_state <- RGtk2::gtkToggleButtonGetActive(darkmode)
+    
+    # 1. Update the global setting
     outer_env$settings_list$dark_mode <- current_state
+    
+    # 2. Push the theme update to all currently active sessions
+    for (session_name in outer_env$all_sessions) {
+      
+      # SYNC the session-level flag so e__apply_theme knows what to do!
+      outer_env[[session_name]]$status_bar$dark_mode <- current_state
+      
+      # Now apply the theme
+      outer_env$u__apply_theme(session_name, outer_env)
+    }
+    
+    save_settings(outer_env)
     return(T)
-  })
+  }, data = outer_env)
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
