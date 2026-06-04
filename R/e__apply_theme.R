@@ -42,6 +42,8 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   } else {
     rc_style <- "
       style 'jaw_light' {
+        engine \"wimp\" {}  # Restores the native Windows look
+        font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
         bg[NORMAL]        = '#F0F0F0' 
@@ -52,9 +54,11 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         fg[PRELIGHT]      = '#000000'
       }
       
-      widget_class '*' style 'jaw_light'
-      widget_class '*Menu*' style 'jaw_light'
-      widget_class '*MenuItem*' style 'jaw_light'
+      # Bind the base style, but leave out the wildcards so Windows 
+      # can natively draw the structural elements!
+      class 'GtkWidget' style 'jaw_light'
+      class 'GtkTreeView' style 'jaw_light'
+      class 'GtkTextView' style 'jaw_light'
     "
   }
   
@@ -108,10 +112,8 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   if (!is.null(outer_env[[session_name]]$data3)) {
     outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
   }
-  # if (!is.null(outer_env[[session_name]]$data_view_list$slot2_list$value_table)) {
-  #   current_df <- outer_env[[session_name]]$data_view_list$slot2_list$value_table$current_data()
-  #   if (!is.null(current_df)) {
-  #     outer_env[[session_name]]$data_view_list$slot2_list$value_table$update_table(current_df)
-  #   }
-  # }
+  #Hide the summary table, I cannot figure out how to redraw it
+  if (!is.null(outer_env[[session_name]]$data_view_list$slot2_box)) {
+    RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+  }
 }
