@@ -1706,7 +1706,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env$show_load_window()
 
         #Update version number here with substantial updates
-        title <- paste0( [cite: 495]
+        title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
           " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4", " | ", as.character(Sys.time())
         )
