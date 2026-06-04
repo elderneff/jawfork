@@ -1354,27 +1354,27 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         if (is_dark) {
           rc_style <- "
             style 'jaw_dark' {
-              engine '' {} # Kills the Windows native 3D styling engine for these widgets
-              base[NORMAL]      = '#202020' # Fixes the white grid lines by darkening the base canvas
+              engine '' {} 
+              base[NORMAL]      = '#202020' 
               base[INSENSITIVE] = '#2D2D2D'
-              bg[NORMAL]        = '#2D2D2D' # Fixes header backgrounds and scrollbars
-              bg[PRELIGHT]      = '#404040' # Hover state for headers
-              bg[ACTIVE]        = '#1A1A1A' # Click state
+              bg[NORMAL]        = '#2D2D2D' 
+              bg[PRELIGHT]      = '#404040' 
+              bg[ACTIVE]        = '#1A1A1A' 
               text[NORMAL]      = '#E0E0E0'
-              fg[NORMAL]        = '#E0E0E0' # Fixes header text colors
+              fg[NORMAL]        = '#E0E0E0' 
             }
             class 'GtkEntry' style 'jaw_dark'
-            class 'GtkLabel' style 'jaw_dark'
             class 'GtkScrollbar' style 'jaw_dark'
-            class 'GtkButton' style 'jaw_dark'
             class 'GtkTreeView' style 'jaw_dark'
             widget_class '*TreeView*Button*' style 'jaw_dark'
           "
           RGtk2::gtkRcParseString(rc_style)
         } else {
-          # Reset to standard fallback layouts if dark mode is turned off
           RGtk2::gtkRcResetStyles(RGtk2::gtkSettingsGetDefault())
         }
+        
+        # Force the main window and all its children to immediately absorb the new RC styles
+        RGtk2::gtkWidgetResetRcStyles(outer_env[[session_name]]$windows$main_window)
         
         # 1. Main Application Windows and Containers
         RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
