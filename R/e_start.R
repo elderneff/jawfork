@@ -1595,7 +1595,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         tool_tip = "Reload dataset",
         call_back_fct = function(widget, event, data) {
           session_name <- data[[1]]
-          outer_env <- data[[2]]settin
+          outer_env <- data[[2]]
           refresh(session_name)
           return(FALSE)
         },
