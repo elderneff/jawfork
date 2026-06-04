@@ -1732,7 +1732,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
     },
     error = function(e) {
       message("\n*********************************")
-      message("STARTUP ERROR:"
+      message("STARTUP ERROR:")
       message(as.character(e))
       message("*********************************\n")
       
