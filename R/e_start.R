@@ -1288,34 +1288,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_tables_box)
         outer_env[[session_name]]$status_bar$simplicity_view <- T
       }
-      
-      #JN: simplicity mode that will hide all tables except Full Data Table     
-      u__button(
-        box = outer_env[[session_name]]$status_bar$box,
-        start = F, padding = 5,
-        stock_id = "gtk-fullscreen",
-        tool_tip = "Toggle simplicity mode",
-        call_back_fct = function(widget, event, data) {
-          session_name <- data[[1]]
-          outer_env <- data[[2]]
-
-          #Hide top boxes if simplicity view is off, enable simplicity view
-          if (outer_env[[session_name]]$status_bar$simplicity_view == F) {
-            RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_code_box)
-            RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_tables_box)
-            outer_env[[session_name]]$status_bar$simplicity_view <- T
-          } 
-          #Otherwise show top boxes, disable simplicity fiew
-          else {
-            RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_code_box)
-            RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_tables_box)
-            outer_env[[session_name]]$status_bar$simplicity_view <- F
-          }
-
-          return(FALSE)
-        },
-        data = list(session_name, outer_env)
-      )
 
       ### Dark mode toggle ###
       outer_env[[session_name]]$status_bar$dark_mode <- totem$settings_list$dark_mode
@@ -1340,6 +1312,34 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           
           # Call the new globally bound function
           outer_env$u__apply_theme(session_name, outer_env)          
+          return(FALSE)
+        },
+        data = list(session_name, outer_env)
+      )
+      
+      #JN: simplicity mode that will hide all tables except Full Data Table     
+      u__button(
+        box = outer_env[[session_name]]$status_bar$box,
+        start = F, padding = 5,
+        stock_id = "gtk-fullscreen",
+        tool_tip = "Toggle simplicity mode",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+
+          #Hide top boxes if simplicity view is off, enable simplicity view
+          if (outer_env[[session_name]]$status_bar$simplicity_view == F) {
+            RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_code_box)
+            RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_tables_box)
+            outer_env[[session_name]]$status_bar$simplicity_view <- T
+          } 
+          #Otherwise show top boxes, disable simplicity fiew
+          else {
+            RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_code_box)
+            RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_tables_box)
+            outer_env[[session_name]]$status_bar$simplicity_view <- F
+          }
+
           return(FALSE)
         },
         data = list(session_name, outer_env)
