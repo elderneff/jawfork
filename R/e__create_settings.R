@@ -406,10 +406,17 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gSignalConnect(darkmode, "toggled", function(darkmode, data) {
     outer_env <- data
     current_state <- RGtk2::gtkToggleButtonGetActive(darkmode)
+    
+    # 1. Update the global setting
     outer_env$settings_list$dark_mode <- current_state
     
-    # Push the theme update to all currently active sessions!
+    # 2. Push the theme update to all currently active sessions
     for (session_name in outer_env$all_sessions) {
+      
+      # SYNC the session-level flag so e__apply_theme knows what to do!
+      outer_env[[session_name]]$status_bar$dark_mode <- current_state
+      
+      # Now apply the theme
       outer_env$u__apply_theme(session_name, outer_env)
     }
     
