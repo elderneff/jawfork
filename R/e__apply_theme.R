@@ -16,6 +16,8 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   if (is_dark) {
     rc_style <- "
       style 'jaw_dark' {
+        engine \"\" {} 
+        font_name = \"Segoe UI 9\"  # Restores the default Windows font
         base[NORMAL]      = '#202020' 
         base[INSENSITIVE] = '#2D2D2D'
         bg[NORMAL]        = '#2D2D2D' 
@@ -53,6 +55,8 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   } else {
     rc_style <- "
       style 'jaw_light' {
+        engine \"\" {} 
+        font_name = \"Segoe UI 9\"  # Restores the default Windows font
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
         bg[NORMAL]        = '#F0F0F0' 
