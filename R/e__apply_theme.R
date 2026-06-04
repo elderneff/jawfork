@@ -44,7 +44,7 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   } else {
     rc_style <- "
       style 'jaw_light' {
-        engine \"wimp\" {}  # Actively tells GTK to restore the native Windows look
+        engine \"wimp\" {}
         font_name = \"Segoe UI 9\"
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
@@ -52,8 +52,10 @@ e__apply_theme <- function(session_name, outer_env = totem) {
         bg[PRELIGHT]      = '#E5E5E5' 
         bg[ACTIVE]        = '#D4D4D4' 
         text[NORMAL]      = '#000000'
+        text[ACTIVE]      = '#000000'
         fg[NORMAL]        = '#000000' 
         fg[PRELIGHT]      = '#000000'
+        fg[ACTIVE]        = '#000000'
       }
       
       # We MUST include these so they actively overwrite the dark mode wildcards in memory!
