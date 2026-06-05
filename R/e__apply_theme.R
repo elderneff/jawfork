@@ -89,7 +89,7 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)
-  RGtk2::gtkWidgetModifyBg(outer_env$load_window, "normal", bg_color)
+  RGtk2::gtkWidgetModifyBg(outer_env$load_window, "normal", "#F0F0F0")
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$frame, "normal", frame_bg)
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$status_bar$box, "normal", frame_bg)
   
