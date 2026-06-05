@@ -51,16 +51,22 @@ z__event_state <- function(event) {
 z__event_state_key <- function(event) {
   raw_state <- as.numeric(event[["state"]])
   
-  # Extract Shift (1) and Ctrl (4) states using bitwAnd
-  has_shift <- bitwAnd(raw_state, 1) > 0
-  has_ctrl <- bitwAnd(raw_state, 4) > 0
-  
+  # Define the lock masks to ignore (Caps Lock = 2, Num Lock = 16)
+  lock_masks <- bitwOr(2, 16)
+  modifier_state <- bitwAnd(raw_state, bitwNot(lock_masks))
+
   keyval <- as.character(event[["keyval"]])
+  
+  # Check if Ctrl (4) or Shift (1) are STILL held in the state
+  has_ctrl <- bitwAnd(modifier_state, 4) > 0
+  has_shift <- bitwAnd(modifier_state, 1) > 0
+  
+  # Check which key is being released
   is_shift_key <- keyval %in% c("65505", "65506")
   is_ctrl_key <- keyval %in% c("65507", "65508")
   
-  # Trigger only if BOTH modifiers were held down, and one is currently being released
-  if (has_shift && has_ctrl && (is_shift_key || is_ctrl_key)) {
+  # Trigger if releasing Shift while Ctrl is held, or releasing Ctrl while Shift is held
+  if ((is_shift_key && has_ctrl) || (is_ctrl_key && has_shift)) {
     return("shift+ctrl")
   }
 
