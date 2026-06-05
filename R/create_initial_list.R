@@ -223,6 +223,10 @@ check_settings <- function(settings) {
   if (("show_tooltips" %in% names(settings)) == F) {
     settings$show_tooltips <- T
   }
+  #Default show copy messages to T if there is no previous setting
+  if (("copy_messages" %in% names(settings)) == F) {
+    settings$copy_messages <- T
+  }
   # Default code generation preferences to "Prompt" if there is no previous setting
   if (("code_case" %in% names(settings)) == F) {
     settings$code_case <- "Prompt"
