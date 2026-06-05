@@ -265,7 +265,7 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, darkmode, F, F, padding = 4) 
 
   #Add button for tooltips setting
-  tooltips_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show hover tooltips on buttons", show = TRUE)
+  tooltips_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show tooltips on mouseover", show = TRUE)
   RGtk2::gtkToggleButtonSetActive(tooltips_btn, outer_env$settings_list$show_tooltips)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, tooltips_btn, F, F, padding = 4)
 
