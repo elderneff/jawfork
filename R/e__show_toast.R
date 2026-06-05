@@ -16,7 +16,7 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   
   # 1. Custom Pink Background (#ffaec8)
   event_box <- RGtk2::gtkEventBoxNew()
-  bg_color <- RGtk2::gdkColorParse("#ffaec8")$color
+  bg_color <- RGtk2::gdkColorParse("#ffcadb")$color
   RGtk2::gtkWidgetModifyBg(event_box, RGtk2::GtkStateType["normal"], bg_color)
   RGtk2::gtkContainerAdd(toast_win, event_box)
   
