@@ -429,12 +429,21 @@ e__create_settings <- function(outer_env = totem) {
     return(T)
   }, data = outer_env)
 
-  #Define function to call when tooltips button clicked
-  RGtk2::gSignalConnect(tooltips_btn, "toggled", function(tooltips_btn) {
+  RGtk2::gSignalConnect(tooltips_btn, "toggled", function(tooltips_btn, data) {
+    outer_env <- data
     current_state <- RGtk2::gtkToggleButtonGetActive(tooltips_btn)
+    
+    # Save the setting to jaw's environment
     outer_env$settings_list$show_tooltips <- current_state
-    return(T)
-  })
+    
+    # INSTANTLY apply the change to the active GTK session
+    settings_obj <- RGtk2::gtkSettingsGetDefault()
+    if (!is.null(settings_obj)) {
+      settings_obj["gtk-enable-tooltips"] <- current_state
+    }
+    
+    return(TRUE)
+  }, data = outer_env)
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
@@ -451,7 +460,10 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$professionalloading <- F
     outer_env$settings_list$darkmode <- F
     outer_env$settings_list$show_tooltips <- T
-    RGtk2::gtkSettingsGetDefault()[["gtk-enable-tooltips"]] <- T
+    settings_obj <- RGtk2::gtkSettingsGetDefault()
+    if (!is.null(settings_obj)) {
+      settings_obj["gtk-enable-tooltips"] <- T
+    }
     
     # Reset code preferences to Prompt
     outer_env$settings_list$code_case <- "Prompt"
