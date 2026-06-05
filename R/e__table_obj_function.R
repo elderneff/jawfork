@@ -22,8 +22,12 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   # Extract alternating theme sets based on style preferences
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
+  c_primary_3   <- ifelse(is_dark, "#543B36", "#FCEEE8")
+  c_primary_4   <- ifelse(is_dark, "#43302D", "#F4E3E1")
   c_secondary_1 <- ifelse(is_dark, "#3D2F27", "#fcf7e8")
   c_secondary_2 <- ifelse(is_dark, "#342720", "#f4efe1")
+  c_secondary_3 <- ifelse(is_dark, "#3C3852", "#D1D1EC")
+  c_secondary_4 <- ifelse(is_dark, "#2A293B", "#C9C9E9")
   
   c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
   c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
@@ -66,9 +70,9 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
         levels2 <- ave(changed2, levels, FUN = cumsum)
 
         df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_primary_1, c_primary_2),
-                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#373752", "#C9C9E9"),
+                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, c_primary_3, c_primary_4),
                     ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_secondary_1, c_secondary_2),
-                    ifelse((1:nrow(df) %% 2) == 1, "#4A3232", "#F4E3E1")
+                    ifelse((1:nrow(df) %% 2) == 1, c_secondary_3, c_secondary_4)
         )))
       }
     }, 
@@ -83,13 +87,6 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
-  
-  # r__ Index Column Color
-  # if (has_filter || has_arrange || has_select) {
-  #   df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
-  # } else {
-  #   df2[, 1] <- ifelse(is_dark, "#1A365D", "#9bb5f5")
-  # }
   
   if (has_filter || has_arrange || has_select) {
     df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
