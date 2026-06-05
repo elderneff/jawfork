@@ -451,6 +451,7 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$professionalloading <- F
     outer_env$settings_list$darkmode <- F
     outer_env$settings_list$show_tooltips <- T
+    RGtk2::gtkSettingsGetDefault()[["gtk-enable-tooltips"]] <- T
     
     # Reset code preferences to Prompt
     outer_env$settings_list$code_case <- "Prompt"
