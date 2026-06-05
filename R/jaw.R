@@ -14,6 +14,9 @@ jaw <- function(settings_dir=NULL) {
   color_bg_2 <- "#f9f9f9"
   totem <- create_initial_list(settings_dir)
 
+  #Toggle tooltips based on settings
+  RGtk2::gtkSettingsGetDefault()[["gtk-enable-tooltips"]] <- totem$settings_list$show_tooltips
+
   ##########################################
   # Copy console and errors to jaw_log.txt #
   ##########################################
