@@ -29,6 +29,9 @@ e__tree_view_column_btn_press <- function(widget, event, data) {
   
   RGtk2::gtkTreeViewSetCursor(widget, info$path, NULL, FALSE)
   
+  # Explicitly shift GTK focus to the table so the text area stops listening
+  RGtk2::gtkWidgetGrabFocus(widget)
+  
   row.idx <- RGtk2::gtkTreePathGetIndices(info$path) + 1
   col.idx <- z__tree_view_column_get_col_idx(info$column)
   
