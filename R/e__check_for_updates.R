@@ -34,7 +34,7 @@ e__check_for_updates <- function(outer_env = totem) {
   # save_settings(outer_env)
 
   # 4. Compare versions
-  if (utils::compareVersion(remote_version, local_version) > 0) {
+  if (remote_verion != local_version) {
     
     # 5. Prompt the user
     dialog <- RGtk2::gtkMessageDialog(
