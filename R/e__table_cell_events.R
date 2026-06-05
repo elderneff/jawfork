@@ -11,6 +11,9 @@
 e__table_cell_events <- function(event, row.idx, col.idx, outer_env = totem, obj_env = inner_env) {
   current_state <- z__event_state(event)
 
+  #Trip the flag so releasing Ctrl+Shift doesn't fire the text area's code execution
+  outer_env[[session_name]]$cancel_ctrl_shift <- TRUE
+
   row_i <- row.idx + obj_env$page_obj$get_page() - 1
   column <- col.idx
 
