@@ -22,12 +22,12 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   # Extract alternating theme sets based on style preferences
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
-  c_primary_3   <- ifelse(is_dark, "#543B36", "#FCEEE8")
-  c_primary_4   <- ifelse(is_dark, "#43302D", "#F4E3E1")
+  c_primary_3   <- ifelse(is_dark, "#3C3852", "#D1D1EC")
+  c_primary_4   <- ifelse(is_dark, "#2A293B", "#C9C9E9")
   c_secondary_1 <- ifelse(is_dark, "#3D2F27", "#fcf7e8")
   c_secondary_2 <- ifelse(is_dark, "#342720", "#f4efe1")
-  c_secondary_3 <- ifelse(is_dark, "#3C3852", "#D1D1EC")
-  c_secondary_4 <- ifelse(is_dark, "#2A293B", "#C9C9E9")
+  c_secondary_3 <- ifelse(is_dark, "#543B36", "#FCEEE8")
+  c_secondary_4 <- ifelse(is_dark, "#43302D", "#F4E3E1")
   
   c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
   c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
