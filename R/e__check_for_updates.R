@@ -56,12 +56,13 @@ e__check_for_updates <- function(outer_env = totem) {
       bat_lines <- c(
         "@echo off",
         "echo Updating jaw, do not close this window.",
+        "echo ---------------------------------------",
         "echo.",
         paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE, lib=\'', current_lib, '\')"'),
         "echo.",
-        "echo Update complete!",
-        "pause",
-        paste0('del "', bat_file, '"')
+        "echo Update complete! Press any key to close this window.",
+        "pause >nul",
+        "del \"%~f0\" & exit"
       )
       writeLines(bat_lines, bat_file)
       
