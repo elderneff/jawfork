@@ -25,8 +25,8 @@ e__check_for_updates <- function(outer_env = totem) {
   local_version <- as.character(packageVersion("jaw"))
 
   # 3. Mark that we checked today and save to disk
-  outer_env$settings_list$last_update_check <- as.character(today)
-  save_settings(outer_env)
+  # outer_env$settings_list$last_update_check <- as.character(today)
+  # save_settings(outer_env)
 
   # 4. Compare versions
   if (utils::compareVersion(remote_version, local_version) > 0) {
