@@ -234,9 +234,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$data_view_list$slot1_frame <- RGtk2::gtkFrame()
       outer_env[[session_name]]$data_view_list$slot2_frame <- RGtk2::gtkFrame()
 
+      #Initialize and pack BOTH toolbars at the top of the data table section
+      outer_env[[session_name]]$data_view_list$code_tool_bar <- RGtk2::gtkHBox()
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$code_tool_bar, F, F)
+      
+      outer_env[[session_name]]$data_view_list$code_tool_bar2 <- RGtk2::gtkHBox()
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$code_tool_bar2, F, F)
 
-
-
+      #Pack the data tables below the toolbars
       outer_env[[session_name]]$data_view_list$paned <- RGtk2::gtkHPaned()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$paned, T, T)
 
@@ -260,10 +265,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$slot1_frame, outer_env[[session_name]]$data_view_list$slot1_box)
       RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$slot2_frame, outer_env[[session_name]]$data_view_list$slot2_box)
 
-
-
-
-
       outer_env[[session_name]]$data_view_list$file_source_bar <- RGtk2::gtkHBox()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$file_source_bar, F, F)
 
@@ -276,12 +277,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$text_area_1 <- u__add_text_area("Code", run_code, session_name, outer_env)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$text_area_1$Frame, T, T)
-
-      outer_env[[session_name]]$data_view_list$code_tool_bar <- RGtk2::gtkHBox()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$code_tool_bar, F, F)
-
-      outer_env[[session_name]]$data_view_list$code_tool_bar2 <- RGtk2::gtkHBox()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$code_tool_bar2, F, F)
 
 
 
