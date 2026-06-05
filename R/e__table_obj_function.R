@@ -138,6 +138,13 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F ||
         !identical(obj_env$table_objects_list$current_dark_mode, is_dark)) {
       
+      # Capture old horizontal scroll position before destroying the table
+      old_h_val <- 0
+      if (!is.null(obj_env$table_objects_list$sw_main)) {
+        hadj <- RGtk2::gtkScrolledWindowGetHadjustment(obj_env$table_objects_list$sw_main)
+        if (!is.null(hadj)) old_h_val <- RGtk2::gtkAdjustmentGetValue(hadj)
+      }
+
       obj_env$table_objects_list$current_columns <- colnames(df)
       obj_env$table_objects_list$current_classes <- new_classes_str
       obj_env$table_objects_list$current_dark_mode <- is_dark
@@ -197,6 +204,19 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       sw <- RGtk2::gtkScrolledWindow()
       RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
       RGtk2::gtkContainerAdd(sw, obj_env$table_objects_list$view)
+
+      # Store reference to main scrolled window for future scroll tracking
+      obj_env$table_objects_list$sw_main <- sw
+
+      # Restore scroll position after GTK renders and calculates the new width boundaries
+      if (old_h_val > 0) {
+        RGtk2::gIdleAdd(function(data) {
+          hadj <- RGtk2::gtkScrolledWindowGetHadjustment(data$sw)
+          new_val <- min(data$old_val, max(0, hadj$upper - hadj$pageSize))
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(FALSE)
+        }, data = list(sw = sw, old_val = old_h_val))
+      }
 
       # Frozen Scrolled Window (No scrollbars visible)
       sw_frozen <- RGtk2::gtkScrolledWindow()
