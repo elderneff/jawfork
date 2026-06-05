@@ -7,7 +7,7 @@
 #'
 #' @return TODO
 
-e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 1000, outer_env = totem) {
+e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2500, outer_env = totem) {
   toast_win <- RGtk2::gtkWindowNew("toplevel")
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
@@ -40,12 +40,12 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
     RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
     
-    # 3. Request the dimensions of our newly built toast
+    # Request the dimensions of our newly built toast
     req <- RGtk2::gtkWidgetSizeRequest(toast_win)$requisition
     toast_w <- req$width
     toast_h <- req$height
     
-    # 4. Pull the exact variables using the DOT syntax we found in the diagnostic
+    # Pull the exact variables using the DOT syntax
     p_pos <- RGtk2::gtkWindowGetPosition(true_parent)
     p_size <- RGtk2::gtkWindowGetSize(true_parent)
     
@@ -54,9 +54,9 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     parent_w <- p_size$width
     parent_h <- p_size$height
     
-    # 5. Calculate bottom-right placement
+    # 3. Calculate bottom-left placement
     padding <- 50
-    target_x <- parent_x + parent_w - toast_w - padding
+    target_x <- parent_x + padding
     target_y <- parent_y + parent_h - toast_h - padding
     
     # Move it!
