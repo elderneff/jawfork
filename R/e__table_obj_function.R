@@ -20,15 +20,17 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
 
   # Extract alternating theme sets based on style preferences
+  #Primary: blues
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
   c_primary_3   <- ifelse(is_dark, "#3C3852", "#D1D1EC")
   c_primary_4   <- ifelse(is_dark, "#2A293B", "#C9C9E9")
+  #Secondary: yellows
   c_secondary_1 <- ifelse(is_dark, "#3D2F27", "#fcf7e8")
   c_secondary_2 <- ifelse(is_dark, "#342720", "#f4efe1")
   c_secondary_3 <- ifelse(is_dark, "#543B36", "#FCEEE8")
   c_secondary_4 <- ifelse(is_dark, "#43302D", "#F4E3E1")
-  
+  #Fallback to black and gray if no format set
   c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
   c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
 
@@ -177,14 +179,16 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       selectedColor <- RGtk2::as.GdkColor(c(198, 213, 253) * 256) # Linux
 
       # Styling for Main View
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], "#C3DFC8")
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], "#C3DFC8")
+      c_select <- ifelse(is_dark, "#417B4B", "#C3DFC8")
+      
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], c_select)
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], c_select)
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
 
       # Styling for Frozen View
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], "#C3DFC8")
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], "#C3DFC8")
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], c_select)
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], c_select)
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
       RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
 
