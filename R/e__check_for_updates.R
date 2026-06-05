@@ -25,8 +25,8 @@ e__check_for_updates <- function(outer_env = totem) {
   local_version <- as.character(packageVersion("jaw"))
 
   # 3. Mark that we checked today and save to disk
-  # outer_env$settings_list$last_update_check <- as.character(today)
-  # save_settings(outer_env)
+  outer_env$settings_list$last_update_check <- as.character(today)
+  save_settings(outer_env)
 
   # 4. Compare versions
   if (remote_version != local_version) {
@@ -48,7 +48,6 @@ e__check_for_updates <- function(outer_env = totem) {
       # Use R.home("bin") and normalize it for Windows CMD
       rscript_path <- normalizePath(file.path(R.home("bin"), "Rscript.exe"), mustWork = FALSE)
       
-      # CRITICAL FIX: Ensure it installs to the PORTABLE library!
       # Grab the exact directory jaw is currently loaded from and normalize slashes for the R command
       current_lib <- normalizePath(dirname(find.package("jaw")), winslash = "/", mustWork = FALSE)
       
@@ -57,6 +56,7 @@ e__check_for_updates <- function(outer_env = totem) {
       bat_lines <- c(
         "@echo off",
         "echo Updating jaw, do not close this window.",
+        "echo.",
         paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE, lib=\'', current_lib, '\')"'),
         "echo.",
         "echo Update complete!",
