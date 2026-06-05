@@ -136,7 +136,20 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
   }
 
   str_dim <- paste0(str_row, " x ", str_col)
-  RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, str_dim)
+  # Add padding spaces to the text so the background color has breathing room
+  RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, paste0(" ", str_dim, " "))
+
+  # Check if data was subset to trigger styling
+  is_subset <- (nrow(outer_env[[session_name]]$data1) != nrow(outer_env[[session_name]]$data2)) || 
+               (ncol(outer_env[[session_name]]$data1) != ncol(outer_env[[session_name]]$data2))
+               
+  is_dark <- outer_env$settings_list$dark_mode
+  if (is_subset) {
+    bg_color <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
+  } else {
+    bg_color <- ifelse(is_dark, "#1A365D", "#9bb5f5")
+  }
+  RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, "normal", bg_color)
 
   ##################
   # Cache metadata #
