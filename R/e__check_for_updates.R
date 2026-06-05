@@ -77,4 +77,6 @@ e__check_for_updates <- function(outer_env = totem) {
     # IMMEDIATELY kill the current R session so the package files are unlocked!
     quit(save = "no")
   }
+
+  return(FALSE)
 }
