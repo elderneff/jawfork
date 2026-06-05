@@ -4,8 +4,11 @@
 #'
 #' @return Boolean indicating if an update was initiated
 e__check_for_updates <- function(outer_env = totem) {
+  print("Checking for updates...")
+  
   # 1. Check if we've already looked for updates today
   last_check <- as.Date(outer_env$settings_list$last_update_check)
+  print(last_check)
   today <- Sys.Date()
   if (last_check >= today) {
     return(FALSE)
