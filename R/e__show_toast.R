@@ -11,23 +11,12 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   toast_win <- RGtk2::gtkWindowNew("toplevel")
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
-  
-  # 1. Force the window to float on top of everything else
   RGtk2::gtkWindowSetKeepAbove(toast_win, TRUE)
   
-  parent_window <- outer_env[[session_name]]$windows$main_window
+  # 1. Set position policy to NONE (0L) so GTK doesn't override our manual coordinates
+  RGtk2::gtkWindowSetPosition(toast_win, 0L)
   
-  if (!is.null(parent_window)) {
-    true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
-    RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
-    
-    # FIX: Append 'L' to force R to pass a strict integer to the C backend
-    RGtk2::gtkWindowSetPosition(toast_win, 4L) 
-  } else {
-    # FIX: Append 'L' here as well
-    RGtk2::gtkWindowSetPosition(toast_win, 1L) 
-  }
-  
+  # Build the UI inside the window first so GTK knows how big it needs to be
   frame <- RGtk2::gtkFrameNew()
   RGtk2::gtkFrameSetShadowType(frame, "out")
   RGtk2::gtkContainerAdd(toast_win, frame)
@@ -41,12 +30,37 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   RGtk2::gtkLabelSetMarkup(label, markup)
   RGtk2::gtkBoxPackStart(vbox, label, TRUE, TRUE, 0)
   
-  # Show the window and all its children
-  RGtk2::gtkWidgetShowAll(toast_win)
+  parent_window <- outer_env[[session_name]]$windows$main_window
   
-  # 2. Forcefully command the window manager to draw it right now
+  if (!is.null(parent_window)) {
+    true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
+    RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
+    
+    # 2. Ask GTK to calculate the exact width/height of the toast BEFORE we show it
+    req <- RGtk2::gtkWidgetSizeRequest(toast_win)$requisition
+    toast_w <- req$width
+    toast_h <- req$height
+    
+    # 3. Get the parent window's exact location and size on the screen
+    p_pos <- RGtk2::gtkWindowGetPosition(true_parent)
+    p_size <- RGtk2::gtkWindowGetSize(true_parent)
+    
+    # 4. Calculate bottom-right placement with a 50-pixel safety padding for scrollbars
+    padding <- 50
+    target_x <- p_pos[[1]] + p_size[[1]] - toast_w - padding
+    target_y <- p_pos[[2]] + p_size[[2]] - toast_h - padding
+    
+    # Forcefully move the window exactly there
+    RGtk2::gtkWindowMove(toast_win, target_x, target_y)
+  } else {
+    RGtk2::gtkWindowSetPosition(toast_win, 1L) # Fallback to screen center
+  }
+  
+  # Show it
+  RGtk2::gtkWidgetShowAll(toast_win)
   RGtk2::gtkWindowPresent(toast_win)
   
+  # Auto-destroy
   RGtk2::gTimeoutAdd(duration_ms, function(...) {
     RGtk2::gtkWidgetDestroy(toast_win)
     return(FALSE) 
