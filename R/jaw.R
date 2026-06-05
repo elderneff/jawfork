@@ -45,6 +45,14 @@ jaw <- function(settings_dir=NULL) {
   }  
   
   totem$while_loop_running <- F
+
+  totem$check_for_updates <- e__with_env(e__check_for_updates)
+  
+  # If the user accepted the update, exit out
+  if (totem$check_for_updates(totem)) {
+    message("Exiting to perform update...")
+    return(invisible())
+  }
   # Events
   totem$all_event_functions <- (e__with_env(e__all_event_functions))()
 
