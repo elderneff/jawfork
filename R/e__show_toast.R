@@ -20,9 +20,12 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   if (!is.null(parent_window)) {
     true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
     RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
-    RGtk2::gtkWindowSetPosition(toast_win, 4) # Center on parent
+    
+    # FIX: Append 'L' to force R to pass a strict integer to the C backend
+    RGtk2::gtkWindowSetPosition(toast_win, 4L) 
   } else {
-    RGtk2::gtkWindowSetPosition(toast_win, 1) # Center on screen
+    # FIX: Append 'L' here as well
+    RGtk2::gtkWindowSetPosition(toast_win, 1L) 
   }
   
   frame <- RGtk2::gtkFrameNew()
