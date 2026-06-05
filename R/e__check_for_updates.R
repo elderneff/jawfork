@@ -49,33 +49,32 @@ e__check_for_updates <- function(outer_env = totem) {
 
     # If the user clicks Yes
     if (response == RGtk2::GtkResponseType["yes"] || response == -8) {
-      
-      rscript_path <- file.path(R.home("bin"), "Rscript.exe")
     
-      # 6. Create a temporary batch file to bypass Windows CMD quote nightmares
-      bat_file <- tempfile(pattern = "jaw_update_", fileext = ".bat")
-      bat_lines <- c(
-        "@echo off",
-        "echo Updating jaw, do not close this window.",
-        paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE)"'),
-        "echo.",
-        "echo Update complete!",
-        "pause"
-      )
-      writeLines(bat_lines, bat_file)
-      
-      # 7. Launch the batch file using shell() instead of system()
-    # (shell() correctly handles Windows-internal commands like 'start')
-    message("Update script generated at: ", bat_file) # Prints the path to the console so you can test it manually if needed!
-    shell(paste0('start "JAW Updater" "', bat_file, '"'), wait = FALSE)
+    # Use R.home("bin") and normalize it for Windows CMD (converts / to \)
+    rscript_path <- normalizePath(file.path(R.home("bin"), "Rscript.exe"), mustWork = FALSE)
+    
+    # CRITICAL FIX: Do NOT use R's tempfile() because R deletes its temp folder on exit!
+    # Write directly to the system's global Temp folder so it survives R shutting down.
+    bat_file <- file.path(Sys.getenv("TEMP"), paste0("jaw_update_", as.integer(Sys.time()), ".bat"))
+    
+    bat_lines <- c(
+      "@echo off",
+      "echo Updating jaw, do not close this window.",
+      paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE)"'),
+      "echo.",
+      "echo Update complete! You can now relaunch JAW.",
+      "pause",
+      paste0('del "', bat_file, '"') # Have the script delete itself at the very end
+    )
+    writeLines(bat_lines, bat_file)
+    
+    # Launch the batch file using shell()
+    shell(paste0('start "jaw Updater" "', bat_file, '"'), wait = FALSE)
 
     # Give Windows a split-second to successfully spawn the independent window
     Sys.sleep(1)
 
-    # 8. IMMEDIATELY kill the current R session so the package files are unlocked!
+    # IMMEDIATELY kill the current R session so the package files are unlocked!
     quit(save = "no")
-    }
   }
-  
-  return(FALSE)
 }
