@@ -34,7 +34,7 @@ e__check_for_updates <- function(outer_env = totem) {
   # save_settings(outer_env)
 
   # 4. Compare versions
-  if (remote_verion != local_version) {
+  if (remote_version != local_version) {
     
     # 5. Prompt the user
     dialog <- RGtk2::gtkMessageDialog(
@@ -57,7 +57,7 @@ e__check_for_updates <- function(outer_env = totem) {
       update_cmd <- paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE)"')
       
       # Spawn a detached CMD window so the update can run independently
-      sys_cmd <- paste0("start cmd.exe /c \"echo Updating jaw, do not close this window. & ", update_cmd, " & echo. & echo Update complete! & pause\"")
+      sys_cmd <- paste0('start "JAW Updater" cmd.exe /c "echo Updating jaw, do not close this window. & ', update_cmd, ' & echo. & echo Update complete! & pause"')
       system(sys_cmd, wait = FALSE)
 
       return(TRUE) # Return TRUE so we can abort the app startup
