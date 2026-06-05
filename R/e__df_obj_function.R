@@ -112,10 +112,12 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   copy_full <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
       clipr::write_clip(obj_env$df_obj_list$full_df, allow_non_interactive = T)
+      outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$full_df[, pass_columns, drop = F]
         clipr::write_clip(x, allow_non_interactive = T)
+        outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$full_df[, pass_columns, drop = T])
         #If copying as a vector, remove all newlines
@@ -317,10 +319,12 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   copy_filter <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
       clipr::write_clip(obj_env$df_obj_list$filtered_df, allow_non_interactive = T)
+      outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$filtered_df[, pass_columns, drop = F]
         clipr::write_clip(x, allow_non_interactive = T)
+        outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$filtered_df[, pass_columns, drop = T])
         #If copying as a vector, remove all newlines
