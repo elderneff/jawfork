@@ -24,8 +24,7 @@ u__button <- function(box, start = T, padding = 5, stock_id = NULL, but_txt = NU
   }
 
   RGtk2::gtkButtonSetRelief(btn, "GTK_RELIEF_NONE") 
-  # Only attach the tooltip if the text isn't null AND the global setting allows it
-  if (is.null(tool_tip) == F && isTRUE(totem$settings_list$show_tooltips)) {
+  if (is.null(tool_tip) == F) {
     RGtk2::gtkWidgetSetTooltipText(btn, tool_tip)
   }
   if (start) {
