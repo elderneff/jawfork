@@ -1,4 +1,4 @@
-#' e__show_toast
+#' u__show_toast
 #'
 #' @param outer_env TODO
 #' @param session_name TODO
@@ -7,18 +7,18 @@
 #'
 #' @return TODO
 
-e__show_toast <- function(session_name, message = "Copied to clipboard", duration_ms = 1000, outer_env = totem) {
+u__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2000, outer_env = totem) {
   # 1. Create a borderless popup window
   toast_win <- RGtk2::gtkWindowNew("popup")
   
   parent_window <- outer_env[[session_name]]$windows$main_window
   
-  # Center it on the main application window
+  # FIX: Use the explicit RGtk2 enum for window positions instead of raw strings
   if (!is.null(parent_window)) {
     RGtk2::gtkWindowSetTransientFor(toast_win, parent_window)
-    RGtk2::gtkWindowSetPosition(toast_win, "center-on-parent")
+    RGtk2::gtkWindowSetPosition(toast_win, RGtk2::GtkWindowPosition["center-on-parent"])
   } else {
-    RGtk2::gtkWindowSetPosition(toast_win, "center")
+    RGtk2::gtkWindowSetPosition(toast_win, RGtk2::GtkWindowPosition["center"])
   }
   
   # 2. Add a decorative frame and padding so it looks like a nice notification
