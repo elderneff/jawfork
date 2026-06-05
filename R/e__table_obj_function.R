@@ -179,7 +179,8 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       selectedColor <- RGtk2::as.GdkColor(c(198, 213, 253) * 256) # Linux
 
       # Styling for Main View
-      c_select <- ifelse(is_dark, "#417B4B", "#C3DFC8")
+      c_select <- ifelse(is_dark, "#32603A", "#C3DFC8")
+      text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
       
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], c_select)
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], c_select)
