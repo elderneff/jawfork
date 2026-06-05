@@ -183,14 +183,14 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], c_select)
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], c_select)
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], text_color)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], text_color)
 
       # Styling for Frozen View
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], c_select)
       RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], c_select)
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], text_color)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], text_color)
 
       # Main Scrolled Window
       sw <- RGtk2::gtkScrolledWindow()
