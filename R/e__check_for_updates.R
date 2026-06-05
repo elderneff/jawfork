@@ -64,11 +64,16 @@ e__check_for_updates <- function(outer_env = totem) {
       )
       writeLines(bat_lines, bat_file)
       
-      # 7. Launch the batch file in a new detached window
-      system(paste0('start "JAW Updater" "', bat_file, '"'), wait = FALSE)
-  
-      # 8. IMMEDIATELY kill the current R session so the package files are unlocked!
-      quit(save = "no")
+      # 7. Launch the batch file using shell() instead of system()
+    # (shell() correctly handles Windows-internal commands like 'start')
+    message("Update script generated at: ", bat_file) # Prints the path to the console so you can test it manually if needed!
+    shell(paste0('start "JAW Updater" "', bat_file, '"'), wait = FALSE)
+
+    # Give Windows a split-second to successfully spawn the independent window
+    Sys.sleep(1)
+
+    # 8. IMMEDIATELY kill the current R session so the package files are unlocked!
+    quit(save = "no")
     }
   }
   
