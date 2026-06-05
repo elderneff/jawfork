@@ -8,7 +8,7 @@
 e__apply_theme <- function(session_name, outer_env = totem) {
   is_dark <- outer_env[[session_name]]$status_bar$dark_mode
   
-  bg_color <- ifelse(is_dark, "#202020", "#FFFFFF")
+  bg_color <- ifelse(is_dark, "#202020", "#F0F0F0")
   text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
   frame_bg <- ifelse(is_dark, "#2D2D2D", "#F9F9F9")
   entry_bg <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
@@ -126,7 +126,27 @@ e__apply_theme <- function(session_name, outer_env = totem) {
   for (lbl in labels_list) {
     if (!is.null(lbl)) RGtk2::gtkWidgetModifyFg(lbl, "normal", text_color)
   }
-  
+
+  #Push colors to different objects
+  if (!is.null(outer_env[[session_name]]$data1) && !is.null(outer_env[[session_name]]$data2)) {
+    is_select_active <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$select_cb)
+    select_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry))
+    has_select_subset <- is_select_active && (select_txt != "")
+
+    is_subset <- (nrow(outer_env[[session_name]]$data1) != nrow(outer_env[[session_name]]$data2)) || 
+                 (ncol(outer_env[[session_name]]$data1) != ncol(outer_env[[session_name]]$data2)) ||
+                 has_select_subset
+
+    if (is_subset) {
+      dim_bg <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
+    } else {
+      dim_bg <- ifelse(is_dark, "#202020", "#F0F0F0")
+    }
+    
+    if (!is.null(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb)) {
+      RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, "normal", dim_bg)
+    }
+  }
   if (!is.null(outer_env[[session_name]]$data2)) {
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
   }
