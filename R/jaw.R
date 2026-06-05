@@ -89,6 +89,7 @@ jaw <- function(settings_dir=NULL) {
 
   totem$u__check_code_prefs <- e__with_env(e__check_code_prefs)
   totem$u__copy_mapping <- e__with_env(e__copy_mapping)
+  totem$u__show_toast <- e__with_env(e__show_toast)
 
   # Objects
 
