@@ -50,17 +50,25 @@ e__check_for_updates <- function(outer_env = totem) {
     # If the user clicks Yes
     if (response == RGtk2::GtkResponseType["yes"] || response == -8) {
       
-      # Use R.home("bin") to dynamically locate the portable Rscript.exe
       rscript_path <- file.path(R.home("bin"), "Rscript.exe")
+    
+      # 6. Create a temporary batch file to bypass Windows CMD quote nightmares
+      bat_file <- tempfile(pattern = "jaw_update_", fileext = ".bat")
+      bat_lines <- c(
+        "@echo off",
+        "echo Updating jaw, do not close this window.",
+        paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE)"'),
+        "echo.",
+        "echo Update complete!",
+        "pause"
+      )
+      writeLines(bat_lines, bat_file)
       
-      # Build the update command. Use force=TRUE to ensure it overwrites
-      update_cmd <- paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE)"')
-      
-      # Spawn a detached CMD window so the update can run independently
-      sys_cmd <- paste0('start "JAW Updater" cmd.exe /c "echo Updating jaw, do not close this window. & ', update_cmd, ' & echo. & echo Update complete! & pause"')
-      system(sys_cmd, wait = FALSE)
-
-      return(TRUE) # Return TRUE so we can abort the app startup
+      # 7. Launch the batch file in a new detached window
+      system(paste0('start "JAW Updater" "', bat_file, '"'), wait = FALSE)
+  
+      # 8. IMMEDIATELY kill the current R session so the package files are unlocked!
+      quit(save = "no")
     }
   }
   
