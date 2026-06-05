@@ -25,7 +25,9 @@ e__check_for_updates <- function(outer_env = totem) {
   if (length(version_line) == 0) return(FALSE)
 
   remote_version <- trimws(sub("^Version:", "", version_line[1]))
+  print(remote_version)
   local_version <- as.character(packageVersion("jaw"))
+  print(local_version)
 
   # 3. Mark that we checked today and save to disk
   # outer_env$settings_list$last_update_check <- as.character(today)
