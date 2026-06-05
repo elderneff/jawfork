@@ -1,4 +1,4 @@
-#' u__show_toast
+#' e__show_toast
 #'
 #' @param outer_env TODO
 #' @param session_name TODO
@@ -7,7 +7,7 @@
 #'
 #' @return TODO
 
-u__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2000, outer_env = totem) {
+e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2000, outer_env = totem) {
   # 1. Create a borderless popup window
   toast_win <- RGtk2::gtkWindowNew("popup")
   
