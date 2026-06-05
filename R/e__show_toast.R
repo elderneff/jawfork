@@ -1,4 +1,4 @@
-#' u__show_toast
+#' e__show_toast
 #'
 #' @param session_name TODO
 #' @param message The text to display
@@ -7,7 +7,7 @@
 #'
 #' @return TODO
 
-u__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2000, outer_env = totem) {
+e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2000, outer_env = totem) {
   toast_win <- RGtk2::gtkWindowNew("toplevel")
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
