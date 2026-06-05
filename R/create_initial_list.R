@@ -219,6 +219,10 @@ check_settings <- function(settings) {
   if (("dark_mode" %in% names(settings)) == F) {
     settings$dark_mode <- F
   }
+  #Default show tooltips to T if there is no previous setting
+  if (("show_tooltips" %in% names(settings)) == F) {
+    settings$show_tooltips <- T
+  }
   # Default code generation preferences to "Prompt" if there is no previous setting
   if (("code_case" %in% names(settings)) == F) {
     settings$code_case <- "Prompt"
