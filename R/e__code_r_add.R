@@ -6,7 +6,7 @@
 #' @return TODO
 
 e__code_r_add <- function(session_name,outer_env=totem) {
-  session_tag <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$file_source_entry)
+  session_tag <- session_name
 
   file_content <- read_text_file(totem$code_R)
   if (grepl(paste0("#start@", session_tag), file_content,
@@ -26,7 +26,7 @@ e__code_r_add <- function(session_name,outer_env=totem) {
 #' @return TODO
 
 e__code_r_add_cmd <- function(session_name, cmd,outer_env=totem) {
-  session_tag <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$file_source_entry)
+  session_tag <- session_name
   file_content <- read_text_file(totem$code_R)
 
 
