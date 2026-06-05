@@ -272,7 +272,7 @@ e__load_dataset_filter_inner_select <- function(session_name, df,outer_env=totem
 e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
   source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
   if (source_file == T) {
-    session_tag <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$file_source_entry)
+    session_tag <- session_name
     file_content <- read_text_file(totem$code_R)
     start_pat <- paste0("#start@", session_tag)
     end_pat <- paste0("#end@", session_tag)
