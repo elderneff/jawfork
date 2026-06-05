@@ -271,7 +271,7 @@ e__create_settings <- function(outer_env = totem) {
   
   #Add button for copy messages setting
   copymessages_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show popups on successful copy", show = TRUE)
-  RGtk2::gtkToggleButtonSetActive(copymessage_btn, outer_env$settings_list$copy_messages)
+  RGtk2::gtkToggleButtonSetActive(copymessages_btn, outer_env$settings_list$copy_messages)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, copymessages_btn, F, F, padding = 4)
 
   # Add combo box for Code Case
