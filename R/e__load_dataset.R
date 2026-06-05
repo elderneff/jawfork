@@ -136,7 +136,30 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
   }
 
   str_dim <- paste0(str_row, " x ", str_col)
-  RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, str_dim)
+  # Add padding spaces to the text so the background color has breathing room
+  RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, paste0(" ", str_dim, " "))
+
+  # Check if the select statement is active and populated
+  is_select_active <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$select_cb)
+  select_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry))
+  has_select_subset <- is_select_active && (select_txt != "")
+
+  # Check if data was subset in dimensions OR via the select field
+  is_subset <- (nrow(outer_env[[session_name]]$data1) != nrow(outer_env[[session_name]]$data2)) || 
+               (ncol(outer_env[[session_name]]$data1) != ncol(outer_env[[session_name]]$data2)) ||
+               has_select_subset
+               
+  is_dark <- outer_env$settings_list$dark_mode
+  
+  if (is_subset) {
+    # Highlight with red/pink warning colors
+    bg_color <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
+  } else {
+    # Blend seamlessly into the standard GTK backgrounds
+    bg_color <- ifelse(is_dark, "#2D2D2D", "#F0F0F0")
+  }
+  
+  RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, "normal", bg_color)
 
   ##################
   # Cache metadata #
@@ -272,7 +295,7 @@ e__load_dataset_filter_inner_select <- function(session_name, df,outer_env=totem
 e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
   source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
   if (source_file == T) {
-    session_tag <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$file_source_entry)
+    session_tag <- session_name
     file_content <- read_text_file(totem$code_R)
     start_pat <- paste0("#start@", session_tag)
     end_pat <- paste0("#end@", session_tag)

@@ -27,6 +27,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env$show_load_window()
       session_name <- outer_env$add_session(sas_file_path)
 
+      #Initialize opened time for the new header label
+      outer_env[[session_name]]$opened_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+
       #Define a timeline and time to be referenced and edited by the text area
       outer_env[[session_name]]$timeline <- c("")
       outer_env[[session_name]]$time <- 1
@@ -75,6 +78,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkWindowSetDefaultSize(main_window, totem$settings_list$default_sizes$window[1], totem$settings_list$default_sizes$window[2])
       if (totem$settings_list$maximize == T) {
           RGtk2::gtkWindowMaximize(main_window)
+      }
+
+      settings_obj <- RGtk2::gtkSettingsGetDefault()
+      if (!is.null(settings_obj)) {
+        settings_obj["gtk-enable-tooltips"] <- outer_env$settings_list$show_tooltips
       }
 
 
@@ -231,9 +239,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$data_view_list$slot1_frame <- RGtk2::gtkFrame()
       outer_env[[session_name]]$data_view_list$slot2_frame <- RGtk2::gtkFrame()
 
+      #Initialize and pack BOTH toolbars at the top of the data table section
+      outer_env[[session_name]]$data_view_list$code_tool_bar <- RGtk2::gtkHBox()
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$code_tool_bar, F, F)
+      
+      outer_env[[session_name]]$data_view_list$code_tool_bar2 <- RGtk2::gtkHBox()
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$code_tool_bar2, F, F)
 
-
-
+      #Pack the data tables below the toolbars
       outer_env[[session_name]]$data_view_list$paned <- RGtk2::gtkHPaned()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_data_box, outer_env[[session_name]]$data_view_list$paned, T, T)
 
@@ -257,10 +270,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$slot1_frame, outer_env[[session_name]]$data_view_list$slot1_box)
       RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$slot2_frame, outer_env[[session_name]]$data_view_list$slot2_box)
 
-
-
-
-
       outer_env[[session_name]]$data_view_list$file_source_bar <- RGtk2::gtkHBox()
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$file_source_bar, F, F)
 
@@ -273,12 +282,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$text_area_1 <- u__add_text_area("Code", run_code, session_name, outer_env)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$text_area_1$Frame, T, T)
-
-      outer_env[[session_name]]$data_view_list$code_tool_bar <- RGtk2::gtkHBox()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$code_tool_bar, F, F)
-
-      outer_env[[session_name]]$data_view_list$code_tool_bar2 <- RGtk2::gtkHBox()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$top_code_box, outer_env[[session_name]]$data_view_list$code_tool_bar2, F, F)
 
 
 
@@ -775,9 +778,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
 
-      outer_env[[session_name]]$data_view_list$file_source_entry <- RGtk2::gtkEntry()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$file_source_bar, outer_env[[session_name]]$data_view_list$file_source_entry, T, T)
-      RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$file_source_entry, session_name)
+      outer_env[[session_name]]$data_view_list$file_source_label <- RGtk2::gtkLabel()
+      outer_env[[session_name]]$data_view_list$file_source_label$xalign <- 0
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$file_source_bar, outer_env[[session_name]]$data_view_list$file_source_label, T, T)
 
 
       u__button(
@@ -1088,8 +1091,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
 
+      outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb <- RGtk2::gtkEventBox()
       outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label <- RGtk2::gtkLabel()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, F, F, padding = 1)
+      RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, F, F, padding = 1)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$select_box, T, T, padding = 1)
 
@@ -1568,12 +1573,19 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         #Update version number here with substantial updates
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4", " | ", as.character(Sys.time())
+          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4"
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
 
+        #Update refresh time and the label
+        outer_env[[session_name]]$last_refreshed_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+        time_text <- paste0("Opened: ", outer_env[[session_name]]$opened_time, " | Last refreshed: ", outer_env[[session_name]]$last_refreshed_time)
+        RGtk2::gtkLabelSetText(outer_env[[session_name]]$data_view_list$file_source_label, time_text)
+
         #Clear metadata cache on refreshes
         outer_env[[session_name]]$data1_meta_cache <- NULL
+        # Nullify data2 so syntax errors fall back directly to unfiltered data1 on reload
+        outer_env[[session_name]]$data2 <- NULL
 
         outer_env$u__load_dataset(session_name)
 

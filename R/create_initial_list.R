@@ -219,6 +219,14 @@ check_settings <- function(settings) {
   if (("dark_mode" %in% names(settings)) == F) {
     settings$dark_mode <- F
   }
+  #Default show tooltips to T if there is no previous setting
+  if (("show_tooltips" %in% names(settings)) == F) {
+    settings$show_tooltips <- T
+  }
+  #Default show copy messages to T if there is no previous setting
+  if (("copy_messages" %in% names(settings)) == F) {
+    settings$copy_messages <- T
+  }
   # Default code generation preferences to "Prompt" if there is no previous setting
   if (("code_case" %in% names(settings)) == F) {
     settings$code_case <- "Prompt"
@@ -250,7 +258,10 @@ check_settings <- function(settings) {
     }
   }
 
-
+  # Default update tracking date
+  if (("last_update_check" %in% names(settings)) == F) {
+    settings$last_update_check <- "1970-01-01"
+  }
 
   return(settings)
 }

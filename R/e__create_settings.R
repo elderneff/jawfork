@@ -264,6 +264,16 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gtkToggleButtonSetActive(darkmode, outer_env$settings_list$dark_mode)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, darkmode, F, F, padding = 4) 
 
+  #Add button for tooltips setting
+  tooltips_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show tooltips on mouseover", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(tooltips_btn, outer_env$settings_list$show_tooltips)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, tooltips_btn, F, F, padding = 4)
+  
+  #Add button for copy messages setting
+  copymessages_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show popups on successful copy", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(copymessages_btn, outer_env$settings_list$copy_messages)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, copymessages_btn, F, F, padding = 4)
+
   # Add combo box for Code Case
   case_box <- RGtk2::gtkHBox()
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, case_box, F, F, padding = 4)
@@ -423,6 +433,29 @@ e__create_settings <- function(outer_env = totem) {
     save_settings(outer_env)
     return(T)
   }, data = outer_env)
+
+  RGtk2::gSignalConnect(tooltips_btn, "toggled", function(tooltips_btn, data) {
+    outer_env <- data
+    current_state <- RGtk2::gtkToggleButtonGetActive(tooltips_btn)
+    
+    # Save the setting to jaw's environment
+    outer_env$settings_list$show_tooltips <- current_state
+    
+    # INSTANTLY apply the change to the active GTK session
+    settings_obj <- RGtk2::gtkSettingsGetDefault()
+    if (!is.null(settings_obj)) {
+      settings_obj["gtk-enable-tooltips"] <- current_state
+    }
+    
+    return(TRUE)
+  }, data = outer_env)
+  
+  #Define function to call when copy messages button clicked
+  RGtk2::gSignalConnect(copymessages_btn, "toggled", function(copymessages_btn) {
+    current_state <- RGtk2::gtkToggleButtonGetActive(copymessages_btn)
+    outer_env$settings_list$copy_messages <- current_state
+    return(T)
+  })
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
@@ -438,6 +471,11 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$columnunique <- T
     outer_env$settings_list$professionalloading <- F
     outer_env$settings_list$darkmode <- F
+    outer_env$settings_list$show_tooltips <- T
+    settings_obj <- RGtk2::gtkSettingsGetDefault()
+    if (!is.null(settings_obj)) {
+      settings_obj["gtk-enable-tooltips"] <- T
+    }
     
     # Reset code preferences to Prompt
     outer_env$settings_list$code_case <- "Prompt"

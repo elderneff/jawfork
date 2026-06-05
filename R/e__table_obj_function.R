@@ -20,11 +20,17 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
 
   # Extract alternating theme sets based on style preferences
+  #Primary: blues
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
-  c_secondary_1 <- ifelse(is_dark, "#2E2A24", "#fcf7e8")
-  c_secondary_2 <- ifelse(is_dark, "#2A241F", "#f4efe1")
-  
+  c_primary_3   <- ifelse(is_dark, "#384252", "#D1D1EC")
+  c_primary_4   <- ifelse(is_dark, "#2A293B", "#C9C9E9")
+  #Secondary: yellows
+  c_secondary_1 <- ifelse(is_dark, "#3D2F27", "#fcf7e8")
+  c_secondary_2 <- ifelse(is_dark, "#342720", "#f4efe1")
+  c_secondary_3 <- ifelse(is_dark, "#4A3430", "#FCEEE8")
+  c_secondary_4 <- ifelse(is_dark, "#392A27", "#F4E3E1")
+  #Fallback to black and gray if no format set
   c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
   c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
 
@@ -66,9 +72,9 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
         levels2 <- ave(changed2, levels, FUN = cumsum)
 
         df2[, 2] <- ifelse((levels %% 2) == 1 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_primary_1, c_primary_2),
-                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, "#373752", "#C9C9E9"),
+                    ifelse((levels %% 2) == 1 & (levels2 %% 2) == 0, ifelse((1:nrow(df) %% 2) == 1, c_primary_3, c_primary_4),
                     ifelse((levels %% 2) == 0 & (levels2 %% 2) == 1, ifelse((1:nrow(df) %% 2) == 1, c_secondary_1, c_secondary_2),
-                    ifelse((1:nrow(df) %% 2) == 1, "#4A3232", "#F4E3E1")
+                    ifelse((1:nrow(df) %% 2) == 1, c_secondary_3, c_secondary_4)
         )))
       }
     }, 
@@ -83,13 +89,6 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
-  
-  # r__ Index Column Color
-  # if (has_filter || has_arrange || has_select) {
-  #   df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
-  # } else {
-  #   df2[, 1] <- ifelse(is_dark, "#1A365D", "#9bb5f5")
-  # }
   
   if (has_filter || has_arrange || has_select) {
     df2[, 1] <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
@@ -139,6 +138,13 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F ||
         !identical(obj_env$table_objects_list$current_dark_mode, is_dark)) {
       
+      # Capture old horizontal scroll position before destroying the table
+      old_h_val <- 0
+      if (!is.null(obj_env$table_objects_list$sw_main)) {
+        hadj <- RGtk2::gtkScrolledWindowGetHadjustment(obj_env$table_objects_list$sw_main)
+        if (!is.null(hadj)) old_h_val <- RGtk2::gtkAdjustmentGetValue(hadj)
+      }
+
       obj_env$table_objects_list$current_columns <- colnames(df)
       obj_env$table_objects_list$current_classes <- new_classes_str
       obj_env$table_objects_list$current_dark_mode <- is_dark
@@ -180,21 +186,37 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       selectedColor <- RGtk2::as.GdkColor(c(198, 213, 253) * 256) # Linux
 
       # Styling for Main View
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], "#e7e3cd")
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], "#e7e3cd")
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+      c_select <- ifelse(is_dark, "#244429", "#C3DFC8")
+      text_color <- ifelse(is_dark, "#E0E0E0", "#000000")
+      
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], c_select)
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], c_select)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["selected"], text_color)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view, RGtk2::GtkStateType["active"], text_color)
 
       # Styling for Frozen View
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], "#e7e3cd")
-      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], "#e7e3cd")
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], RGtk2::as.GdkColor("black"))
-      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], RGtk2::as.GdkColor("black"))
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], c_select)
+      RGtk2::gtkWidgetModifyBase(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], c_select)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["selected"], text_color)
+      RGtk2::gtkWidgetModifyText(obj_env$table_objects_list$view_frozen, RGtk2::GtkStateType["active"], text_color)
 
       # Main Scrolled Window
       sw <- RGtk2::gtkScrolledWindow()
       RGtk2::gtkScrolledWindowSetPolicy(sw, "automatic", "automatic")
       RGtk2::gtkContainerAdd(sw, obj_env$table_objects_list$view)
+
+      # Store reference to main scrolled window for future scroll tracking
+      obj_env$table_objects_list$sw_main <- sw
+
+      # Restore scroll position after GTK renders and calculates the new width boundaries
+      if (old_h_val > 0) {
+        RGtk2::gIdleAdd(function(data) {
+          hadj <- RGtk2::gtkScrolledWindowGetHadjustment(data$sw)
+          new_val <- min(data$old_val, max(0, hadj$upper - hadj$pageSize))
+          RGtk2::gtkAdjustmentSetValue(hadj, new_val)
+          return(FALSE)
+        }, data = list(sw = sw, old_val = old_h_val))
+      }
 
       # Frozen Scrolled Window (No scrollbars visible)
       sw_frozen <- RGtk2::gtkScrolledWindow()

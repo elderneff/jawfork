@@ -193,6 +193,48 @@ e__all_event_functions <- function(outer_env = totem) {
     fake_current_row$column <- current_data[current_row$row_i, "variable", drop = T]
     outer_env$move_column(1, session_name, fake_current_row)
   }
+  i__all_event_functions[["Meta Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    col_to_toggle <- current_data[current_row$row_i, "variable", drop = T]
+    
+    st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+    
+    if (st != "") {
+      # Split by comma, but use negative lookahead to ignore commas inside parentheses
+      current_cols <- trimws(strsplit(st, split = ",(?![^(]*\\))", perl = TRUE)[[1]])
+      
+      if (col_to_toggle %in% current_cols) {
+        # If it's already there, remove it (toggle off)
+        current_cols <- setdiff(current_cols, col_to_toggle)
+      } else {
+        # If it's not there, add it (toggle on)
+        current_cols <- c(current_cols, col_to_toggle)
+      }
+      # Rebuild the comma-separated string
+      st <- paste0(current_cols, collapse = ", ")
+    } else {
+      st <- col_to_toggle
+    }
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
+  }
+  i__all_event_functions[["Meta Table"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    col_to_set <- current_data[current_row$row_i, "variable", drop = T]
+    
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, col_to_set)
+    
+    outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+    RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+  }
+  i__all_event_functions[["Meta Table"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    col_to_set <- current_data[current_row$row_i, "variable", drop = T]
+    
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, col_to_set)
+    
+    outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+    RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+  }
 
   #--------------------------------------------
 
@@ -289,6 +331,22 @@ e__all_event_functions <- function(outer_env = totem) {
   }
   i__all_event_functions[["Full Data Table"]][["Move column after"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$move_column(1, session_name, current_row)
+  }
+  i__all_event_functions[["Full Data Table"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    col_to_set <- current_row$column
+    
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, col_to_set)
+    
+    outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+    RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+  }
+  i__all_event_functions[["Full Data Table"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    col_to_set <- current_row$column
+    
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, col_to_set)
+    
+    outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+    RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
 
   #--------------------------------------------

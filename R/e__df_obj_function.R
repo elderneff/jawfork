@@ -112,16 +112,19 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   copy_full <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
       clipr::write_clip(obj_env$df_obj_list$full_df, allow_non_interactive = T)
+      if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$full_df[, pass_columns, drop = F]
         clipr::write_clip(x, allow_non_interactive = T)
+        if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$full_df[, pass_columns, drop = T])
         #If copying as a vector, remove all newlines
         x <- gsub("\n", "", x)
         #Use utils::writeClipboard instead of clipr::write_clip to remove linebreak
         utils::writeClipboard(str = charToRaw(paste0(x, " ")), format = 1)
+        if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       }
     }
   }
@@ -316,16 +319,19 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   copy_filter <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
       clipr::write_clip(obj_env$df_obj_list$filtered_df, allow_non_interactive = T)
+      if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$filtered_df[, pass_columns, drop = F]
         clipr::write_clip(x, allow_non_interactive = T)
+        if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$filtered_df[, pass_columns, drop = T])
         #If copying as a vector, remove all newlines
         x <- gsub("\n", "", x)
         #Use utils::writeClipboard instead of clipr::write_clip to remove linebreak
         utils::writeClipboard(str = charToRaw(paste0(x, " ")), format = 1)
+        if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       }
     }
   }
@@ -334,12 +340,14 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   copy_dataset_layout <- function() {
     x <- create_dataset_layout(obj_env$df_obj_list$full_df)
     clipr::write_clip(x, allow_non_interactive = T)
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Layout copied to clipboard")
   }
 
 
   copy_keep <- function() {
     x <- create_dataset_layout_keep(obj_env$df_obj_list$full_df)
     clipr::write_clip(x, allow_non_interactive = T)
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Keep statement copied to clipboard")
   }
 
 
@@ -352,12 +360,14 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     
     x <- create_dataset_layout_label(obj_env$df_obj_list$full_df, sp)
     clipr::write_clip(x, allow_non_interactive = T)
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Label statement copied to clipboard")
   }
 
 
   copy_length <- function() {
     x <- create_dataset_layout_length(obj_env$df_obj_list$full_df)
     clipr::write_clip(x, allow_non_interactive = T)
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Length statement copied to clipboard")
   }
 
 

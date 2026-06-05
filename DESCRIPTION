@@ -1,8 +1,8 @@
 Package: jaw
 Type: Package
 Title: Just Another Wrapper
-Version: 0.1.2
-Authors@R: person("Trevor", "Olsen", email = "trevorlewisolsen@gmail.com", role = c("aut", "cre"))
+Version: 1.1.2.5
+Authors@R: person("Jacob", "Neff", email = "elderneff@gmail.com", role = c("aut", "cre"))
 Description: jaw (Just Another Wrapper) is a data viewer built using GTK in R.
 Depends: R (>= 4.1.0)
 License: GPL-3
