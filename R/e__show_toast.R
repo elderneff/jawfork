@@ -14,7 +14,6 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   RGtk2::gtkWindowSetKeepAbove(toast_win, TRUE)
   RGtk2::gtkWindowSetPosition(toast_win, 0L)
   
-  # 1. Use an EventBox to force the background color, overriding Dark/Light mode
   event_box <- RGtk2::gtkEventBoxNew()
   bg_color <- RGtk2::gdkColorParse("#ffaec8")$color
   RGtk2::gtkWidgetModifyBg(event_box, RGtk2::GtkStateType["normal"], bg_color)
@@ -28,7 +27,6 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   RGtk2::gtkContainerSetBorderWidth(vbox, 15)
   RGtk2::gtkContainerAdd(frame, vbox)
   
-  # 2. Force text color to black (#000000) using markup
   label <- RGtk2::gtkLabelNew()
   markup <- paste0("<span size='large' weight='bold' foreground='#000000'>", message, "</span>")
   RGtk2::gtkLabelSetMarkup(label, markup)
@@ -40,25 +38,17 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
     RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
     
-    # Pre-calculate toast dimensions (using the tail trick to strip C-level flags)
-    req <- RGtk2::gtkWidgetSizeRequest(toast_win)
-    req_vec <- tail(as.numeric(unlist(req)), 2)
-    toast_w <- req_vec[1]
-    toast_h <- req_vec[2]
-    
-    # 3. Bulletproof coordinate extraction
     p_pos <- RGtk2::gtkWindowGetPosition(true_parent)
     p_size <- RGtk2::gtkWindowGetSize(true_parent)
     
-    p_vec <- tail(as.numeric(unlist(p_pos)), 2)
-    s_vec <- tail(as.numeric(unlist(p_size)), 2)
+    # --- DIAGNOSTIC PRINTS ---
+    cat("\n--- WINDOW POSITION STRUCTURE ---\n")
+    str(p_pos)
     
-    # Calculate bottom-right placement
-    padding <- 50
-    target_x <- p_vec[1] + s_vec[1] - toast_w - padding
-    target_y <- p_vec[2] + s_vec[2] - toast_h - padding
+    cat("\n--- WINDOW SIZE STRUCTURE ---\n")
+    str(p_size)
+    cat("---------------------------------\n\n")
     
-    RGtk2::gtkWindowMove(toast_win, as.integer(target_x), as.integer(target_y))
   } else {
     RGtk2::gtkWindowSetPosition(toast_win, 1L) 
   }
