@@ -114,7 +114,7 @@ e__copy_if_then <- function(session_name, current_row, df_obj, outer_env = totem
   }
   
   utils::writeClipboard(str = charToRaw(paste0(paste0(string_builder, collapse = "\n"), " ")), format = 1)
-  if (totem$settings_list$maximize) outer_env$u__show_toast(session_name, "if-then code copied to clipboard")
+  if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "if-then code copied to clipboard")
 }
 
 #' e__copy_if_then_do
@@ -232,7 +232,7 @@ e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = to
   }
   
   utils::writeClipboard(str = charToRaw(paste0(paste0(string_builder, collapse = "\n"), " ")), format = 1)
-  if (totem$settings_list$maximize) outer_env$u__show_toast(session_name, "if-then-do code copied to clipboard")
+  if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "if-then-do code copied to clipboard")
 }
 
 #' e__copy_mapping
@@ -376,5 +376,5 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
   }
 
   utils::writeClipboard(str = charToRaw(paste0(paste0(string_builder, collapse = "\n"), " ")), format = 1)
-  if (totem$settings_list$maximize) outer_env$u__show_toast(session_name, "Mapping copied to clipboard")
+  if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Mapping copied to clipboard")
 }
