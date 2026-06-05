@@ -27,6 +27,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env$show_load_window()
       session_name <- outer_env$add_session(sas_file_path)
 
+      #Initialize opened time for the new header label
+      outer_env[[session_name]]$opened_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+
       #Define a timeline and time to be referenced and edited by the text area
       outer_env[[session_name]]$timeline <- c("")
       outer_env[[session_name]]$time <- 1
@@ -775,9 +778,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
 
-      outer_env[[session_name]]$data_view_list$file_source_entry <- RGtk2::gtkEntry()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$file_source_bar, outer_env[[session_name]]$data_view_list$file_source_entry, T, T)
-      RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$file_source_entry, session_name)
+      outer_env[[session_name]]$data_view_list$file_source_label <- RGtk2::gtkLabel()
+      outer_env[[session_name]]$data_view_list$file_source_label$xalign <- 0
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$file_source_bar, outer_env[[session_name]]$data_view_list$file_source_label, T, T)
 
 
       u__button(
@@ -1568,9 +1571,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         #Update version number here with substantial updates
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4", " | ", as.character(Sys.time())
+          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.4"
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
+
+        #Update refresh time and the label
+        outer_env[[session_name]]$last_refreshed_time <- format(Sys.time(), "%Y-%m-%d %H:%M:%S")
+        time_text <- paste0("Opened: ", outer_env[[session_name]]$opened_time, " | Last refreshed: ", outer_env[[session_name]]$last_refreshed_time)
+        RGtk2::gtkLabelSetText(outer_env[[session_name]]$data_view_list$file_source_label, time_text)
 
         #Clear metadata cache on refreshes
         outer_env[[session_name]]$data1_meta_cache <- NULL
