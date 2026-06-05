@@ -268,6 +268,11 @@ e__create_settings <- function(outer_env = totem) {
   tooltips_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show tooltips on mouseover", show = TRUE)
   RGtk2::gtkToggleButtonSetActive(tooltips_btn, outer_env$settings_list$show_tooltips)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, tooltips_btn, F, F, padding = 4)
+  
+  #Add button for copy messages setting
+  copymessages_btn <- RGtk2::gtkCheckButtonNewWithLabel("Show popups on successful copy", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(copymessage_btn, outer_env$settings_list$copy_messages)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, copymessages_btn, F, F, padding = 4)
 
   # Add combo box for Code Case
   case_box <- RGtk2::gtkHBox()
@@ -444,6 +449,13 @@ e__create_settings <- function(outer_env = totem) {
     
     return(TRUE)
   }, data = outer_env)
+  
+  #Define function to call when copy messages button clicked
+  RGtk2::gSignalConnect(copymessages_btn, "toggled", function(copymessages_btn) {
+    current_state <- RGtk2::gtkToggleButtonGetActive(copymessages_btn)
+    outer_env$settings_list$copy_messages <- current_state
+    return(T)
+  })
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
