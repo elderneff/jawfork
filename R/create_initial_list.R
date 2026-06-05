@@ -250,7 +250,10 @@ check_settings <- function(settings) {
     }
   }
 
-
+  # Default update tracking date
+  if (("last_update_check" %in% names(settings)) == F) {
+    settings$last_update_check <- "1970-01-01"
+  }
 
   return(settings)
 }
