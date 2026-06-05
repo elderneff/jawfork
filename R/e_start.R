@@ -80,6 +80,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           RGtk2::gtkWindowMaximize(main_window)
       }
 
+      settings_obj <- RGtk2::gtkSettingsGetDefault()
+      if (!is.null(settings_obj)) {
+        settings_obj["gtk-enable-tooltips"] <- outer_env$settings_list$show_tooltips
+      }
+
 
 
 
