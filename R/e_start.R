@@ -1086,8 +1086,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
 
 
+      outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb <- RGtk2::gtkEventBox()
       outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label <- RGtk2::gtkLabel()
-      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label, F, F, padding = 1)
+      RGtk2::gtkContainerAdd(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_label)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, F, F, padding = 1)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$select_box, T, T, padding = 1)
 
@@ -1577,6 +1579,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
         #Clear metadata cache on refreshes
         outer_env[[session_name]]$data1_meta_cache <- NULL
+        # Nullify data2 so syntax errors fall back directly to unfiltered data1 on reload
+        outer_env[[session_name]]$data2 <- NULL
 
         outer_env$u__load_dataset(session_name)
 
