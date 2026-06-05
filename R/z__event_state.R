@@ -60,8 +60,10 @@ z__event_state_key <- function(event) {
   keyval <- as.character(event[["keyval"]])
   
   # Match against your standard state integer bounds
-  # 4 = ctrl, 5 = ctrl+shift 
-  if (keyval %in% c("65506", "65505", "65508", "65507") || modifier_state == 5) {
+  # 5 = ctrl+shift 
+  # Only trigger if BOTH keys were held down (modifier_state == 5)
+  # AND the key being released is either Shift (65505/65506) or Ctrl (65507/65508)
+  if (modifier_state == 5 && keyval %in% c("65505", "65506", "65507", "65508")) {
     return("shift+ctrl")
   }
 
