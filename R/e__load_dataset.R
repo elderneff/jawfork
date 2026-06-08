@@ -103,6 +103,10 @@ e__load_dataset <- function(session_name,outer_env=totem) {
   ), totem$settings_list$file_history)
 
   file_history <- file_history[!duplicated(file_history[, c("dataset", "path")]), ]
+
+  # FORCE THE DESIRED COLUMN ORDER
+  file_history <- file_history[, c("dataset", "latest", "loaded", "modified", "path")]
+    
   totem$settings_list$file_history <- file_history
   totem$file_history$file_history_window_table$update(file_history)
 
