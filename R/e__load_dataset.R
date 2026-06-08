@@ -95,15 +95,15 @@ e__load_dataset <- function(session_name,outer_env=totem) {
 
   # Force mtime to character safely and make extension stripping case-insensitive
   file_history <- rbind(data.frame(
-    "latest" = TRUE,
-    "modified" = as.character(file.info(outer_env[[session_name]]$sas_file_path, extra_cols = TRUE)$mtime),
-    "loaded" = as.character(Sys.time()),
     "dataset" = sub(paste0("\\.", outer_env[[session_name]]$passed_ext, "$"), "", outer_env[[session_name]]$sas_file_basename, ignore.case = TRUE),
+    "latest" = TRUE,
+    "loaded" = as.character(Sys.time()),
+    "modified" = as.character(file.info(outer_env[[session_name]]$sas_file_path, extra_cols = TRUE)$mtime),
     "path" = outer_env[[session_name]]$sas_file_path,
     stringsAsFactors = FALSE
   ), totem$settings_list$file_history)
 
-  file_history <- file_history[duplicated(file_history[, -(1:3)]) == F, ]
+  file_history <- file_history[!duplicated(file_history[, c("dataset", "path")]), ]
   totem$settings_list$file_history <- file_history
   totem$file_history$file_history_window_table$update(file_history)
 
