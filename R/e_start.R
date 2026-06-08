@@ -1607,10 +1607,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       message("STARTUP ERROR:")
       message(as.character(e))
       message("*********************************\n")
-      
-      message("Press [Enter] to exit...")
-      readline()
-      # quit(save = "no")
     
       try({ outer_env$hide_load_window() })
     }
