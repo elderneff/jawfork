@@ -179,10 +179,14 @@ e__load_dataset <- function(session_name, outer_env = totem) {
         return(FALSE) 
       }
     }
-    
     # xpt
     else if(tolower(outer_env[[session_name]]$passed_ext) == "xpt") {
+      
+      is_initial_load <- is.null(outer_env[[session_name]]$data1)
+      
+      # 1. Peek inside the XPT file
       try_lookup <- try(foreign::lookup.xport(outer_env[[session_name]]$sas_file_path), silent = TRUE)
+      selected_ds <- NULL
       
       if (inherits(try_lookup, "try-error") || length(try_lookup) <= 1) {
         
@@ -198,9 +202,15 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           return(FALSE)
         } else {
           outer_env[[session_name]]$data1 <- try_read
+          
+          # If lookup succeeded and it's a single dataset, remember its name for metadata extraction
+          if (!inherits(try_lookup, "try-error") && length(try_lookup) == 1) {
+            selected_ds <- names(try_lookup)[1]
+          }
         }
         
       } else {
+        # 2. File has MULTIPLE datasets! Build a selection dialog.
         ds_names <- names(try_lookup)
         
         dialog <- RGtk2::gtkMessageDialog(
@@ -229,10 +239,12 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           selected_ds <- ds_names[selected_idx]
           RGtk2::gtkWidgetDestroy(dialog)
           
+          # Read the specific dataset using foreign
           try_read <- try({
             all_ds <- foreign::read.xport(outer_env[[session_name]]$sas_file_path)
             df_tmp <- as.data.frame(all_ds[[selected_ds]], stringsAsFactors = FALSE)
             
+            # foreign::read.xport forcefully converts characters to factors. We must convert them back.
             for (col in colnames(df_tmp)) {
               if (is.factor(df_tmp[[col]])) {
                 df_tmp[[col]] <- as.character(df_tmp[[col]])
@@ -260,9 +272,28 @@ e__load_dataset <- function(session_name, outer_env = totem) {
         }
       }
       
-      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+      # 3. --- METADATA EXTRACTION ---
+      # Pull labels, types, and lengths directly from the dictionary header
+      if (!is.null(selected_ds) && !is.null(try_lookup[[selected_ds]]) && !is.null(try_lookup[[selected_ds]]$name)) {
+        meta_lookup <- try_lookup[[selected_ds]]
+        
+        # Replace empty strings with NA so GTK renders it cleanly
+        labs <- meta_lookup$label
+        if (!is.null(labs)) labs[labs == ""] <- NA
+        
+        outer_env[[session_name]]$data1_contents <- data.frame(
+          "variable" = meta_lookup$name,
+          "length" = as.integer(meta_lookup$width),
+          "type" = meta_lookup$type,
+          "label" = labs,
+          "n" = nrow(outer_env[[session_name]]$data1),
+          stringsAsFactors = FALSE
+        )
+      } else {
+        # Ultimate fallback just in case the dictionary failed to parse
+        outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+      }
     }
-  } 
   else {
     outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
 
