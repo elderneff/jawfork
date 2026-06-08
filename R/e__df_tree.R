@@ -157,9 +157,44 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
   header_table <- RGtk2::gtkTableNew(rows = 4, columns = 20, homogeneous = F)
   RGtk2::gtkBoxPackStart(box, top_box, F, F, padding = 2)
 
-
-
   inner_env$hidden_table <- T
+
+  # --- NEW: Refresh Button specifically for Past Code Window ---
+  if (is_data_code_table) {
+    u__button(
+      box = top_box,
+      start = T, padding = 1,
+      stock_id = "gtk-refresh",
+      tool_tip = "Sync and refresh past code from all sessions",
+      call_back_fct = function(widget, event, data) {
+        outer_env <- data[[1]]
+        inner_env <- data[[2]]
+        
+        # 1. Pull the latest code history from the disk
+        try({
+          disk_settings <- readRDS(outer_env$local_settings_rds)
+          if (is.list(disk_settings) && !is.null(disk_settings$previous_code)) {
+            merged_code <- rbind(outer_env$settings_list$previous_code, disk_settings$previous_code)
+            
+            # 2. Sort descending by time to keep newest code at the top
+            merged_code <- merged_code[order(merged_code$time, decreasing = TRUE), ]
+            merged_code <- merged_code[!duplicated(merged_code[, -1]), ]
+            
+            # 3. Cap at 500 and save to the active environment
+            outer_env$settings_list$previous_code <- head(merged_code, 500)
+          }
+        }, silent = TRUE)
+        
+        # 4. Force the table UI to update with the new data
+        if (!is.null(inner_env$df_obj)) {
+            inner_env$df_obj$call_generate_full_df(outer_env$settings_list$previous_code)
+        }
+        
+        return(FALSE)
+      },
+      data = list(outer_env, inner_env)
+    )
+  }
 
   u__button(
     box = top_box,
