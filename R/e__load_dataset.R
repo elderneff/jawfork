@@ -339,14 +339,17 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
           stringsAsFactors = FALSE
         ), totem$settings_list$previous_code)
 
+        # FORCE SORT DESCENDING BEFORE DEDUPLICATION
+        previous_code <- previous_code[order(previous_code$time, decreasing = TRUE), ]
+        
         previous_code <- previous_code[duplicated(previous_code[, -1]) == F, ]
-
+        
         # CAP AT 500 ENTRIES
         previous_code <- head(previous_code, 500)
-        
+
         totem$settings_list$previous_code <- previous_code
         outer_env[[session_name]]$past_code_window_table$update(previous_code)
-
+        
         # Save to disk immediately
         save_settings(outer_env)
 
