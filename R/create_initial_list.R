@@ -182,10 +182,10 @@ check_settings <- function(settings) {
 
 
   if (("file_history" %in% names(settings)) == F) {
+    # You can set your initial creation order here
     settings$file_history <- data.frame(
-      "latest" = logical(), "modified" = character(),
-      "loaded" = character(),
-      "dataset" = character(),
+      "dataset" = character(), "latest" = logical(), 
+      "loaded" = character(), "modified" = character(),
       "path" = character(),
       stringsAsFactors = FALSE
     )
@@ -196,6 +196,9 @@ check_settings <- function(settings) {
     cols[cols == "load_time"] <- "loaded"
     cols[cols == "full_path"] <- "path"
     colnames(settings$file_history) <- cols
+    
+    # FORCE THE DESIRED COLUMN ORDER
+    settings$file_history <- settings$file_history[, c("dataset", "latest", "loaded", "modified", "path")]
   }
 
   #Default maximize to T if there is no previous setting
