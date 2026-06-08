@@ -107,6 +107,9 @@ e__load_dataset <- function(session_name,outer_env=totem) {
   # FORCE THE DESIRED COLUMN ORDER
   file_history <- file_history[, c("dataset", "latest", "loaded", "modified", "path")]
     
+  # CAP AT 200 ENTRIES
+  file_history <- head(file_history, 200)
+    
   totem$settings_list$file_history <- file_history
   totem$file_history$file_history_window_table$update(file_history)
 
