@@ -22,6 +22,8 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
       style 'jaw_dark' {
         engine \"\" {} 
         font_name = \"Segoe UI 9\"
+        GtkWidget::focus-line-width = 0
+        GtkTreeView::focus-line-width = 0
         base[NORMAL]      = '#202020' 
         base[INSENSITIVE] = '#2D2D2D'
         bg[NORMAL]        = '#2D2D2D' 
@@ -50,6 +52,8 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
       style 'jaw_light' {
         engine \"wimp\" {}
         font_name = \"Segoe UI 9\"
+        GtkWidget::focus-line-width = 0
+        GtkTreeView::focus-line-width = 0
         base[NORMAL]      = '#FFFFFF' 
         base[INSENSITIVE] = '#F1F1F1'
         bg[NORMAL]        = '#F0F0F0' 
