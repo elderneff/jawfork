@@ -18,7 +18,9 @@ e__file_history <- function(outer_env=totem) {
 
   RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_box, outer_env$file_history$file_history_window_main_new_path_box, F, F)
 
-  outer_env$file_history$file_history_window_main_new_path_chk_btn <- RGtk2::gtkButton("Check")
+  outer_env$file_history$file_history_window_main_new_path_chk_btn <- RGtk2::gtkButton()
+  RGtk2::gtkContainerAdd(outer_env$file_history$file_history_window_main_new_path_chk_btn, RGtk2::gtkImageNewFromStock("gtk-refresh", size = 2L))
+  RGtk2::gtkWidgetSetTooltipText(outer_env$file_history$file_history_window_main_new_path_chk_btn, "Check if files have been modified on disk")
   RGtk2::gtkButtonSetFocusOnClick(outer_env$file_history$file_history_window_main_new_path_chk_btn, F)
   RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, outer_env$file_history$file_history_window_main_new_path_chk_btn, F, F, padding = 5)
 
