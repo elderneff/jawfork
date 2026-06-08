@@ -87,7 +87,7 @@ e__file_history <- function(outer_env=totem) {
 
       sas_path <- gsub("\"", "", gsub("\\\\", "/", sas_path))
       outer_env$start(sas_path)
-      outer_env$hide_file_history_window()
+      # outer_env$hide_file_history_window()
 
       return(FALSE)
     },
