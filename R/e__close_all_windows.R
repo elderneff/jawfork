@@ -47,6 +47,14 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
 
       # 2. Merge running histories so we don't drop entries from other concurrent sessions
       if (!is.null(disk_settings$file_history)) {
+        
+        # Ensure the disk settings are migrated before merging
+        disk_cols <- colnames(disk_settings$file_history)
+        disk_cols[disk_cols == "mtime"] <- "modified"
+        disk_cols[disk_cols == "load_time"] <- "loaded"
+        disk_cols[disk_cols == "full_path"] <- "path"
+        colnames(disk_settings$file_history) <- disk_cols
+
         merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
         outer_env$settings_list$file_history <- merged_history[duplicated(merged_history[, -(1:3)]) == F, ]
       }
