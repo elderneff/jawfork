@@ -178,6 +178,11 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Meta Table"]][["length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_length()
   }
+  i__all_event_functions[["Meta Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    column <- current_data[current_row$row_i, "variable", drop = T]
+    outer_env$u__add_count_to_df_summary(session_name, column)
+  }
 
   i__all_event_functions[["Meta Table"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
@@ -407,11 +412,6 @@ e__all_event_functions <- function(outer_env = totem) {
   }
   i__all_event_functions[["Summary Table"]][["Copy Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__copy_mapping(session_name, current_row)
-  }
-
-  i__all_event_functions[["Summary Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    cross_tab_names <- setdiff(colnames(obj_env$table_objects_list$current_row$row), c("r__", "n", "freq", "lines"))
-    outer_env$u__add_count_to_df_summary(session_name, cross_tab_names)
   }
 
   #--------------------------------------------
