@@ -106,6 +106,12 @@ e__file_history <- function(outer_env=totem) {
   RGtk2::gSignalConnect(outer_env$file_history$file_history_window, "delete-event", f = function(window, event, data) {
     outer_env <- data
     outer_env$hide_file_history_window()
+    
+    # If no sessions are currently open, kill the R process completely
+    if (length(outer_env$all_sessions) == 0) {
+      quit(save = "no")
+    }
+    
     return(T)
   }, data = outer_env)
 
