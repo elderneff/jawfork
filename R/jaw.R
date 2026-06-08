@@ -168,6 +168,8 @@ jaw <- function(settings_dir=NULL) {
   stop <- e__with_env(e__stop)
   block <- e__with_env(e__block)
   io_window_show <- function(outer_env = totem) {
+    # Initialize the global theme before showing the file history window
+    outer_env$u__apply_theme(NULL, outer_env)
     outer_env$show_file_history_window()
   }
   return(
