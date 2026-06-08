@@ -10,8 +10,8 @@
 e__new_tree_view_column <- function(df, j,outer_env=totem,obj_env=inner_env) {
   renderer <- RGtk2::gtkCellRendererText()
 
-  renderer["ypad"] <- 20
-  renderer["xpad"] <- 20
+  renderer["ypad"] <- 3
+  renderer["xpad"] <- 4
 
   column <- RGtk2::gtkTreeViewColumn()
   RGtk2::gtkTreeViewColumnSetTitle(column, colnames(df)[j])
