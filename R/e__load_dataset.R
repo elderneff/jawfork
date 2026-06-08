@@ -54,6 +54,9 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     #csv
     else if(tolower(outer_env[[session_name]]$passed_ext)=="csv"){
       
+      # Flag to check if this is a fresh open vs a reload
+      is_initial_load <- is.null(outer_env[[session_name]]$data1)
+      
       # 1. Build the Dialog
       dialog <- RGtk2::gtkMessageDialog(
         parent = outer_env[[session_name]]$windows$main_window, 
@@ -65,12 +68,12 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       
       vbox <- dialog[["vbox"]]
       
-      # Headers Toggle
+      # Option: Headers Toggle
       cb_header <- RGtk2::gtkCheckButtonNewWithLabel("First row contains column names")
       RGtk2::gtkToggleButtonSetActive(cb_header, TRUE)
       RGtk2::gtkBoxPackStart(vbox, cb_header, FALSE, FALSE, 0)
       
-      # Skip Rows
+      # Option: Skip Rows SpinButton
       hbox_skip <- RGtk2::gtkHBoxNew(FALSE, 5)
       RGtk2::gtkBoxPackStart(hbox_skip, RGtk2::gtkLabelNew("Rows to skip:"), FALSE, FALSE, 0)
       spin_skip <- RGtk2::gtkSpinButtonNewWithRange(0, 10000, 1)
@@ -78,7 +81,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       RGtk2::gtkBoxPackStart(hbox_skip, spin_skip, FALSE, FALSE, 0)
       RGtk2::gtkBoxPackStart(vbox, hbox_skip, FALSE, FALSE, 0)
 
-      # NA Strings
+      # Option: NA Strings
       hbox_na <- RGtk2::gtkHBoxNew(FALSE, 5)
       RGtk2::gtkBoxPackStart(hbox_na, RGtk2::gtkLabelNew("NA string:"), FALSE, FALSE, 0)
       entry_na <- RGtk2::gtkEntryNew()
@@ -86,18 +89,18 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       RGtk2::gtkBoxPackStart(hbox_na, entry_na, TRUE, TRUE, 0)
       RGtk2::gtkBoxPackStart(vbox, hbox_na, FALSE, FALSE, 0)
 
-      # Name Enforcement Policy Dropdown
+      # Option: Name Enforcement Policy Dropdown
       hbox_policy <- RGtk2::gtkHBoxNew(FALSE, 5)
       RGtk2::gtkBoxPackStart(hbox_policy, RGtk2::gtkLabelNew("Name enforcement policy:"), FALSE, FALSE, 0)
       combo_policy <- RGtk2::gtkComboBoxNewText()
-      combo_policy$appendText("R")
-      combo_policy$appendText("SAS")
-      combo_policy$appendText("None")
-      combo_policy$setActive(0) # Defaults to "R"
+      combo_policy$appendText("R (replaces spaces/special chars with dots)")
+      combo_policy$appendText("SAS (replaces invalid chars with underscores)")
+      combo_policy$appendText("None (keeps original names, may cause errors)")
+      combo_policy$setActive(1) # Defaults to "SAS"
       RGtk2::gtkBoxPackStart(hbox_policy, combo_policy, TRUE, TRUE, 0)
       RGtk2::gtkBoxPackStart(vbox, hbox_policy, FALSE, FALSE, 0)
 
-      # Uppercase Names Toggle
+      # Option: Uppercase Names Toggle
       cb_upcase <- RGtk2::gtkCheckButtonNewWithLabel("Uppercase all column names")
       RGtk2::gtkToggleButtonSetActive(cb_upcase, TRUE)
       RGtk2::gtkBoxPackStart(vbox, cb_upcase, FALSE, FALSE, 0)
@@ -133,6 +136,7 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           message("The CSV file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
           message("Press [Enter] to exit...")
           readline() 
+          if (is_initial_load) outer_env$close_all_windows(session_name)
           return(FALSE)
         } else {
           
@@ -162,6 +166,9 @@ e__load_dataset <- function(session_name,outer_env=totem) {
             )
             err_dialog$run()
             RGtk2::gtkWidgetDestroy(err_dialog)
+            
+            # Kill the session completely if it's the first load
+            if (is_initial_load) outer_env$close_all_windows(session_name)
             return(FALSE)
           }
           
@@ -178,7 +185,9 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         }
       } else {
         RGtk2::gtkWidgetDestroy(dialog)
-        return(FALSE) # Stop the load process if the user hits "Cancel"
+        # Kill the session completely if the user hits "Cancel" on a fresh load
+        if (is_initial_load) outer_env$close_all_windows(session_name)
+        return(FALSE) 
       }
     }
     #xpt
