@@ -182,9 +182,9 @@ e__load_dataset <- function(session_name, outer_env = totem) {
     }
     
     # xpt
+    # xpt
     else if(tolower(outer_env[[session_name]]$passed_ext) == "xpt") {
       try_lookup <- try(foreign::lookup.xport(outer_env[[session_name]]$sas_file_path), silent = TRUE)
-      selected_ds <- NULL
       
       if (inherits(try_lookup, "try-error") || length(try_lookup) <= 1) {
         
@@ -200,9 +200,9 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           return(FALSE)
         } else {
           outer_env[[session_name]]$data1 <- try_read
-          if (!inherits(try_lookup, "try-error") && length(try_lookup) == 1) {
-            selected_ds <- names(try_lookup)[1]
-          }
+          
+          # haven natively preserves labels, so we let the dynamic generator do its job!
+          outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
         }
         
       } else {
@@ -243,6 +243,20 @@ e__load_dataset <- function(session_name, outer_env = totem) {
                 df_tmp[[col]] <- as.character(df_tmp[[col]])
               }
             }
+            
+            # --- RESTORE LABELS STRIPPED BY FOREIGN ---
+            meta <- try_lookup[[selected_ds]]
+            if (!is.null(meta) && is.list(meta) && !is.null(meta$name) && !is.null(meta$label)) {
+              for (i in seq_along(meta$name)) {
+                c_name <- meta$name[i]
+                c_lbl <- meta$label[i]
+                if (!is.null(c_lbl) && c_lbl != "" && c_name %in% colnames(df_tmp)) {
+                  # Reattach the label to the column as an attribute
+                  attr(df_tmp[[c_name]], "label") <- c_lbl
+                }
+              }
+            }
+            
             df_tmp
           }, silent = TRUE)
           
@@ -256,6 +270,9 @@ e__load_dataset <- function(session_name, outer_env = totem) {
             return(FALSE)
           } else {
             outer_env[[session_name]]$data1 <- try_read
+            
+            # Now that labels are restored, we generate dynamic contents
+            outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
           }
           
         } else {
@@ -264,26 +281,7 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           return(FALSE) 
         }
       }
-      
-      if (!is.null(selected_ds) && !is.null(try_lookup[[selected_ds]]) && !is.null(try_lookup[[selected_ds]]$name)) {
-        meta_lookup <- try_lookup[[selected_ds]]
-        
-        labs <- meta_lookup$label
-        if (!is.null(labs)) labs[labs == ""] <- NA
-        
-        outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = meta_lookup$name,
-          "length" = as.integer(meta_lookup$width),
-          "type" = meta_lookup$type,
-          "label" = labs,
-          "n" = nrow(outer_env[[session_name]]$data1),
-          stringsAsFactors = FALSE
-        )
-      } else {
-        outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
-      }
     }
-  } 
   else {
     outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
     outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
