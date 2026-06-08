@@ -53,16 +53,90 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     }
     #csv
     else if(tolower(outer_env[[session_name]]$passed_ext)=="csv"){
-      outer_env[[session_name]]$data1 <- as.data.frame(read.csv(file=outer_env[[session_name]]$sas_file_path)
-                                                       , header = TRUE, sep = ",", skip = 0, stringsAsFactors = FALSE)
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA,
-          "type" = NA,
-          "label" = NA,
-          "n" = NA,
+      
+      # 1. Build the Dialog
+      dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window, 
+        flags = "destroy-with-parent", 
+        type = "question", 
+        buttons = "ok-cancel", 
+        "CSV Import Options:"
+      )
+      
+      vbox <- dialog[["vbox"]]
+      
+      # Option: Headers Toggle
+      cb_header <- RGtk2::gtkCheckButtonNewWithLabel("First row contains column names")
+      RGtk2::gtkToggleButtonSetActive(cb_header, TRUE)
+      RGtk2::gtkBoxPackStart(vbox, cb_header, FALSE, FALSE, 5)
+      
+      # Option: Skip Rows SpinButton
+      hbox_skip <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_skip, RGtk2::gtkLabelNew("Rows to skip:"), FALSE, FALSE, 0)
+      spin_skip <- RGtk2::gtkSpinButtonNewWithRange(0, 10000, 1)
+      RGtk2::gtkSpinButtonSetValue(spin_skip, 0)
+      RGtk2::gtkBoxPackStart(hbox_skip, spin_skip, FALSE, FALSE, 5)
+      RGtk2::gtkBoxPackStart(vbox, hbox_skip, FALSE, FALSE, 5)
+
+      # Recommendation 1: NA Strings
+      hbox_na <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_na, RGtk2::gtkLabelNew("NA string:"), FALSE, FALSE, 0)
+      entry_na <- RGtk2::gtkEntryNew()
+      RGtk2::gtkEntrySetText(entry_na, "NA")
+      RGtk2::gtkBoxPackStart(hbox_na, entry_na, TRUE, TRUE, 5)
+      RGtk2::gtkBoxPackStart(vbox, hbox_na, FALSE, FALSE, 5)
+
+      # Recommendation 2: Check Names
+      cb_check_names <- RGtk2::gtkCheckButtonNewWithLabel("Enforce valid R column names (e.g., replace spaces with dots)")
+      RGtk2::gtkToggleButtonSetActive(cb_check_names, TRUE)
+      RGtk2::gtkBoxPackStart(vbox, cb_check_names, FALSE, FALSE, 5)
+
+      RGtk2::gtkWidgetShowAll(vbox)
+      
+      # 2. Capture Response
+      response <- dialog$run()
+      
+      if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+        has_header <- RGtk2::gtkToggleButtonGetActive(cb_header)
+        skip_rows <- RGtk2::gtkSpinButtonGetValueAsInt(spin_skip)
+        na_str <- RGtk2::gtkEntryGetText(entry_na)
+        check_names_val <- RGtk2::gtkToggleButtonGetActive(cb_check_names)
+        
+        RGtk2::gtkWidgetDestroy(dialog)
+        
+        # 3. Read the Data with User Options
+        try_read <- try(as.data.frame(read.csv(
+          file = outer_env[[session_name]]$sas_file_path, 
+          header = has_header, 
+          skip = skip_rows, 
+          na.strings = c(na_str, "", "."), # Safely catch common blanks
+          check.names = check_names_val,
           stringsAsFactors = FALSE
-        )
+        )), silent = TRUE)
+        
+        # 4. Error Handling
+        if (inherits(try_read, "try-error")) {
+          print(paste("CRITICAL ERROR ON CSV LOAD:", as.character(try_read)))
+          message("\n!!! DATA LOAD FAILED !!!")
+          message("The CSV file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
+          message("Press [Enter] to exit...")
+          readline() 
+          return(FALSE)
+        } else {
+          outer_env[[session_name]]$data1 <- try_read
+          outer_env[[session_name]]$data1_contents <- data.frame(
+            "variable" = colnames(outer_env[[session_name]]$data1),
+            "length" = NA,
+            "type" = NA,
+            "label" = NA,
+            "n" = NA,
+            stringsAsFactors = FALSE
+          )
+        }
+      } else {
+        RGtk2::gtkWidgetDestroy(dialog)
+        return(FALSE) # Stop the load process if the user hits "Cancel"
+      }
     }
     #xpt
     else if(tolower(outer_env[[session_name]]$passed_ext)=="xpt"){
