@@ -326,8 +326,70 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
 #' @return TODO
 
 e__add_count_to_df_summary <- function(session_name, cross_tab_names, outer_env = totem) {
-  cmd <- paste0("df$n__1 <- add_cross_counts(df, c(\"", paste0(cross_tab_names, collapse = "\", \""), "\"))")
-  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
+  source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
+  
+  if (source_file == F) {
+    raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+    code_lines <- strsplit(raw_code, "\n")[[1]]
+
+    # Find the last active line containing an add_cross_counts call
+    active_idx <- -1
+    if (length(code_lines) > 0) {
+      for (i in length(code_lines):1) {
+        clean_line <- trimws(gsub("#.*", "", code_lines[i]))
+        if (grepl("add_cross_counts\\s*\\([^,]*,\\s*c\\(", clean_line)) {
+          active_idx <- i
+          break
+        }
+      }
+    }
+
+    # Regex to capture the prefix, the values inside c(), and the suffix
+    rgx <- "^(.*add_cross_counts\\s*\\([^,]*,\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])*)(\\).*)$"
+
+    if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE)) {
+      last_line <- code_lines[active_idx]
+      last_pfx <- sub(rgx, "\\1", last_line)
+      last_val <- sub(rgx, "\\2", last_line)
+      last_sfx <- sub(rgx, "\\3", last_line)
+
+      # Build the new items to insert, ignoring exact duplicates
+      cols_to_add <- c()
+      for (col in cross_tab_names) {
+        if (!grepl(paste0("['\"]", col, "['\"]"), last_val)) {
+          cols_to_add <- c(cols_to_add, paste0("'", col, "'"))
+        }
+      }
+
+      if (length(cols_to_add) > 0) {
+        combined_val <- last_val
+        
+        # Add a comma separator if the existing vector isn't empty
+        if (trimws(combined_val) != "" && !grepl(",\\s*$", combined_val)) {
+          combined_val <- paste0(combined_val, ", ")
+        }
+        combined_val <- paste0(combined_val, paste0(cols_to_add, collapse = ", "))
+        
+        code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+        
+        # Overwrite the text area with the updated, combined block
+        u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+        
+        # Fetch the newly injected text and log the undo state
+        buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+        end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+        start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+        str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+        
+        outer_env$u__log_history(session_name, str, "button_click")
+      }
+      return(invisible())
+    }
+  }
+
+  # Fallback if no matching line was found (or if Source is checked)
+  cmd <- paste0("df$n__1 <- add_cross_counts(df, c(", paste0("'", cross_tab_names, "'", collapse = ", "), "))")
+  outer_env$u__append_before_code(session_name, cmd)
 }
 
 #' e__get_summary
