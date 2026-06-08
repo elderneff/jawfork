@@ -1,8 +1,8 @@
 #' e__move_column
 #'
+#' @param placement TODO
 #' @param session_name TODO
 #' @param current_row TODO
-#' @param df_obj TODO
 #' @param outer_env TODO
 #'
 #' @return TODO
@@ -12,17 +12,13 @@ e__move_column <- function(placement, session_name, current_row, outer_env=totem
   
   #Get selection
   selection <- as.character(current_row$column)
-  #Get column order of dataset
-  st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+  
+  #Get current column order directly from the already-arranged data2
   temp_df <- outer_env[[session_name]]$data2
-  if (st != "") {
-    #Convert st into a vector of strings
-    vst <- unlist(strsplit(gsub(" ", "", st), ","))
-    dataset2 <- select(temp_df[0, ], vst)
-    col_order <- colnames(dataset2)
-  } else {
-    col_order <- colnames(temp_df[0, ])
-  }
+  current_cols <- colnames(temp_df)
+  
+  #Define choices for the UI dropdowns
+  col_order <- current_cols
   
   ##############################
   # Get user's "before" target #
@@ -93,31 +89,53 @@ e__move_column <- function(placement, session_name, current_row, outer_env=totem
   # Rearrange columns #
   #####################
   if (response %in% c(GtkResponseType["close"], GtkResponseType["delete-event"], GtkResponseType["cancel"]) == F) {
-    old_index <- which(col_order == selection)
-    new_index <- which(col_order == target) + placement
+    
+    #Determine the new absolute column order
+    old_index <- which(current_cols == selection)
+    new_index <- which(current_cols == target) + placement
     if (new_index > old_index) {
       delete_index <- old_index
     } else {
       delete_index <- old_index + 1
     }
-    col_order <- append(col_order, selection, after = new_index - 1)
-    col_order <- col_order[-delete_index]
-    #Turn col_order into a comma separated list
-    newst <- ""
-    for (i in 1:length(col_order)) {
-      #Sandwich column name with backticks if it has special characters
-      if (!grepl("^[a-zA-Z0-9]*$", col_order[i])) { 
-        clean_col <- paste0("`", col_order[i], "`") 
-      } else {
-        clean_col <- col_order[i]
-      }
-      newst <- paste0(newst, clean_col)
-      if (i != length(col_order)) {
-        newst <- paste0(newst, ", ")
-      }
+    target_cols <- append(current_cols, selection, after = new_index - 1)
+    target_cols <- target_cols[-delete_index]
+    
+    #Parse the existing select string to keep it clean and minimal
+    st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+    
+    if (st != "") {
+      #Split by comma while ignoring commas inside parentheses
+      vst <- trimws(unlist(strsplit(st, split = ",(?![^(]*\\))", perl = TRUE)))
+      
+      #Isolate explicit columns vs tidyselect helpers
+      helpers <- vst[grepl("\\(\\)", vst)]
+      explicit_cols <- vst[!grepl("\\(\\)", vst)]
+      explicit_cols <- gsub("`", "", explicit_cols)
+      
+      #Ensure the moved columns are tracked explicitly
+      explicit_cols <- unique(c(explicit_cols, selection, target))
+      
+      #Sort explicit columns by their new relative order
+      explicit_cols <- target_cols[target_cols %in% explicit_cols]
+      
+      #Re-apply backticks if needed
+      explicit_cols <- sapply(explicit_cols, function(x) {
+        if (!grepl("^[a-zA-Z0-9]*$", x)) paste0("`", x, "`") else x
+      }, USE.NAMES = FALSE)
+      
+      #Combine explicit columns and helpers
+      newst <- paste(c(explicit_cols, helpers), collapse = ", ")
+    } else {
+      #If the string was empty, explicitly note the new order and add everything
+      explicit_cols <- target_cols[target_cols %in% c(selection, target)]
+      explicit_cols <- sapply(explicit_cols, function(x) {
+        if (!grepl("^[a-zA-Z0-9]*$", x)) paste0("`", x, "`") else x
+      }, USE.NAMES = FALSE)
+      newst <- paste(c(explicit_cols, "everything()"), collapse = ", ")
     }
-    newst <- paste0(newst, ", everything()")
-    #Replace select field with new column order, run code
+    
+    #Replace select field with new column order and run code
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, newst)
     outer_env$show_load_window()
     outer_env$u__load_dataset_filter(session_name)
