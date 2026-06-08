@@ -183,13 +183,19 @@ check_settings <- function(settings) {
 
   if (("file_history" %in% names(settings)) == F) {
     settings$file_history <- data.frame(
-      "latest" = logical(), 
-      "modified" = character(),
+      "latest" = logical(), "modified" = character(),
       "loaded" = character(),
       "dataset" = character(),
       "path" = character(),
       stringsAsFactors = FALSE
     )
+  } else {
+    # Dynamically migrate old column names for existing users
+    cols <- colnames(settings$file_history)
+    cols[cols == "mtime"] <- "modified"
+    cols[cols == "load_time"] <- "loaded"
+    cols[cols == "full_path"] <- "path"
+    colnames(settings$file_history) <- cols
   }
 
   #Default maximize to T if there is no previous setting
