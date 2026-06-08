@@ -66,7 +66,10 @@ e__file_history <- function(outer_env=totem) {
           # SORT: Order by 'loaded' descending so newest files are at the top
           merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
           
-          # STRIP DUPLICATES: Keep the most recent record (which is now at the top)
+          # FORCE THE DESIRED COLUMN ORDER
+          merged_history <- merged_history[, c("dataset", "latest", "loaded", "modified", "path")]
+          
+          # STRIP DUPLICATES: Keep the most recent record
           outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
         }
       }, silent = TRUE)
