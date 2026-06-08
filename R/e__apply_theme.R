@@ -24,16 +24,23 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
         font_name = \"Segoe UI 9\"
         GtkWidget::focus-line-width = 0
         GtkTreeView::focus-line-width = 0
+        
         base[NORMAL]      = '#202020' 
         base[INSENSITIVE] = '#2D2D2D'
+        
         bg[NORMAL]        = '#2D2D2D' 
         bg[PRELIGHT]      = '#404040' 
         bg[ACTIVE]        = '#1A1A1A' 
+        bg[INSENSITIVE]   = '#202020'  
+        
         text[NORMAL]      = '#E0E0E0'
         text[ACTIVE]      = '#FFFFFF'
+        text[INSENSITIVE] = '#808080'  
+        
         fg[NORMAL]        = '#E0E0E0' 
         fg[PRELIGHT]      = '#FFFFFF'
         fg[ACTIVE]        = '#FFFFFF'
+        fg[INSENSITIVE]   = '#505050'  
       }
       style 'jaw_menu_light' {
         engine \"\" {}
