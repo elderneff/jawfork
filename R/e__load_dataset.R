@@ -47,8 +47,6 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           print(paste("CRITICAL ERROR ON STARTUP:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
           message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted.")
-          message("Press [Enter] to exit...")
-          readline() 
           if (is_initial_load) outer_env$close_all_windows(session_name)
           return(FALSE) 
         } else {      
@@ -139,8 +137,6 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           print(paste("CRITICAL ERROR ON CSV LOAD:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
           message("The CSV file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
-          message("Press [Enter] to exit...")
-          readline() 
           if (is_initial_load) outer_env$close_all_windows(session_name)
           return(FALSE)
         } else {
@@ -193,8 +189,6 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
           message("The XPT file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
-          message("Press [Enter] to exit...")
-          readline() 
           if (is_initial_load) outer_env$close_all_windows(session_name)
           return(FALSE)
         } else {
@@ -260,8 +254,6 @@ e__load_dataset <- function(session_name, outer_env = totem) {
             print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
             message("\n!!! DATA LOAD FAILED !!!")
             message("The dataset '", selected_ds, "' could not be read from the XPT file.")
-            message("Press [Enter] to exit...")
-            readline() 
             if (is_initial_load) outer_env$close_all_windows(session_name)
             return(FALSE)
           } else {
