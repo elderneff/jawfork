@@ -71,6 +71,9 @@ e__file_history <- function(outer_env=totem) {
           
           # STRIP DUPLICATES: Keep the most recent record
           outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
+
+          # Cap at 200 records
+          outer_env$settings_list$file_history <- head(merged_history, 200)
         }
       }, silent = TRUE)
 
