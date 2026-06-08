@@ -452,5 +452,15 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
 #' @return TODO
 
 e__set_before_code <- function(session_name, cmd, outer_env = totem) {
+  # 1. Overwrite the text area with the past code
   u__text_area_set_text(outer_env[[session_name]]$text_area_1, cmd)
+
+  # 2. Fetch the newly injected text from the buffer
+  buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+  end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+  start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+  str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+  
+  # 3. Log it to the timeline tracker as a unique event so Ctrl+Z works!
+  outer_env$u__log_history(session_name, str, "past_code_load")
 }
