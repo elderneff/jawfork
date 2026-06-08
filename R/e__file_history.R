@@ -41,14 +41,33 @@ e__file_history <- function(outer_env=totem) {
     function(widget, event, data) {
       outer_env$show_load_window()
       outer_env <- data
+      
+      # 1. Pull latest disk settings to catch any files opened by parallel jaw sessions
+      try({
+        disk_settings <- readRDS(outer_env$local_settings_rds)
+        if (is.list(disk_settings) && !is.null(disk_settings$file_history)) {
+          
+          # Safely apply column name migration in case the disk file is still using old names
+          disk_cols <- colnames(disk_settings$file_history)
+          disk_cols[disk_cols == "mtime"] <- "modified"
+          disk_cols[disk_cols == "load_time"] <- "loaded"
+          disk_cols[disk_cols == "full_path"] <- "path"
+          colnames(disk_settings$file_history) <- disk_cols
+
+          # Merge with current environment
+          merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
+          outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
+        }
+      }, silent = TRUE)
+
+      # 2. Check all files for their 'latest' state
       file_history <- outer_env$settings_list$file_history
       for (i in seq_len(nrow(file_history))) {
         file_history[i, "latest"] <- NA
         try({
-          file_history[i, "latest"] <- (file_history[i, "modified"] == file.info(file_history[i, "path"], extra_cols = TRUE)$mtime)
-        })
+          file_history[i, "latest"] <- (file_history[i, "modified"] == as.character(file.info(file_history[i, "path"], extra_cols = TRUE)$mtime))
+        }, silent = TRUE)
       }
-
 
       outer_env$settings_list$file_history <- file_history
       outer_env$file_history$file_history_window_table$update(file_history)
