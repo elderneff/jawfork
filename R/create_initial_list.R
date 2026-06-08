@@ -178,6 +178,14 @@ check_settings <- function(settings) {
       "full_path" = character(),
       stringsAsFactors = FALSE
     )
+  } else {
+    # HEAL EXISTING DATA: Sort descending by time to fix any corrupted orders from old Jaw versions
+    if (nrow(settings$previous_code) > 0) {
+      settings$previous_code <- settings$previous_code[order(settings$previous_code$time, decreasing = TRUE), ]
+      
+      # Apply the 500 cap here to instantly clean up bloated files on startup!
+      settings$previous_code <- head(settings$previous_code, 500)
+    }
   }
 
 
