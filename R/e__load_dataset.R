@@ -65,31 +65,42 @@ e__load_dataset <- function(session_name,outer_env=totem) {
       
       vbox <- dialog[["vbox"]]
       
-      # Option: Headers Toggle
+      # Headers Toggle
       cb_header <- RGtk2::gtkCheckButtonNewWithLabel("First row contains column names")
       RGtk2::gtkToggleButtonSetActive(cb_header, TRUE)
-      RGtk2::gtkBoxPackStart(vbox, cb_header, FALSE, FALSE, 5)
+      RGtk2::gtkBoxPackStart(vbox, cb_header, FALSE, FALSE, 0)
       
-      # Option: Skip Rows SpinButton
+      # Skip Rows
       hbox_skip <- RGtk2::gtkHBoxNew(FALSE, 5)
       RGtk2::gtkBoxPackStart(hbox_skip, RGtk2::gtkLabelNew("Rows to skip:"), FALSE, FALSE, 0)
       spin_skip <- RGtk2::gtkSpinButtonNewWithRange(0, 10000, 1)
       RGtk2::gtkSpinButtonSetValue(spin_skip, 0)
-      RGtk2::gtkBoxPackStart(hbox_skip, spin_skip, FALSE, FALSE, 5)
-      RGtk2::gtkBoxPackStart(vbox, hbox_skip, FALSE, FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_skip, spin_skip, FALSE, FALSE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_skip, FALSE, FALSE, 0)
 
-      # Recommendation 1: NA Strings
+      # NA Strings
       hbox_na <- RGtk2::gtkHBoxNew(FALSE, 5)
       RGtk2::gtkBoxPackStart(hbox_na, RGtk2::gtkLabelNew("NA string:"), FALSE, FALSE, 0)
       entry_na <- RGtk2::gtkEntryNew()
       RGtk2::gtkEntrySetText(entry_na, "NA")
-      RGtk2::gtkBoxPackStart(hbox_na, entry_na, TRUE, TRUE, 5)
-      RGtk2::gtkBoxPackStart(vbox, hbox_na, FALSE, FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_na, entry_na, TRUE, TRUE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_na, FALSE, FALSE, 0)
 
-      # Recommendation 2: Check Names
-      cb_check_names <- RGtk2::gtkCheckButtonNewWithLabel("Enforce valid R column names (e.g., replace spaces with dots)")
-      RGtk2::gtkToggleButtonSetActive(cb_check_names, TRUE)
-      RGtk2::gtkBoxPackStart(vbox, cb_check_names, FALSE, FALSE, 5)
+      # Name Enforcement Policy Dropdown
+      hbox_policy <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_policy, RGtk2::gtkLabelNew("Name enforcement policy:"), FALSE, FALSE, 0)
+      combo_policy <- RGtk2::gtkComboBoxNewText()
+      combo_policy$appendText("R")
+      combo_policy$appendText("SAS")
+      combo_policy$appendText("None")
+      combo_policy$setActive(0) # Defaults to "R"
+      RGtk2::gtkBoxPackStart(hbox_policy, combo_policy, TRUE, TRUE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_policy, FALSE, FALSE, 0)
+
+      # Uppercase Names Toggle
+      cb_upcase <- RGtk2::gtkCheckButtonNewWithLabel("Uppercase all column names")
+      RGtk2::gtkToggleButtonSetActive(cb_upcase, TRUE)
+      RGtk2::gtkBoxPackStart(vbox, cb_upcase, FALSE, FALSE, 0)
 
       RGtk2::gtkWidgetShowAll(vbox)
       
@@ -100,7 +111,8 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         has_header <- RGtk2::gtkToggleButtonGetActive(cb_header)
         skip_rows <- RGtk2::gtkSpinButtonGetValueAsInt(spin_skip)
         na_str <- RGtk2::gtkEntryGetText(entry_na)
-        check_names_val <- RGtk2::gtkToggleButtonGetActive(cb_check_names)
+        policy_idx <- RGtk2::gtkComboBoxGetActive(combo_policy) # 0 = R, 1 = SAS, 2 = None
+        upcase_names <- RGtk2::gtkToggleButtonGetActive(cb_upcase)
         
         RGtk2::gtkWidgetDestroy(dialog)
         
@@ -109,12 +121,12 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           file = outer_env[[session_name]]$sas_file_path, 
           header = has_header, 
           skip = skip_rows, 
-          na.strings = c(na_str, "", "."), # Safely catch common blanks
-          check.names = check_names_val,
+          na.strings = c(na_str, "", "."), 
+          check.names = (policy_idx == 0), # TRUE only if "R" policy is selected
           stringsAsFactors = FALSE
         )), silent = TRUE)
         
-        # 4. Error Handling
+        # 4. Error Handling & Post-Processing
         if (inherits(try_read, "try-error")) {
           print(paste("CRITICAL ERROR ON CSV LOAD:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
@@ -123,6 +135,37 @@ e__load_dataset <- function(session_name,outer_env=totem) {
           readline() 
           return(FALSE)
         } else {
+          
+          # Apply SAS Naming Rules if selected
+          if (policy_idx == 1) {
+            new_cols <- colnames(try_read)
+            # Replace any invalid character with an underscore
+            new_cols <- gsub("[^A-Za-z0-9_]", "_", new_cols)
+            # If a column name starts with a number, prepend an underscore
+            new_cols <- gsub("^([0-9])", "_\\1", new_cols)
+            colnames(try_read) <- new_cols
+          }
+          
+          # Apply Uppercase if selected
+          if (upcase_names) {
+            colnames(try_read) <- toupper(colnames(try_read))
+          }
+          
+          # Duplicate Column Name Check
+          if (length(unique(colnames(try_read))) < ncol(try_read)) {
+            err_dialog <- RGtk2::gtkMessageDialog(
+              parent = outer_env[[session_name]]$windows$main_window, 
+              flags = "destroy-with-parent", 
+              type = "error", 
+              buttons = "close", 
+              "Duplicate column names detected.\n\njaw requires all columns to have unique names. Please re-import and adjust your naming policy options, or fix the underlying file."
+            )
+            err_dialog$run()
+            RGtk2::gtkWidgetDestroy(err_dialog)
+            return(FALSE)
+          }
+          
+          # SUCCESS PATH
           outer_env[[session_name]]$data1 <- try_read
           outer_env[[session_name]]$data1_contents <- data.frame(
             "variable" = colnames(outer_env[[session_name]]$data1),
