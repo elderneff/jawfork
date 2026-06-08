@@ -71,7 +71,13 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
       
       if (!is.null(disk_settings$previous_code)) {
         merged_code <- rbind(outer_env$settings_list$previous_code, disk_settings$previous_code)
-        outer_env$settings_list$previous_code <- merged_code[duplicated(merged_code[, -1]) == F, ]
+        
+        # Sort by time descending to keep newest code at the top
+        merged_code <- merged_code[order(merged_code$time, decreasing = TRUE), ]
+        merged_code <- merged_code[duplicated(merged_code[, -1]) == F, ]
+    
+        # CAP AT 500 ENTRIES
+        outer_env$settings_list$previous_code <- head(merged_code, 500)
       }
 
       # 3. Handle window sizes
