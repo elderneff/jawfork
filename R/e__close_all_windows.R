@@ -59,6 +59,10 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
         
         # Sort descending before stripping duplicates!
         merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
+        
+        # FORCE THE DESIRED COLUMN ORDER
+        merged_history <- merged_history[, c("dataset", "latest", "loaded", "modified", "path")]
+        
         outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
       }
       
