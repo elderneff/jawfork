@@ -1610,7 +1610,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       
       message("Press [Enter] to exit...")
       readline()
-      quit(save = "no")
+      # quit(save = "no")
     
       try({ outer_env$hide_load_window() })
     }
