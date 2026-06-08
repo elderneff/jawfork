@@ -192,9 +192,94 @@ e__load_dataset <- function(session_name,outer_env=totem) {
     }
     #xpt
     else if(tolower(outer_env[[session_name]]$passed_ext)=="xpt"){
-      df_tmp <- as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path))
-      outer_env[[session_name]]$data1 <- df_tmp
       
+      is_initial_load <- is.null(outer_env[[session_name]]$data1)
+      
+      # 1. Peek inside the XPT file using the 'foreign' package
+      try_lookup <- try(foreign::lookup.xport(outer_env[[session_name]]$sas_file_path), silent = TRUE)
+      
+      # If foreign fails or file only has 1 dataset, fall back to haven (faster, preserves attributes)
+      if (inherits(try_lookup, "try-error") || length(try_lookup) <= 1) {
+        
+        try_read <- try(as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)
+        
+        if (inherits(try_read, "try-error")) {
+          print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
+          message("\n!!! DATA LOAD FAILED !!!")
+          message("The XPT file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
+          message("Press [Enter] to exit...")
+          readline() 
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE)
+        } else {
+          outer_env[[session_name]]$data1 <- try_read
+        }
+        
+      } else {
+        # 2. File has MULTIPLE datasets! Build a selection dialog.
+        ds_names <- names(try_lookup)
+        
+        dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window, 
+          flags = "destroy-with-parent", 
+          type = "question", 
+          buttons = "ok-cancel", 
+          paste0("This XPT file contains ", length(ds_names), " datasets.\n\nPlease select the one you want to load:")
+        )
+        
+        vbox <- dialog[["vbox"]]
+        
+        combo_ds <- RGtk2::gtkComboBoxNewText()
+        for (ds in ds_names) {
+          combo_ds$appendText(ds)
+        }
+        combo_ds$setActive(0) # Default to the first dataset
+        
+        RGtk2::gtkBoxPackStart(vbox, combo_ds, TRUE, TRUE, 5)
+        RGtk2::gtkWidgetShowAll(vbox)
+        
+        response <- dialog$run()
+        
+        if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+          selected_idx <- RGtk2::gtkComboBoxGetActive(combo_ds) + 1
+          selected_ds <- ds_names[selected_idx]
+          RGtk2::gtkWidgetDestroy(dialog)
+          
+          # 3. Read the specific dataset using foreign
+          # Note: foreign reads the entire library into memory as a list, then we extract the chosen one
+          try_read <- try({
+            all_ds <- foreign::read.xport(outer_env[[session_name]]$sas_file_path)
+            df_tmp <- as.data.frame(all_ds[[selected_ds]], stringsAsFactors = FALSE)
+            
+            # foreign::read.xport forcefully converts characters to factors. We must convert them back.
+            for (col in colnames(df_tmp)) {
+              if (is.factor(df_tmp[[col]])) {
+                df_tmp[[col]] <- as.character(df_tmp[[col]])
+              }
+            }
+            df_tmp
+          }, silent = TRUE)
+          
+          if (inherits(try_read, "try-error")) {
+            print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
+            message("\n!!! DATA LOAD FAILED !!!")
+            message("The dataset '", selected_ds, "' could not be read from the XPT file.")
+            message("Press [Enter] to exit...")
+            readline() 
+            if (is_initial_load) outer_env$close_all_windows(session_name)
+            return(FALSE)
+          } else {
+            outer_env[[session_name]]$data1 <- try_read
+          }
+          
+        } else {
+          RGtk2::gtkWidgetDestroy(dialog)
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE) # Stop the load process if the user hits "Cancel"
+        }
+      }
+      
+      # 4. Generate Metadata (foreign doesn't perfectly preserve sas_contents, so we stub it out)
       outer_env[[session_name]]$data1_contents <- data.frame(
         "variable" = colnames(outer_env[[session_name]]$data1),
         "length" = NA,
@@ -204,7 +289,6 @@ e__load_dataset <- function(session_name,outer_env=totem) {
         stringsAsFactors = FALSE
       )
     }
-  } 
   else {
   outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
 
