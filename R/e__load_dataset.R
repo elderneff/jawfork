@@ -1,4 +1,29 @@
-
+generate_dynamic_contents <- function(df) {
+  # Dynamically calculate length (max character count for strings, 8 for numeric)
+  col_lengths <- sapply(df, function(x) {
+    if (is.character(x) || is.factor(x)) {
+       suppressWarnings(res <- max(nchar(as.character(x)), na.rm = TRUE))
+       if (is.infinite(res) || is.na(res)) return(0) else return(res)
+    } else {
+       return(8) 
+    }
+  })
+  
+  # Extract embedded labels from foreign, haven, or sjlabelled
+  col_labels <- sapply(df, function(x) {
+    lbl <- attr(x, "label")
+    if (is.null(lbl) || length(lbl) == 0) return(NA) else return(as.character(lbl)[1])
+  })
+  
+  data.frame(
+    "variable" = colnames(df),
+    "length" = as.integer(col_lengths),
+    "type" = sapply(df, function(x) class(x)[1]),
+    "label" = col_labels,
+    "n" = nrow(df),
+    stringsAsFactors = FALSE
+  )
+}
 
 #' e__load_dataset
 #'
@@ -34,21 +59,13 @@ e__load_dataset <- function(session_name, outer_env = totem) {
     # sav
     else if(tolower(outer_env[[session_name]]$passed_ext) == "sav") {
       outer_env[[session_name]]$data1 <- as.data.frame(sjlabelled::unlabel(haven::read_sav(outer_env[[session_name]]$sas_file_path)), stringsAsFactors = FALSE) 
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA, "type" = NA, "label" = NA, "n" = NA,
-          stringsAsFactors = FALSE
-        )
+      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
     }
     
     # rds
     else if(tolower(outer_env[[session_name]]$passed_ext) == "rds") {
       outer_env[[session_name]]$data1 <- as.data.frame(readRDS(file=outer_env[[session_name]]$sas_file_path), stringsAsFactors = FALSE) 
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA, "type" = NA, "label" = NA, "n" = NA,
-          stringsAsFactors = FALSE
-        )
+      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
     }
     
     # csv
@@ -154,11 +171,7 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           }
           
           outer_env[[session_name]]$data1 <- try_read
-          outer_env[[session_name]]$data1_contents <- data.frame(
-            "variable" = colnames(outer_env[[session_name]]$data1),
-            "length" = NA, "type" = NA, "label" = NA, "n" = NA,
-            stringsAsFactors = FALSE
-          )
+          outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
         }
       } else {
         RGtk2::gtkWidgetDestroy(dialog)
@@ -247,24 +260,13 @@ e__load_dataset <- function(session_name, outer_env = totem) {
         }
       }
       
-      outer_env[[session_name]]$data1_contents <- data.frame(
-        "variable" = colnames(outer_env[[session_name]]$data1),
-        "length" = NA, "type" = NA, "label" = NA, "n" = NA,
-        stringsAsFactors = FALSE
-      )
+      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
     }
   } 
   else {
     outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
 
-    outer_env[[session_name]]$data1_contents <- data.frame(
-      "variable" = colnames(outer_env[[session_name]]$data1),
-      "length" = NA,
-      "type" = NA,
-      "label" = NA,
-      "n" = NA,
-      stringsAsFactors = FALSE
-    )
+    outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
   }
 
   file_history <- rbind(data.frame(
