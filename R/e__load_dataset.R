@@ -347,6 +347,9 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
         totem$settings_list$previous_code <- previous_code
         outer_env[[session_name]]$past_code_window_table$update(previous_code)
 
+        # Save to disk immediately
+        save_settings(outer_env)
+
         return(outer_env$u__load_dataset_filter_inner_select(session_name, outer_env[[session_name]]$e$df))
       },
       error = function(e) {
