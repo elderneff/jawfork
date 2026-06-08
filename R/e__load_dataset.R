@@ -348,7 +348,7 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
     bg_color <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
   } else {
     # Blend seamlessly into the standard GTK backgrounds
-    bg_color <- ifelse(is_dark, "#2D2D2D", "#F0F0F0")
+    bg_color <- ifelse(is_dark, "#202020", "#F0F0F0")
   }
   
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, "normal", bg_color)
