@@ -1587,7 +1587,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         # Nullify data2 so syntax errors fall back directly to unfiltered data1 on reload
         outer_env[[session_name]]$data2 <- NULL
 
-        outer_env$u__load_dataset(session_name)
+        # Load the dataset and capture the result
+        load_status <- outer_env$u__load_dataset(session_name)
+
+        # If the load completely failed (returned FALSE), abort the rest of the startup sequence
+        if (identical(load_status, FALSE)) {
+          return(FALSE)
+        }
 
         outer_env[[session_name]]$objects$current_view <- outer_env[[session_name]]$objects$next_view
         outer_env$hide_load_window()
