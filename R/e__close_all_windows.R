@@ -56,7 +56,7 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
         colnames(disk_settings$file_history) <- disk_cols
 
         merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
-        outer_env$settings_list$file_history <- merged_history[duplicated(merged_history[, -(1:3)]) == F, ]
+        outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
       }
       
       if (!is.null(disk_settings$previous_code)) {
