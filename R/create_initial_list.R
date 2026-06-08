@@ -183,10 +183,11 @@ check_settings <- function(settings) {
 
   if (("file_history" %in% names(settings)) == F) {
     settings$file_history <- data.frame(
-      "latest" = logical(), "mtime" = character(),
-      "load_time" = character(),
+      "latest" = logical(), 
+      "modified" = character(),
+      "loaded" = character(),
       "dataset" = character(),
-      "full_path" = character(),
+      "path" = character(),
       stringsAsFactors = FALSE
     )
   }
