@@ -45,7 +45,7 @@ e__file_history <- function(outer_env=totem) {
       for (i in seq_len(nrow(file_history))) {
         file_history[i, "latest"] <- NA
         try({
-          file_history[i, "latest"] <- (file_history[i, "mtime"] == file.info(file_history[i, "full_path"], extra_cols = TRUE)$mtime)
+          file_history[i, "latest"] <- (file_history[i, "modified"] == file.info(file_history[i, "path"], extra_cols = TRUE)$mtime)
         })
       }
 
