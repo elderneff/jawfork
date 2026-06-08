@@ -430,7 +430,7 @@ e__all_event_functions <- function(outer_env = totem) {
   #-------------------------------------------
 
   i__all_event_functions[["File History Table"]][["New Session"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$start(current_row$row[, "full_path", drop = T])
+    outer_env$start(current_row$row[, "path", drop = T])
     outer_env$hide_file_history_window()
   }
 
