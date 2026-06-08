@@ -129,8 +129,35 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   obj_env$table_objects_list$allColumns <- vector("list", 1)
 
   update_table <- function(df) {
-    # Grab the true column classes directly from the Meta Table data (data3)
-    new_classes_str <- paste0(outer_env[[session_name]]$data3$class, collapse = "|")
+    # --- NEW: Pad r__ to match the tallest cell in the row ---
+    if (nrow(df) > 0 && "r__" %in% colnames(df)) {
+      # Count newlines in each cell across all columns
+      newlines_list <- lapply(seq_len(ncol(df)), function(j) {
+        counts <- stringr::str_count(df[, j], "\n")
+        counts[is.na(counts)] <- 0
+        counts
+      })
+      
+      newlines_mat <- do.call(cbind, newlines_list)
+      
+      # Find the max newlines per row and pad the r__ column
+      if (nrow(df) == 1) {
+        max_n <- max(newlines_mat)
+        if (max_n > 0) df[, "r__"] <- paste0(df[, "r__"], paste0(rep("\n", max_n), collapse = ""))
+      } else {
+        max_n <- apply(newlines_mat, 1, max)
+        pad <- sapply(max_n, function(n) if (n > 0) paste0(rep("\n", n), collapse = "") else "")
+        df[, "r__"] <- paste0(df[, "r__"], pad)
+      }
+    }
+    
+    # --- FIX: Grab true column classes dynamically for the current table ---
+    if (!is.null(obj_env$df_obj_list$column_classes)) {
+      new_classes_str <- paste0(obj_env$df_obj_list$column_classes, collapse = "|")
+    } else {
+      new_classes_str <- ""
+    }
+    
     is_dark <- totem$settings_list$dark_mode
 
     # Rebuild if the column names, column classes, OR the theme state change
