@@ -25,7 +25,7 @@ e__file_history <- function(outer_env=totem) {
   RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, outer_env$file_history$file_history_window_main_new_path_chk_btn, F, F, padding = 5)
 
 
-  RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, RGtk2::gtkLabel("New Path"), F, F, padding = 5)
+  RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, RGtk2::gtkLabel("Path to file: "), F, F, padding = 5)
 
   outer_env$file_history$file_history_window_main_new_path_entry <- RGtk2::gtkEntry()
   RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, outer_env$file_history$file_history_window_main_new_path_entry, T, T, padding = 1)
@@ -47,7 +47,7 @@ e__file_history <- function(outer_env=totem) {
         disk_settings <- readRDS(outer_env$local_settings_rds)
         if (is.list(disk_settings) && !is.null(disk_settings$file_history)) {
           
-          # Safely apply column name migration in case the disk file is still using old names
+          # Safely apply column name migration
           disk_cols <- colnames(disk_settings$file_history)
           disk_cols[disk_cols == "mtime"] <- "modified"
           disk_cols[disk_cols == "load_time"] <- "loaded"
@@ -56,6 +56,17 @@ e__file_history <- function(outer_env=totem) {
 
           # Merge with current environment
           merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
+          
+          # HEAL DATES: Find Unix timestamps and convert them back to readable strings
+          bad_dates <- grepl("^[0-9]+\\.[0-9]+$|^[0-9]+$", merged_history$modified)
+          if (any(bad_dates)) {
+            merged_history$modified[bad_dates] <- format(as.POSIXct(as.numeric(merged_history$modified[bad_dates]), origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")
+          }
+          
+          # SORT: Order by 'loaded' descending so newest files are at the top
+          merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
+          
+          # STRIP DUPLICATES: Keep the most recent record (which is now at the top)
           outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
         }
       }, silent = TRUE)
@@ -65,7 +76,9 @@ e__file_history <- function(outer_env=totem) {
       for (i in seq_len(nrow(file_history))) {
         file_history[i, "latest"] <- NA
         try({
-          file_history[i, "latest"] <- (file_history[i, "modified"] == as.character(file.info(file_history[i, "path"], extra_cols = TRUE)$mtime))
+          # Ensure we format the file.info check the exact same way to match correctly
+          current_mtime <- format(file.info(file_history[i, "path"], extra_cols = TRUE)$mtime, "%Y-%m-%d %H:%M:%S")
+          file_history[i, "latest"] <- (file_history[i, "modified"] == current_mtime)
         }, silent = TRUE)
       }
 
