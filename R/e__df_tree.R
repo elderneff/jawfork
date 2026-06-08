@@ -182,6 +182,9 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
             
             # 3. Cap at 500 and save to the active environment
             outer_env$settings_list$previous_code <- head(merged_code, 500)
+            
+            # --- NEW: Save the synchronized state back to disk ---
+            save_settings(outer_env)
           }
         }, silent = TRUE)
         
