@@ -3,18 +3,22 @@
 #' @param session_name TODO
 #' @param message The text to display
 #' @param duration_ms Time in milliseconds before the toast disappears
+#' @param opacity Opacity of the toast window (0.0 to 1.0)
 #' @param outer_env TODO
 #'
 #' @return TODO
 
-e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2500, outer_env = totem) {
+e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2500, opacity = 0.85, outer_env = totem) {
   toast_win <- RGtk2::gtkWindowNew("toplevel")
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
   RGtk2::gtkWindowSetKeepAbove(toast_win, TRUE)
   RGtk2::gtkWindowSetPosition(toast_win, 0L)
   
-  # 1. Custom Pink Background (#ffaec8)
+  # Apply the opacity setting to the top-level window
+  RGtk2::gtkWindowSetOpacity(toast_win, opacity)
+  
+  # 1. Custom Pink Background (#ffcadb)
   event_box <- RGtk2::gtkEventBoxNew()
   bg_color <- RGtk2::gdkColorParse("#ffcadb")$color
   RGtk2::gtkWidgetModifyBg(event_box, RGtk2::GtkStateType["normal"], bg_color)
