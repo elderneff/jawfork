@@ -589,12 +589,15 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
   }
 
   if (replaced) {
+    print("Replaced")
     if (is_exact_duplicate) {
         #Show duplicate toast if exact match.
+        print("Toast")
         if (outer_env$settings_list$copy_messages) {
             outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#E07878")
         }
     } else {
+        print("Set text")
         #Overwrite the text area with the updated combined block.
         u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
     }
@@ -603,6 +606,7 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     if (source_file == T) {
       outer_env$u__code_r_add_cmd(session_name, cmd)
     } else {
+      print("New line")
       u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
     }
   }
