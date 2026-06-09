@@ -554,10 +554,10 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
         if (safe_active_line == safe_cmd) {
             is_exact_duplicate <- TRUE
             replaced <- TRUE
+            message("JAW DEBUG: Exact line match found!")
         } else {
             # Greedy match up to the last vector closure c(...).
-            # This generalized regex captures both %in% filters and add_cross_counts!
-            rgx <- "^(.*\\bc\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
+            rgx <- "^(.*\\bc\\s*\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
 
             if (grepl(rgx, safe_active_line, perl = TRUE) && grepl(rgx, safe_cmd, perl = TRUE)) {
               last_pfx <- sub(rgx, "\\1", safe_active_line)
@@ -577,13 +577,19 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
                 # Pad with commas to ensure exact element matching without partial string overlaps.
                 if (grepl(paste0(", ", clean_cmd, ", "), paste0(", ", clean_last, ", "), fixed = TRUE)) {
                     is_exact_duplicate <- TRUE
+                    message("JAW DEBUG: Redundant vector match found!")
                 } else {
                     combined_val <- paste0(last_val, ", ", cmd_val)
                     # Update the actual code_lines entry.
                     code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+                    message("JAW DEBUG: Values successfully combined!")
                 }
                 replaced <- TRUE
+              } else {
+                  message("JAW DEBUG: Regex matched, but prefixes/suffixes did not align.")
               }
+            } else {
+                message("JAW DEBUG: Regex failed to match one or both strings.")
             }
         }
     }
@@ -591,15 +597,19 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
 
   if (replaced) {
     if (is_exact_duplicate) {
+        message("JAW DEBUG: Firing toast notification...")
         # Show duplicate toast if exact match.
         if (outer_env$settings_list$copy_messages) {
             outer_env$u__show_toast(session_name, "Action is redundant. Code already present.", bg_color = "#E07878")
+        } else {
+            message("JAW DEBUG: Toast suppressed because copy_messages is FALSE.")
         }
     } else {
         # Overwrite the text area with the updated combined block.
         u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
     }
   } else {
+    message("JAW DEBUG: Falling back to appending new line.")
     # Fallback to normal appending if it is a new logic block or writing to source file.
     if (source_file == T) {
       outer_env$u__code_r_add_cmd(session_name, cmd)
