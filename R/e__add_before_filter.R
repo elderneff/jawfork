@@ -535,7 +535,9 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     active_idx <- -1
     if (length(code_lines) > 0) {
       for (i in length(code_lines):1) {
-        clean_line <- trimws(gsub("#.*", "", code_lines[i]))
+        # Strip carriage returns just in case!
+        safe_line <- gsub("\r", "", code_lines[i])
+        clean_line <- trimws(gsub("#.*", "", safe_line))
         if (clean_line != "") {
           active_idx <- i
           break
@@ -543,37 +545,45 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
       }
     }
 
-    #First check if it is a perfect match of the entire command.
-    if (active_idx > 0 && trimws(gsub("#.*", "", code_lines[active_idx])) == trimws(cmd)) {
-        is_exact_duplicate <- TRUE
-        replaced <- TRUE
-    } else {
-        #Greedy match up to the last opening parenthesis.
-        rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
-
-        if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
-          last_line <- code_lines[active_idx]
-
-          last_pfx <- sub(rgx, "\\1", last_line)
-          last_val <- sub(rgx, "\\2", last_line)
-          last_sfx <- sub(rgx, "\\3", last_line)
-
-          cmd_pfx <- sub(rgx, "\\1", cmd)
-          cmd_val <- sub(rgx, "\\2", cmd)
-          cmd_sfx <- sub(rgx, "\\3", cmd)
-
-          #If the structures match perfectly combine them.
-          if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
-            #Prevent exact duplicate additions if the user spams the same button.
-            if (last_val != cmd_val) {
-              #Combine the values.
-              combined_val <- paste0(last_val, ", ", cmd_val)
-              code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
-            } else {
-              is_exact_duplicate <- TRUE
-            }
+    if (active_idx > 0) {
+        # Ensure we also strip \r from cmd just in case
+        safe_cmd <- trimws(gsub("\r", "", cmd))
+        safe_active_line <- trimws(gsub("#.*", "", gsub("\r", "", code_lines[active_idx])))
+        
+        #First check if it is a perfect match of the entire command.
+        if (safe_active_line == safe_cmd) {
+            is_exact_duplicate <- TRUE
             replaced <- TRUE
-          }
+        } else {
+            #Greedy match up to the last opening parenthesis.
+            rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
+
+            if (grepl(rgx, safe_active_line, perl = TRUE) && grepl(rgx, safe_cmd, perl = TRUE)) {
+              last_pfx <- sub(rgx, "\\1", safe_active_line)
+              last_val <- sub(rgx, "\\2", safe_active_line)
+              last_sfx <- sub(rgx, "\\3", safe_active_line)
+
+              cmd_pfx <- sub(rgx, "\\1", safe_cmd)
+              cmd_val <- sub(rgx, "\\2", safe_cmd)
+              cmd_sfx <- sub(rgx, "\\3", safe_cmd)
+
+              #If the structures match perfectly combine them.
+              if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
+                #Format comma-spaces consistently for searching
+                clean_last <- gsub(",\\s*", ", ", last_val)
+                clean_cmd <- gsub(",\\s*", ", ", cmd_val)
+                
+                #Pad with commas to ensure exact element matching without partial string overlaps
+                if (grepl(paste0(", ", clean_cmd, ", "), paste0(", ", clean_last, ", "), fixed = TRUE)) {
+                    is_exact_duplicate <- TRUE
+                } else {
+                    combined_val <- paste0(last_val, ", ", cmd_val)
+                    # Update the actual code_lines entry!
+                    code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+                }
+                replaced <- TRUE
+              }
+            }
         }
     }
   }
@@ -582,7 +592,7 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     if (is_exact_duplicate) {
         #Show duplicate toast if exact match.
         if (outer_env$settings_list$copy_messages) {
-            outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#FFACAC")
+            outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#E07878")
         }
     } else {
         #Overwrite the text area with the updated combined block.
@@ -608,6 +618,7 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
       outer_env$u__log_history(session_name, str, "button_click")
   }
 }
+
 #' e__set_before_code
 #'
 #' @param session_name TODO
