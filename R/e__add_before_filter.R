@@ -523,14 +523,15 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
 e__append_before_code <- function(session_name, cmd, outer_env = totem) {
   source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
 
-  #Try to combine appended coe with previous line if the filter is the same
+  #Try to combine appended code with previous line if the filter is the same.
   replaced <- FALSE
+  is_exact_duplicate <- FALSE
   
   if (source_file == F) {
     raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
     code_lines <- strsplit(raw_code, "\n")[[1]]
 
-    # Find the last active line (ignore blanks and comments)
+    #Find the last active line ignoring blanks and comments.
     active_idx <- -1
     if (length(code_lines) > 0) {
       for (i in length(code_lines):1) {
@@ -542,39 +543,53 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
       }
     }
 
-    # Greedy match up to the last 'c(', then grab values (ignoring parentheses inside strings), then grab the suffix
-    rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
-
-    if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
-      last_line <- code_lines[active_idx]
-
-      last_pfx <- sub(rgx, "\\1", last_line)
-      last_val <- sub(rgx, "\\2", last_line)
-      last_sfx <- sub(rgx, "\\3", last_line)
-
-      cmd_pfx <- sub(rgx, "\\1", cmd)
-      cmd_val <- sub(rgx, "\\2", cmd)
-      cmd_sfx <- sub(rgx, "\\3", cmd)
-
-      # If the structures match perfectly, combine them!
-      if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
-        # Prevent exact duplicate additions if the user spams the same button
-        if (last_val != cmd_val) {
-          # Combine the values! (R's %in% logic naturally handles duplicates 
-          # if they accidentally click a value already inside the larger vector string)
-          combined_val <- paste0(last_val, ", ", cmd_val)
-          code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
-        }
+    #First check if it is a perfect match of the entire command.
+    if (active_idx > 0 && trimws(gsub("#.*", "", code_lines[active_idx])) == trimws(cmd)) {
+        is_exact_duplicate <- TRUE
         replaced <- TRUE
-      }
+    } else {
+        #Greedy match up to the last opening parenthesis.
+        rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
+
+        if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
+          last_line <- code_lines[active_idx]
+
+          last_pfx <- sub(rgx, "\\1", last_line)
+          last_val <- sub(rgx, "\\2", last_line)
+          last_sfx <- sub(rgx, "\\3", last_line)
+
+          cmd_pfx <- sub(rgx, "\\1", cmd)
+          cmd_val <- sub(rgx, "\\2", cmd)
+          cmd_sfx <- sub(rgx, "\\3", cmd)
+
+          #If the structures match perfectly combine them.
+          if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
+            #Prevent exact duplicate additions if the user spams the same button.
+            if (last_val != cmd_val) {
+              #Combine the values.
+              combined_val <- paste0(last_val, ", ", cmd_val)
+              code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+            } else {
+              is_exact_duplicate <- TRUE
+            }
+            replaced <- TRUE
+          }
+        }
     }
   }
 
   if (replaced) {
-    # Overwrite the text area with the updated, combined block
-    u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+    if (is_exact_duplicate) {
+        #Show duplicate toast if exact match.
+        if (outer_env$settings_list$copy_messages) {
+            outer_env$u__show_toast(session_name, "Duplicate code skipped", bg_color = "#FFACAC")
+        }
+    } else {
+        #Overwrite the text area with the updated combined block.
+        u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+    }
   } else {
-    # Fallback to normal appending if it's a new logic block or writing to Source file
+    #Fallback to normal appending if it is a new logic block or writing to source file.
     if (source_file == T) {
       outer_env$u__code_r_add_cmd(session_name, cmd)
     } else {
@@ -582,16 +597,17 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     }
   }
 
-  # Fetch the newly injected text
-  buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
-  end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
-  start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
-  str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
-  
-  # Send it to the timeline tracker as a unique event!
-  outer_env$u__log_history(session_name, str, "button_click")
+  #If we did not skip it fetch the newly injected text and log history.
+  if (!is_exact_duplicate) {
+      buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+      end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+      start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+      str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+      
+      #Send it to the timeline tracker as a unique event.
+      outer_env$u__log_history(session_name, str, "button_click")
+  }
 }
-
 #' e__set_before_code
 #'
 #' @param session_name TODO
