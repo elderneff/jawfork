@@ -107,6 +107,7 @@ e__all_event_functions <- function(outer_env = totem) {
     } else {
       utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, sp, "\"", obj_env$table_objects_list$current_row$value, "\" ")), format = 1)
     }
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Code copied to clipboard")
   }
 
   i__all_event_functions[["Copy"]][["if then"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
