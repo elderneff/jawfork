@@ -18,9 +18,9 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   # Apply the opacity setting to the top-level window
   RGtk2::gtkWindowSetOpacity(toast_win, opacity)
   
-  # 1. Custom Pink Background (#ffcadb)
+  # 1. Green background for success popups, red for warnings
   event_box <- RGtk2::gtkEventBoxNew()
-  bg_color <- RGtk2::gdkColorParse("#ffcadb")$color
+  bg_color <- RGtk2::gdkColorParse("#ACFFAE")$color
   RGtk2::gtkWidgetModifyBg(event_box, RGtk2::GtkStateType["normal"], bg_color)
   RGtk2::gtkContainerAdd(toast_win, event_box)
   
