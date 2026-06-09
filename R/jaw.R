@@ -46,6 +46,10 @@ jaw <- function(settings_dir=NULL) {
   
   totem$while_loop_running <- F
 
+  # Run the auto-patcher to tell R to look in R Portable for the jaw library
+  # Edits update_jaw.bat and Rprofile.site
+  try({ e__patch_portable_env() }, silent = TRUE)
+
   totem$check_for_updates <- e__with_env(e__check_for_updates)
   
   # If the user accepted the update, exit out
