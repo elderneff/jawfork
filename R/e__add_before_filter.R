@@ -582,7 +582,7 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
     if (is_exact_duplicate) {
         #Show duplicate toast if exact match.
         if (outer_env$settings_list$copy_messages) {
-            outer_env$u__show_toast(session_name, "Duplicate code skipped", bg_color = "#FFACAC")
+            outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#FFACAC")
         }
     } else {
         #Overwrite the text area with the updated combined block.
