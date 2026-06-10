@@ -230,7 +230,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  outer_env$u__append_before_code(session_name, cmd)
+  outer_env$u__append_before_code(session_name, cmd, combine = combine)
 }
 
 #' e__add_before_filter
@@ -311,7 +311,7 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  outer_env$u__append_before_code(session_name, cmd)
+  outer_env$u__append_before_code(session_name, cmd, combine = combine)
 }
 
 #' e__add_before_filter_table
