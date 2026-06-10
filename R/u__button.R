@@ -17,6 +17,9 @@
 u__button <- function(box, start = T, padding = 5, stock_id = NULL, but_txt = NULL, tool_tip = NULL, call_back_fct = NULL, data = NULL) {
   btn <- RGtk2::gtkButton()
   RGtk2::gtkButtonSetFocusOnClick(btn, F)
+
+  #Prevent GTK from automatically highlighting buttons when the window loads
+  btn["can-focus"] <- FALSE
   
   if (is.null(stock_id) == F) {
     RGtk2::gtkContainerAdd(btn, RGtk2::gtkImageNewFromStock(stock_id, size = 2L))
