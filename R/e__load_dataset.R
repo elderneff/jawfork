@@ -283,7 +283,7 @@ e__load_dataset <- function(session_name, outer_env = totem) {
     stringsAsFactors = FALSE
   ), totem$settings_list$file_history)
 
-  file_history <- file_history[duplicated(file_history[, c("dataset", "full_path")]) == F, ]
+  file_history <- file_history[duplicated(file_history[, c("dataset", "path")]) == F, ]
   file_history <- file_history[, c("dataset", "latest", "loaded", "modified", "path")]
   file_history <- head(file_history, 200)
 
