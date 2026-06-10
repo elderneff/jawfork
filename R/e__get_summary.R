@@ -48,9 +48,31 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
   # Escape the target column with backticks for eval(parse())
   safe_col <- paste0("`", current_row$column, "`")
 
-  #Check if group by checkbox is checked before pulling value
+  # Check if group by checkbox is checked before pulling value
   if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
     group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+    
+    if (group_by_entry != "") {
+      group_vars_check <- trimws(strsplit(group_by_entry, ",")[[1]])
+      group_vars_check <- group_vars_check[group_vars_check != ""]
+      
+      # Identify variables that are in the entry but NOT in the dataset
+      missing_vars <- setdiff(group_vars_check, colnames(temp_df))
+      
+      if (length(missing_vars) > 0) {
+        err_dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window, 
+          flags = "destroy-with-parent", 
+          type = "error", 
+          buttons = "close", 
+          paste0("The following Group By variables do not exist in the dataset:\n\n", paste(missing_vars, collapse = ", "))
+        )
+        err_dialog$run()
+        RGtk2::gtkWidgetDestroy(err_dialog)
+        return()
+      }
+    }
+    # ----------------------------
   } else {
     group_by_entry <- ""
   }
