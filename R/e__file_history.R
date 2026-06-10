@@ -38,41 +38,49 @@ e__file_history <- function(outer_env=totem) {
 
 
   RGtk2::gSignalConnect(outer_env$file_history$file_history_window_main_new_path_chk_btn, "button-press-event",
-    function(widget, event, data) {
-      outer_env$show_load_window()
-      outer_env <- data
+  function(widget, event, data) {
+    outer_env$show_load_window()
+    outer_env <- data
 
-      # 1. Pull latest disk settings to catch any files opened by parallel jaw sessions
-      try({
-        disk_settings <- readRDS(outer_env$local_settings_rds)
-        if (is.list(disk_settings) && !is.null(disk_settings$file_history)) {
+    #Pull latest disk settings to catch any files opened by parallel jaw sessions
+    try({
+      disk_settings <- readRDS(outer_env$local_settings_rds)
+      if (is.list(disk_settings) && !is.null(disk_settings$file_history)) {
 
-          # Safely apply column name migration
-          disk_cols <- colnames(disk_settings$file_history)
-          disk_cols[disk_cols == "mtime"] <- "modified"
-          disk_cols[disk_cols == "load_time"] <- "loaded"
-          disk_cols[disk_cols == "full_path"] <- "path"
-          colnames(disk_settings$file_history) <- disk_cols
+        #Safely apply column name migration
+        disk_cols <- colnames(disk_settings$file_history)
+        disk_cols[disk_cols == "mtime"] <- "modified"
+        disk_cols[disk_cols == "load_time"] <- "loaded"
+        disk_cols[disk_cols == "full_path"] <- "path"
+        colnames(disk_settings$file_history) <- disk_cols
 
-          # Merge with current environment
-          merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
+        #Merge with current environment
+        merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
 
-          # HEAL DATES: Find Unix timestamps and convert them back to readable strings
-          bad_dates <- grepl("^[0-9]+\\.[0-9]+$|^[0-9]+$", merged_history$modified)
-          if (any(bad_dates)) {
-            merged_history$modified[bad_dates] <- format(as.POSIXct(as.numeric(merged_history$modified[bad_dates]), origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")
-          }
-
-          # SORT: Order by 'loaded' descending so newest files are at the top
-          merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
-
-          # FORCE THE DESIRED COLUMN ORDER
-          merged_history <- merged_history[, c("dataset", "latest", "loaded", "modified", "path")]
-
-          # STRIP DUPLICATES: Keep the most recent record
-          outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
-
-          # Cap at 200 records
-          outer_env$settings_list$file_history <- head(merged_history, 200)
+        #Heal dates
+        bad_dates <- grepl("^[0-9]+\\.[0-9]+$|^[0-9]+$", merged_history$modified)
+        if (any(bad_dates)) {
+          merged_history$modified[bad_dates] <- format(as.POSIXct(as.numeric(merged_history$modified[bad_dates]), origin="1970-01-01"), "%Y-%m-%d %H:%M:%S")
         }
-      }, silent = TRUE)
+
+        #Sort by loaded descending
+        merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
+
+        #Force the desired column order
+        merged_history <- merged_history[, c("dataset", "latest", "loaded", "modified", "path")]
+
+        #Strip duplicates and overwrite the temporary variable
+        merged_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
+
+        #Cap at 200 records and assign to the global settings list
+        outer_env$settings_list$file_history <- head(merged_history, 200)
+        
+        #Update the table UI to reflect the deduplicated list
+        outer_env$file_history$file_history_window_table$update(outer_env$settings_list$file_history)
+      }
+    }, silent = TRUE)
+    
+    #Hide the load window after finishing
+    outer_env$hide_load_window()
+    return(FALSE)
+  }, data = outer_env)
