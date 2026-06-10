@@ -374,8 +374,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
           if (group_by_entry != "") {
             cvar <- c(trimws(strsplit(x = group_by_entry, split = ",", fixed = T)[[1]]), cvar)
-            cvar <- cvar[cvar %in% colnames(temp_df)]
             cvar <- unique(cvar)
+            
+            missing_vars <- setdiff(cvar, colnames(temp_df))
+            if (length(missing_vars) > 0) {
+              outer_env$u__show_toast(session_name, paste0("Missing Group By vars ignored: ", paste(missing_vars, collapse = ", ")), bg_color = "#E07878")
+            }           
+            
+            cvar <- cvar[cvar %in% colnames(temp_df)]
           }
 
           
