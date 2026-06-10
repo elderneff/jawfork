@@ -528,17 +528,18 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
 #' @param session_name TODO
 #' @param cmd TODO
 #' @param outer_env TODO
+#' @param combine Boolean indicating if the app should try to merge this code with the previous line
 #'
 #' @return TODO
 
-e__append_before_code <- function(session_name, cmd, outer_env = totem) {
+e__append_before_code <- function(session_name, cmd, outer_env = totem, combine = TRUE) {
   source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
 
   #Try to combine appended code with previous line if the filter is the same.
   replaced <- FALSE
   is_exact_duplicate <- FALSE
   
-  if (source_file == F) {
+  if (source_file == F && combine) {
     raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
     code_lines <- strsplit(raw_code, "\n")[[1]]
 
