@@ -1605,10 +1605,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env$hide_load_window()
       }
       
-      #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
-      if (outer_env[[session_name]]$status_bar$dark_mode) {
-        outer_env$u__apply_theme(session_name, outer_env)
-      }
+      #Apply theme regardless of dark or light
+      outer_env$u__apply_theme(session_name, outer_env)
 
       refresh(session_name)
       RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
