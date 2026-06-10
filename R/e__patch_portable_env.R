@@ -51,7 +51,7 @@ e__patch_portable_env <- function() {
           "set \"R_LIBS_USER=%cd%\\R-Portable\\App\\R-Portable\\library\"",
           "set \"R_USER=%cd%\\R-Portable\\App\\R-Portable\"",
           "REM ******Use %cd% variable to reference directory of update_jaw.bat******",
-          "\"%cd%\\R-Portable\\App\\R-Portable\\bin\\Rscript.exe\" -e \"for(p in c('sqldf', 'haven', 'lubridate')) if(!requireNamespace(p, quietly=TRUE)) install.packages(p, repos='https://cloud.r-project.org')\" -e \"devtools::install_github('elderneff/jawfork@dev', dependencies=FALSE, force=FALSE)\"",
+          "\"%cd%\\R-Portable\\App\\R-Portable\\bin\\Rscript.exe\" -e \"for(p in c('sqldf', 'haven', 'lubridate')) if(!requireNamespace(p, quietly=TRUE)) install.packages(p, repos='https://cloud.r-project.org')\" -e \"devtools::install_github('elderneff/jawfork', dependencies=FALSE, force=FALSE)\"",
           "@pause"
         )
         writeLines(new_bat_lines, bat_path)
