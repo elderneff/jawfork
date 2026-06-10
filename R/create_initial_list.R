@@ -118,13 +118,15 @@ check_settings <- function(settings) {
       "Trigger Value Summary with Unique By" = "left+alt",
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
+      "Add to Main Filter (no combining)" = "-",
       "Get Summary" = "middle+ctrl"
     ),
     "Summary Table" = list(
       #"Open Flat View" = "left+alt",
       #"Open Inverted View" = "left+ctrl",
       "Add to Main Filter" = "right+ctrl",
-      "Add to Main Filter Exclude" = "right+ctrl+shift"
+      "Add to Main Filter Exclude" = "right+ctrl+shift",
+      "Add to Main Filter (no combining)" = "-"
     ),
     "Past Code Table" = list(
       "Load Code" = "left+none"
