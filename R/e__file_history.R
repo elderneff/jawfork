@@ -26,7 +26,7 @@ e__file_history <- function(outer_env=totem) {
   RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, RGtk2::gtkLabel("New Path"), F, F, padding = 5)
 
   outer_env$file_history$file_history_window_main_new_path_entry <- RGtk2::gtkEntry()
-  RGtk2::gtkBoxPackStart(outer_env[[session_name]]$format_by_label2, lbl, F, F, padding = 2)
+  RGtk2::gtkBoxPackStart(outer_env$file_history$file_history_window_main_new_path_box, outer_env$file_history$file_history_window_main_new_path_entry, T, T, padding = 1)
 
   outer_env$file_history$file_history_window_main_new_path_btn <- RGtk2::gtkButton("load")
   RGtk2::gtkButtonSetFocusOnClick(outer_env$file_history$file_history_window_main_new_path_btn, F)
@@ -40,12 +40,6 @@ e__file_history <- function(outer_env=totem) {
       outer_env$show_load_window()
       outer_env <- data
       file_history <- outer_env$settings_list$file_history
-      
-      #Drop any existing exact duplicates before calculating status to prevent compounding
-      if (nrow(file_history) > 0) {
-        file_history <- file_history[!duplicated(file_history[, c("dataset", "full_path")]), ]
-      }
-      
       for (i in seq_len(nrow(file_history))) {
         file_history[i, "latest"] <- NA
         try({
@@ -53,10 +47,6 @@ e__file_history <- function(outer_env=totem) {
         })
       }
 
-      #Ensure final data frame is completely unique
-      if (nrow(file_history) > 0) {
-        file_history <- file_history[!duplicated(file_history[, c("dataset", "full_path")]), ]
-      }
 
       outer_env$settings_list$file_history <- file_history
       outer_env$file_history$file_history_window_table$update(file_history)
