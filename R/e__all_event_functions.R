@@ -419,6 +419,22 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Summary Table"]][["Copy Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__copy_mapping(session_name, current_row)
   }
+  i__all_event_functions[["Summary Table"]][["Copy Data Columns"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # Fetch the full summary table data currently on screen
+    current_data <- obj_env$df_obj$current_data()
+    
+    # Exclude the metrics and UI columns to isolate the grouping/focus columns
+    cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
+    
+    # Subset the data frame
+    data_to_copy <- current_data[, cross_tab_names, drop = FALSE]
+    
+    # Copy to clipboard using clipr (matches the behavior of other table copies)
+    clipr::write_clip(data_to_copy, allow_non_interactive = T)
+    
+    # Trigger the toast notification
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data columns copied to clipboard")
+  }
 
   #--------------------------------------------
 
