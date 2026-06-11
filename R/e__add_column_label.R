@@ -129,5 +129,5 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
 
   RGtk2::gtkTreeViewColumnSetWidget(treeviewcolumn, widget = evb)
 
-  return(list(evb = evb, y = y))
+  return(list(evb = evb, y = y, x = x))
 }
