@@ -138,12 +138,37 @@ e__all_event_functions <- function(outer_env = totem) {
     obj_env$df_obj$copy_filter(obj_env$table_objects_list$current_row$column)
   }
 
+  i__all_event_functions[["Copy"]][["Column Wide"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # Get the currently filtered data for the selected column
+    col_name <- current_row$column
+    col_data <- obj_env$df_obj$current_data()[[col_name]]
+    
+    # Collapse the column values with tabs
+    col_string <- paste0(as.character(col_data), collapse = "\t")
+    utils::writeClipboard(str = charToRaw(paste0(col_string, " ")), format = 1)
+    
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Wide column copied to clipboard")
+  }
+
   i__all_event_functions[["Copy"]][["Vector Column full"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_full(obj_env$table_objects_list$current_row$column, vector = T)
   }
 
   i__all_event_functions[["Copy"]][["Vector Column filtered"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_filter(obj_env$table_objects_list$current_row$column, vector = T)
+  }
+
+  i__all_event_functions[["Copy"]][["Row"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # Extract row and drop internal UI metrics so only the true data is copied
+    row_data <- current_row$row
+    clean_cols <- setdiff(colnames(row_data), c("r__", "n", "freq", "lines", "nchar"))
+    row_data <- row_data[, clean_cols, drop = FALSE]
+    
+    # Collapse the row values with tabs
+    row_string <- paste0(as.character(row_data[1, ]), collapse = "\t")
+    utils::writeClipboard(str = charToRaw(paste0(row_string, " ")), format = 1)
+    
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Row copied to clipboard")
   }
 
   #--------------------------------------------
