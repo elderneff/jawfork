@@ -7,10 +7,10 @@
 e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions <- list()
 
-  #Helper to extract frequency data based on table type
+  # Helper to extract frequency data based on table type
   get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
     if (table_type == "Summary Table") {
-      #Prevent comparison if grouping or unique by is actually populated
+      # Prevent comparison if grouping or unique by is actually populated
       group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
       group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
       has_group <- group_cb && group_txt != ""
@@ -33,20 +33,21 @@ e__all_event_functions <- function(outer_env = totem) {
       }
       
       current_data <- obj_env$df_obj$current_data()
-      col_name <- colnames(current_data)[1]
+      # Index 2 because r__ is always injected as the first column in the UI table
+      col_name <- colnames(current_data)[2]
       
-      #Convert to data frame immediately to prevent atomic vector errors
+      # Convert to data frame immediately to prevent atomic vector errors
       res <- as.data.frame(current_data[, c(col_name, "n"), drop = FALSE], stringsAsFactors = FALSE)
       colnames(res) <- c("Value", "n")
       res$Value <- as.character(res$Value)
       
-      #Ensure 'n' is numeric so the difference math works later
+      # Ensure 'n' is numeric so the difference math works later
       res$n <- as.numeric(res$n)
       
       return(list(col = col_name, data = res))
       
     } else if (table_type == "Meta Table") {
-      #Extract values directly from the meta table itself using matrix indexing
+      # Extract values directly from the meta table itself using matrix indexing
       current_data <- obj_env$df_obj$current_data()
       col_name <- current_row$column
       vals <- as.character(current_data[, col_name, drop = TRUE])
@@ -57,7 +58,7 @@ e__all_event_functions <- function(outer_env = totem) {
       return(list(col = col_name, data = freq_table))
       
     } else {
-      #Extract values from the full dataset
+      # Extract values from the full dataset
       col_name <- current_row$column
       temp_df <- outer_env[[session_name]]$data2
       vals <- as.character(temp_df[[col_name]])
@@ -69,7 +70,7 @@ e__all_event_functions <- function(outer_env = totem) {
     }
   }
 
-  #Action for pinning the column
+  # Action for pinning the column
   action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
     if (is.null(comp_info)) return()
@@ -82,7 +83,7 @@ e__all_event_functions <- function(outer_env = totem) {
     if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for comparison")
   }
 
-  #Action for compare with pinned
+  # Action for compare with pinned
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     if (is.null(outer_env$pinned_comparison)) {
       err_dialog <- RGtk2::gtkMessageDialog(
@@ -109,31 +110,38 @@ e__all_event_functions <- function(outer_env = totem) {
     
     merged_df <- merge(pinned$data, current$data, by = "Value", all = TRUE)
     
-    #Strip file extensions for a cleaner header
+    # Strip file extensions for a cleaner header
     clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    #Format column headers: Variable name on line 1, Status - Dataset on line 2
-    col_pinned <- paste0(pinned$column, "\nPinned - ", clean_pinned_ds)
-    col_current <- paste0(current$column, "\nComparison - ", clean_current_ds)
+    # Format column headers: Variable name on line 1, Status on line 2, Dataset on line 3
+    col_pinned <- paste0(pinned$column, "\nPinned Counts\n", clean_pinned_ds)
+    col_current <- paste0(current$column, "\nComparison Counts\n", clean_current_ds)
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
-    #Replace missing counts with zero
+    # Add presence indicator columns before zeroing out NAs
+    merged_df$Pinned <- ifelse(!is.na(merged_df[[col_pinned]]), "Y", "")
+    merged_df$Comparison <- ifelse(!is.na(merged_df[[col_current]]), "Y", "")
+    
+    # Replace missing counts with zero
     merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
     merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
     
-    #Calculate difference and match
+    # Calculate difference and match
     merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
     merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
+    
+    # Reorder columns for logical flow
+    merged_df <- merged_df[, c("Value", col_pinned, col_current, "Pinned", "Comparison", "Difference", "Match")]
     
     outer_env$u__df_view(
       merged_df, 
       paste0("Comparison: ", pinned$column, " vs ", current$column), 
-      height = 400, width = 600
+      height = 400, width = 800
     )
   }
-
+  
   #--------------------------------------------
 
   # General
