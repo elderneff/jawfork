@@ -7,12 +7,17 @@
 e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions <- list()
 
-  #Helper to extract frequency data based on table type.
+  #Helper to extract frequency data based on table type
   get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
     if (table_type == "Summary Table") {
-      #Prevent comparison if grouping or unique by is active.
-      has_group <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
-      has_unique <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
+      #Prevent comparison if grouping or unique by is actually populated
+      group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
+      group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
+      has_group <- group_cb && group_txt != ""
+      
+      unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
+      unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
+      has_unique <- unique_cb && unique_txt != ""
       
       if (has_group || has_unique) {
         err_dialog <- RGtk2::gtkMessageDialog(
@@ -28,7 +33,6 @@ e__all_event_functions <- function(outer_env = totem) {
       }
       
       current_data <- obj_env$df_obj$current_data()
-      #The first column is always the summarized variable in an ungrouped summary table.
       col_name <- colnames(current_data)[1]
       
       res <- current_data[, c(col_name, "n")]
@@ -36,15 +40,20 @@ e__all_event_functions <- function(outer_env = totem) {
       res$Value <- as.character(res$Value)
       return(list(col = col_name, data = res))
       
-    } else {
-      #Determine column name based on table type.
-      if (table_type == "Meta Table") {
-        current_data <- obj_env$df_obj$current_data()
-        col_name <- current_data[current_row$row_i, "variable", drop = TRUE]
-      } else {
-        col_name <- current_row$column
-      }
+    } else if (table_type == "Meta Table") {
+      #Extract values directly from the meta table itself
+      current_data <- obj_env$df_obj$current_data()
+      col_name <- current_row$column
+      vals <- as.character(current_data[[col_name]])
+      vals[is.na(vals)] <- "NA"
       
+      freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
+      colnames(freq_table) <- c("Value", "n")
+      return(list(col = col_name, data = freq_table))
+      
+    } else {
+      #Extract values from the full dataset
+      col_name <- current_row$column
       temp_df <- outer_env[[session_name]]$data2
       vals <- as.character(temp_df[[col_name]])
       vals[is.na(vals)] <- "NA"
@@ -55,7 +64,7 @@ e__all_event_functions <- function(outer_env = totem) {
     }
   }
 
-  #Action for pinning the column.
+  #Action for pinning the column
   action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
     if (is.null(comp_info)) return()
@@ -68,7 +77,7 @@ e__all_event_functions <- function(outer_env = totem) {
     if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for comparison")
   }
 
-  #Action for compare with pinned.
+  #Action for compare with pinned
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     if (is.null(outer_env$pinned_comparison)) {
       err_dialog <- RGtk2::gtkMessageDialog(
@@ -95,22 +104,21 @@ e__all_event_functions <- function(outer_env = totem) {
     
     merged_df <- merge(pinned$data, current$data, by = "Value", all = TRUE)
     
-    col_pinned <- paste0(pinned$dataset, " (", pinned$column, ")")
-    col_current <- paste0(current$dataset, " (", current$column, ")")
+    #Strip file extensions for a cleaner header
+    clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
+    clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    #Prevent duplicate column names if comparing the same file against itself.
-    if (col_pinned == col_current) {
-      col_pinned <- paste0(col_pinned, " [Pinned]")
-      col_current <- paste0(col_current, " [Current]")
-    }
+    #Format column headers with newlines
+    col_pinned <- paste0(clean_pinned_ds, " (", pinned$column, ")\n[Pinned]")
+    col_current <- paste0(clean_current_ds, " (", current$column, ")\n[Comparison]")
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
-    #Replace missing counts with zero.
+    #Replace missing counts with zero
     merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
     merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
     
-    #Calculate difference.
+    #Calculate difference
     merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
     
     outer_env$u__df_view(
