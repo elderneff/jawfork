@@ -70,28 +70,52 @@ e__all_event_functions <- function(outer_env = totem) {
     }
   }
 
-  # Action for pinning the column
+  #Action for pinning the column
   action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
     if (is.null(comp_info)) return()
     
-    outer_env$pinned_comparison <- list(
+    pinned_data <- list(
       dataset = outer_env[[session_name]]$sas_file_basename,
       column = comp_info$col,
       data = comp_info$data
     )
-    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for comparison")
+    
+    #Write to cross-session RDS file
+    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
+    saveRDS(pinned_data, file = pinned_path)
+    
+    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for cross-session comparison")
   }
 
-  # Action for compare with pinned
+  #Action for compare with pinned
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
-    if (is.null(outer_env$pinned_comparison)) {
+    #Determine path to the cross-session RDS file
+    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
+    
+    #Check if file exists before trying to read
+    if (!file.exists(pinned_path)) {
       err_dialog <- RGtk2::gtkMessageDialog(
         parent = outer_env[[session_name]]$windows$main_window,
         flags = "destroy-with-parent",
         type = "error",
         buttons = "close",
-        "No column is currently pinned for comparison."
+        "No column is currently pinned for comparison across sessions."
+      )
+      err_dialog$run()
+      RGtk2::gtkWidgetDestroy(err_dialog)
+      return()
+    }
+    
+    #Safely read the pinned data to prevent crashes if file is locked
+    pinned <- try(readRDS(pinned_path), silent = TRUE)
+    if (inherits(pinned, "try-error")) {
+      err_dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window,
+        flags = "destroy-with-parent",
+        type = "error",
+        buttons = "close",
+        "Failed to read the pinned comparison file. Try pinning the column again."
       )
       err_dialog$run()
       RGtk2::gtkWidgetDestroy(err_dialog)
@@ -101,7 +125,6 @@ e__all_event_functions <- function(outer_env = totem) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
     if (is.null(comp_info)) return()
     
-    pinned <- outer_env$pinned_comparison
     current <- list(
       dataset = outer_env[[session_name]]$sas_file_basename,
       column = comp_info$col,
@@ -110,29 +133,29 @@ e__all_event_functions <- function(outer_env = totem) {
     
     merged_df <- merge(pinned$data, current$data, by = "Value", all = TRUE)
     
-    # Strip file extensions for a cleaner header
+    #Strip file extensions for a cleaner header
     clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    # Format column headers: Variable name on line 1, Status on line 2, Dataset on line 3
-    col_pinned <- paste0(pinned$column, "\nPinned Counts \n", clean_pinned_ds)
-    col_current <- paste0(current$column, "\nComparison Counts \n", clean_current_ds)
+    #Format column headers
+    col_pinned <- paste0(pinned$column, "\nPinned Counts\n", clean_pinned_ds)
+    col_current <- paste0(current$column, "\nComparison Counts\n", clean_current_ds)
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
-    # Add presence indicator columns before zeroing out NAs
+    #Add presence indicator columns before zeroing out NAs
     merged_df$Pinned <- ifelse(!is.na(merged_df[[col_pinned]]), "Y", "")
     merged_df$Comparison <- ifelse(!is.na(merged_df[[col_current]]), "Y", "")
     
-    # Replace missing counts with zero
+    #Replace missing counts with zero
     merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
     merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
     
-    # Calculate difference and match
+    #Calculate difference and match
     merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
     merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
     
-    # Reorder columns for logical flow
+    #Reorder columns for logical flow
     merged_df <- merged_df[, c("Value", col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")]
     
     outer_env$u__df_view(
