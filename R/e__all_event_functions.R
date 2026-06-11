@@ -86,7 +86,6 @@ e__all_event_functions <- function(outer_env = totem) {
     saveRDS(pinned_data, file = pinned_path)
     
     if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for cross-session comparison")
-    print(outer_env$settings_dir_path)
   }
 
   #Action for compare with pinned
