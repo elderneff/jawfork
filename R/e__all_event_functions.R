@@ -41,10 +41,10 @@ e__all_event_functions <- function(outer_env = totem) {
       return(list(col = col_name, data = res))
       
     } else if (table_type == "Meta Table") {
-      #Extract values directly from the meta table itself
+      #Extract values directly from the meta table itself using matrix indexing
       current_data <- obj_env$df_obj$current_data()
       col_name <- current_row$column
-      vals <- as.character(current_data[[col_name]])
+      vals <- as.character(current_data[, col_name, drop = TRUE])
       vals[is.na(vals)] <- "NA"
       
       freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
@@ -62,19 +62,6 @@ e__all_event_functions <- function(outer_env = totem) {
       colnames(freq_table) <- c("Value", "n")
       return(list(col = col_name, data = freq_table))
     }
-  }
-
-  #Action for pinning the column
-  action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
-    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
-    if (is.null(comp_info)) return()
-    
-    outer_env$pinned_comparison <- list(
-      dataset = outer_env[[session_name]]$sas_file_basename,
-      column = comp_info$col,
-      data = comp_info$data
-    )
-    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for comparison")
   }
 
   #Action for compare with pinned
@@ -108,9 +95,9 @@ e__all_event_functions <- function(outer_env = totem) {
     clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    #Format column headers with newlines
-    col_pinned <- paste0(clean_pinned_ds, " (", pinned$column, ")\n[Pinned]")
-    col_current <- paste0(clean_current_ds, " (", current$column, ")\n[Comparison]")
+    #Format column headers with column name first, then dataset in parentheses
+    col_pinned <- paste0(pinned$column, " (", clean_pinned_ds, ")\n[Pinned]")
+    col_current <- paste0(current$column, " (", clean_current_ds, ")\n[Comparison]")
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
@@ -118,8 +105,9 @@ e__all_event_functions <- function(outer_env = totem) {
     merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
     merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
     
-    #Calculate difference
+    #Calculate difference and match
     merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
+    merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
     
     outer_env$u__df_view(
       merged_df, 
