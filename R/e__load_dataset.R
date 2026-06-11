@@ -350,7 +350,7 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
   ##################
   #Check if the code area is effectively empty (ignoring comments and whitespace)
   raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
-  clean_code <- gsub("#.*", "", raw_code) # Strips everything from '#' to the end of the line
+  clean_code <- gsub("#[^\\r\\n]*", "", raw_code)   
   is_code_empty <- (trimws(clean_code) == "")
 
   #Check if the select statement is empty or disabled via checkbox
