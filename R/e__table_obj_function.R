@@ -402,6 +402,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   #Resize r__ column header to match all others
   max_x_newlines <- 0
   max_y_newlines <- 0
+  has_y_text <- FALSE
   
   #Loop through all data columns to find the maximum number of newlines
   for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
@@ -423,10 +424,14 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   blank_x <- paste0("r__", paste0(rep("\n", max_x_newlines), collapse = ""))
   RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_x)
   
-  if (max_y_newlines > 0) {
+  if (has_y_text) {
+     #Show the secondary label and size it to match the tallest y label
+     RGtk2::gtkWidgetShow(obj_env$table_objects_list$allColumns[[1]]$evt$y)
      blank_y <- paste0(" ", paste0(rep("\n", max_y_newlines), collapse = ""))
      RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, blank_y)
   } else {
+     #Hide the secondary label completely so it takes up zero vertical space
+     RGtk2::gtkWidgetHide(obj_env$table_objects_list$allColumns[[1]]$evt$y)
      RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
   }
 }
