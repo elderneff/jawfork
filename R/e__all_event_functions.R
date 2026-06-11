@@ -133,7 +133,7 @@ e__all_event_functions <- function(outer_env = totem) {
     merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
     
     # Reorder columns for logical flow
-    merged_df <- merged_df[, c("Value", col_pinned, col_current, "Pinned", "Comparison", "Difference", "Match")]
+    merged_df <- merged_df[, c("Value", col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")]
     
     outer_env$u__df_view(
       merged_df, 
