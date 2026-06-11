@@ -416,6 +416,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
      #Check y label (secondary metadata - normal weight)
      col_text_y <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
      if (!is.null(col_text_y) && col_text_y != "") {
+        has_y_text <- TRUE
         max_y_newlines <- max(max_y_newlines, stringr::str_count(col_text_y, "\n"))
      }
   }
