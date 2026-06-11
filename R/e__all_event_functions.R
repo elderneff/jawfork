@@ -115,8 +115,8 @@ e__all_event_functions <- function(outer_env = totem) {
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
     # Format column headers: Variable name on line 1, Status on line 2, Dataset on line 3
-    col_pinned <- paste0(pinned$column, "\nPinned Counts\n", clean_pinned_ds)
-    col_current <- paste0(current$column, "\nComparison Counts\n", clean_current_ds)
+    col_pinned <- paste0(pinned$column, "\nPinned Counts \n", clean_pinned_ds)
+    col_current <- paste0(current$column, "\nComparison Counts \n", clean_current_ds)
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
