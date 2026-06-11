@@ -404,27 +404,30 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   
   #Loop through all data columns to find the maximum number of newlines
   for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
+    total_newlines_j <- 0
+    
     #Check x label
     col_text_x <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$x)
-    if (!is.null(col_text_x)) {
-      max_newlines <- max(max_newlines, stringr::str_count(col_text_x, "\n"))
-    }
+     if (!is.null(col_text_x) && col_text_x != "") {
+        total_newlines_j <- total_newlines_j + stringr::str_count(col_text_x, "\n")
+     }
     
-    #Check y label
-    if (is_full_data_table) {
-      col_text_y <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
-      if (!is.null(col_text_y)) {
-        max_newlines <- max(max_newlines, stringr::str_count(col_text_y, "\n"))
-      }
-    }
+    #Check y label universally (secondary metadata/info)
+     col_text_y <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
+     if (!is.null(col_text_y) && col_text_y != "") {
+        #Add the newlines inside y, plus 1 because y itself sits on a new visual line below x
+        total_newlines_j <- total_newlines_j + stringr::str_count(col_text_y, "\n") + 1
+     }
+    
+    max_newlines <- max(max_newlines, total_newlines_j)
   }
   
   #Apply that many newlines to the r__ x label to push the height down
   if (max_newlines > 0) {
-    blank_label <- paste0("r__", paste0(rep("\n", max_newlines), collapse = ""))
-    RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_label)
+     blank_label <- paste0("r__", paste0(rep("\n", max_newlines), collapse = ""))
+     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_label)
   } else {
-    RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, "r__ ")
+     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, "r__ ")
   }
 }
 
