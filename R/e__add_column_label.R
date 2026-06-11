@@ -110,10 +110,10 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
     RGtk2::gtkBoxPackStart(hb, x, F, F, padding = 1)
     
     #Only pack the extra y label if this is the Full Data Table (per settings),
-    #OR if we automatically extracted secondary lines from a \n delimiter
+    #OR if we automatically extracted secondary lines from a \n delimiter, OR if it's r__
     if (exists("is_full_data_table") && is_full_data_table && (totem$settings_list$columnlabel | totem$settings_list$columnunique)) {
       RGtk2::gtkBoxPackStart(hb, y, F, F, padding = 1)
-    } else if (grepl("\n", label)) {
+    } else if (grepl("\n", label) || label == "r__") {
       RGtk2::gtkBoxPackStart(hb, y, F, F, padding = 1)
     }
   }
