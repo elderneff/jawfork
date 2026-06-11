@@ -400,34 +400,34 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   }
   
   #Resize r__ column header to match all others
-  max_newlines <- 0
+  max_x_newlines <- 0
+  max_y_newlines <- 0
   
   #Loop through all data columns to find the maximum number of newlines
   for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
-    total_newlines_j <- 0
     
-    #Check x label
-    col_text_x <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$x)
+     #Check x label (primary column name - bold)
+     col_text_x <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$x)
      if (!is.null(col_text_x) && col_text_x != "") {
-        total_newlines_j <- total_newlines_j + stringr::str_count(col_text_x, "\n")
+        max_x_newlines <- max(max_x_newlines, stringr::str_count(col_text_x, "\n"))
      }
     
-    #Check y label universally (secondary metadata/info)
+     #Check y label (secondary metadata - normal weight)
      col_text_y <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
      if (!is.null(col_text_y) && col_text_y != "") {
-        #Add the newlines inside y, plus 1 because y itself sits on a new visual line below x
-        total_newlines_j <- total_newlines_j + stringr::str_count(col_text_y, "\n") + 1
+        max_y_newlines <- max(max_y_newlines, stringr::str_count(col_text_y, "\n"))
      }
-    
-    max_newlines <- max(max_newlines, total_newlines_j)
   }
   
-  #Apply that many newlines to the r__ x label to push the height down
-  if (max_newlines > 0) {
-     blank_label <- paste0("r__", paste0(rep("\n", max_newlines), collapse = ""))
-     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_label)
+  #2. Apply the exact newline math to x and y independently using their native font heights
+  blank_x <- paste0("r__", paste0(rep("\n", max_x_newlines), collapse = ""))
+  RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_x)
+  
+  if (max_y_newlines > 0) {
+     blank_y <- paste0(" ", paste0(rep("\n", max_y_newlines), collapse = ""))
+     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, blank_y)
   } else {
-     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, "r__ ")
+     RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
   }
 }
 
