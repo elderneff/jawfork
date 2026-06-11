@@ -139,11 +139,11 @@ e__all_event_functions <- function(outer_env = totem) {
   }
 
   i__all_event_functions[["Copy"]][["Column Wide"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    # Get the currently filtered data for the selected column
+    #Get the currently filtered data for the selected column
     col_name <- current_row$column
-    col_data <- obj_env$df_obj$current_data()[[col_name]]
+    col_data <- obj_env$df_obj$current_data()[, col_name, drop = TRUE]
     
-    # Collapse the column values with tabs
+    #Collapse the column values with tabs
     col_string <- paste0(as.character(col_data), collapse = "\t")
     utils::writeClipboard(str = charToRaw(paste0(col_string, " ")), format = 1)
     
