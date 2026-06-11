@@ -406,25 +406,31 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
       }
     }
     #Resize r__ column header to match all others
-    if (is_full_data_table) {
-      max_newlines <- 0
-      
-      # 1. Loop through all data columns to find the maximum number of newlines
-      for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
-         col_text <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
-         if (!is.null(col_text) && col_text != "") {
-            newlines <- stringr::str_count(col_text, "\n")
-            max_newlines <- max(max_newlines, newlines)
-         }
-      }
-      
-      # 2. Apply that many newlines as a blank string to the r__ column
-      if (max_newlines > 0) {
-         blank_label <- paste0(rep(" \n", max_newlines), collapse = "")
-         RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, blank_label)
-      } else {
-         RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
-      }
+    max_newlines <- 0
+    
+    # 1. Loop through all data columns to find the maximum number of newlines
+    for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
+       # Check 'x' label (used for standard column names in all tables)
+       col_text_x <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$x)
+       if (!is.null(col_text_x)) {
+          max_newlines <- max(max_newlines, stringr::str_count(col_text_x, "\n"))
+       }
+       
+       # Check 'y' label (used for metadata in full data table)
+       if (is_full_data_table) {
+          col_text_y <- RGtk2::gtkLabelGetText(obj_env$table_objects_list$allColumns[[j]]$evt$y)
+          if (!is.null(col_text_y)) {
+             max_newlines <- max(max_newlines, stringr::str_count(col_text_y, "\n"))
+          }
+       }
+    }
+    
+    # 2. Apply that many newlines to the r__ 'x' label to push the height down
+    if (max_newlines > 0) {
+       blank_label <- paste0("r__", paste0(rep("\n", max_newlines), collapse = ""))
+       RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, blank_label)
+    } else {
+       RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$x, "r__ ")
     }
   }
 
