@@ -35,9 +35,14 @@ e__all_event_functions <- function(outer_env = totem) {
       current_data <- obj_env$df_obj$current_data()
       col_name <- colnames(current_data)[1]
       
-      res <- current_data[, c(col_name, "n")]
+      #Convert to data frame immediately to prevent atomic vector errors
+      res <- as.data.frame(current_data[, c(col_name, "n"), drop = FALSE], stringsAsFactors = FALSE)
       colnames(res) <- c("Value", "n")
       res$Value <- as.character(res$Value)
+      
+      #Ensure 'n' is numeric so the difference math works later
+      res$n <- as.numeric(res$n)
+      
       return(list(col = col_name, data = res))
       
     } else if (table_type == "Meta Table") {
@@ -108,9 +113,9 @@ e__all_event_functions <- function(outer_env = totem) {
     clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    #Format column headers with column name first, then dataset in parentheses
-    col_pinned <- paste0(pinned$column, " (", clean_pinned_ds, ")\n[Pinned]")
-    col_current <- paste0(current$column, " (", clean_current_ds, ")\n[Comparison]")
+    #Format column headers: Variable name on line 1, Status - Dataset on line 2
+    col_pinned <- paste0(pinned$column, "\nPinned - ", clean_pinned_ds)
+    col_current <- paste0(current$column, "\nComparison - ", clean_current_ds)
     
     colnames(merged_df) <- c("Value", col_pinned, col_current)
     
