@@ -40,10 +40,13 @@ create_file_structure <- function(jaw_e) {
     dir.create(path = jaw_e$settings_dir_path, showWarnings = TRUE, recursive = T)
   }
 
-
+  #Clear pinned comparison file on startup to prevent stale data
+  pinned_path <- file.path(jaw_e$settings_dir_path, "pinned_comparison.rds")
+  if (file.exists(pinned_path)) {
+    unlink(pinned_path)
+  }
 
   logger("", jaw_e, append = F)
-
 
   if (file.exists(jaw_e$local_settings_rds) == F) {
     saveRDS(list(), file = jaw_e$local_settings_rds)
