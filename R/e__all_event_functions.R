@@ -64,6 +64,19 @@ e__all_event_functions <- function(outer_env = totem) {
     }
   }
 
+  #Action for pinning the column
+  action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
+    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
+    if (is.null(comp_info)) return()
+    
+    outer_env$pinned_comparison <- list(
+      dataset = outer_env[[session_name]]$sas_file_basename,
+      column = comp_info$col,
+      data = comp_info$data
+    )
+    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for comparison")
+  }
+
   #Action for compare with pinned
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     if (is.null(outer_env$pinned_comparison)) {
