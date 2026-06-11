@@ -105,7 +105,20 @@ check_settings <- function(settings) {
       "Open Context Menu" = "right+none"
     ),
     "Copy" = list(
-      "Cell value" = "middle+none"
+      "Cell value" = "middle+none",
+      "Column Name" = "-",
+      "Column=Cell" = "-",
+      "if then" = "-",
+      "if then do" = "-",
+      "Table full" = "-",
+      "Table full to file" = "-",
+      "Table filtered" = "-",
+      "Column full" = "-",
+      "Column filtered" = "-",
+      "Column Wide" = "-",
+      "Vector Column full" = "-",
+      "Vector Column filtered" = "-",
+      "Row" = "-"
     ),
     "Meta Table" = list(
       "Trigger Value Summary" = "left+none",
