@@ -15,18 +15,19 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
             
             single_key <- as.character(event[["keyval"]])
             raw_state_int <- as.numeric(event[["state"]])
-            # Strip out Caps Lock (2) and Num Lock (16)
+            #Strip out Caps Lock (2) and Num Lock (16).
             clean_state_int <- bitwAnd(raw_state_int, bitwNot(bitwOr(2, 16)))
-            state_str <- as.character(clean_state_int)            
-            # Helper lists for states: Base, +NumLock, +CapsLock, +Both
-            is_ctrl_shift <- state_str == "5"  # 5 is exactly Ctrl+Shift without locks 
-            is_ctrl <- state_str == "4"        # 4 is exactly Ctrl without locks
+            state_str <- as.character(clean_state_int)      
+            
+            #Helper lists for states.
+            is_ctrl_shift <- state_str == "5"
+            is_ctrl <- state_str == "4"
           
-            #If no modifiers are currently being held down, reset the cancel flag
+            #If no modifiers are currently being held down, reset the cancel flag.
             if (single_key %in% c("65505", "65506", "65507", "65508")) {
                 outer_env[[session]]$cancel_ctrl_shift <- FALSE
             }            
-            #If the key pressed is NOT Ctrl or Shift do not run code
+            #If the key pressed is NOT Ctrl or Shift do not run code.
             else {
                 outer_env[[session]]$cancel_ctrl_shift <- TRUE
             }
@@ -36,12 +37,60 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                 RGtk2::gtkTextBufferInsertAtCursor(buffer, " %>% ")
                 return(TRUE)
             }
-            # 65293 is standard Enter, 65458 is Numpad Enter
-            ctrl <- as.character(event[["state"]]) %in% c("4", "20")
-            if (ctrl && single_key %in% c("65293", "65458")) {
-                return(TRUE) # TRUE kills the event, blocking the newline
-            }            
-            return(FALSE) # FALSE lets normal typing pass through to the buffer
+            #65293 is standard Enter, 65458 is Numpad Enter.
+            if (is_ctrl && single_key %in% c("65293", "65458")) {
+                return(TRUE)
+            }
+            
+            #Intercept GTK's native Ctrl+Backspace (65288) and Ctrl+Delete (65535) to enforce Windows standards.
+            if (is_ctrl && single_key %in% c("65288", "65535")) {
+                buffer <- RGtk2::gtkTextViewGetBuffer(view)
+                
+                mark <- RGtk2::gtkTextBufferGetInsert(buffer)
+                iter <- RGtk2::gtkTextBufferGetIterAtMark(buffer, mark)$iter
+                offset <- RGtk2::gtkTextIterGetOffset(iter)
+                
+                #Ctrl+Backspace logic.
+                if (single_key == "65288" && offset > 0) {
+                    start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)$iter
+                    text_before <- RGtk2::gtkTextBufferGetText(buffer, start_iter, iter, TRUE)
+                    
+                    #Match the previous chunk (punctuation+spaces OR word+spaces OR just spaces).
+                    match <- regexpr("([^a-zA-Z0-9_ \t\r\n]+[ \t]*|[a-zA-Z0-9_]+[ \t]*|[ \t\r\n]+)$", text_before)
+                    
+                    if (match != -1) {
+                        chunk_len <- attr(match, "match.length")
+                        del_start_iter <- RGtk2::gtkTextBufferGetIterAtOffset(buffer, offset - chunk_len)$iter
+                        RGtk2::gtkTextBufferDelete(buffer, del_start_iter, iter)
+                    } else {
+                        del_start_iter <- RGtk2::gtkTextBufferGetIterAtOffset(buffer, offset - 1)$iter
+                        RGtk2::gtkTextBufferDelete(buffer, del_start_iter, iter)
+                    }
+                } 
+                #Ctrl+Delete logic.
+                else if (single_key == "65535") {
+                    end_iter_full <- RGtk2::gtkTextBufferGetEndIter(buffer)$iter
+                    if (offset < RGtk2::gtkTextIterGetOffset(end_iter_full)) {
+                        text_after <- RGtk2::gtkTextBufferGetText(buffer, iter, end_iter_full, TRUE)
+                        
+                        #Match the next chunk (spaces+word OR spaces+punctuation OR just spaces).
+                        match <- regexpr("^([ \t]*[a-zA-Z0-9_]+|[ \t]*[^a-zA-Z0-9_ \t\r\n]+|[ \t\r\n]+)", text_after)
+                        
+                        if (match != -1) {
+                            chunk_len <- attr(match, "match.length")
+                            del_end_iter <- RGtk2::gtkTextBufferGetIterAtOffset(buffer, offset + chunk_len)$iter
+                            RGtk2::gtkTextBufferDelete(buffer, iter, del_end_iter)
+                        } else {
+                            del_end_iter <- RGtk2::gtkTextBufferGetIterAtOffset(buffer, offset + 1)$iter
+                            RGtk2::gtkTextBufferDelete(buffer, iter, del_end_iter)
+                        }
+                    }
+                }
+                #Block default GTK deletion.
+                return(TRUE) 
+            }
+            
+            return(FALSE)
         }, data = list(session, outer_env)
     )
   
