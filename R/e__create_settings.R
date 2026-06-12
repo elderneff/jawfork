@@ -459,36 +459,55 @@ e__create_settings <- function(outer_env = totem) {
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
-    cb <- data[[1]]
-    case_combo <- data[[2]]
-    space_combo <- data[[3]]
-    outer_env <- data[[4]]
+    #Unpack all the widgets
+    max_btn <- data[[1]]
+    ctsh_btn <- data[[2]]
+    collabel_btn <- data[[3]]
+    colunique_btn <- data[[4]]
+    prof_btn <- data[[5]]
+    dark_btn <- data[[6]]
+    tooltips_btn <- data[[7]]
+    copy_msg_btn <- data[[8]]
+    case_combo <- data[[9]]
+    space_combo <- data[[10]]
+    outer_env <- data[[11]]
     
-    RGtk2::gtkToggleButtonSetActive(cb, T)
+    #Update the global settings variables
     outer_env$settings_list$maximize <- T
     outer_env$settings_list$ctrlshift <- T
     outer_env$settings_list$columnlabel <- T
     outer_env$settings_list$columnunique <- T
     outer_env$settings_list$professionalloading <- F
-    outer_env$settings_list$dark_mode <- F
+    outer_env$settings_list$dark_mode <- F 
     outer_env$settings_list$show_tooltips <- T
+    outer_env$settings_list$copy_messages <- T
+    
     settings_obj <- RGtk2::gtkSettingsGetDefault()
     if (!is.null(settings_obj)) {
       settings_obj["gtk-enable-tooltips"] <- T
     }
     
-    # Reset code preferences to Prompt
+    #Reset code preferences to prompt
     outer_env$settings_list$code_case <- "Prompt"
     outer_env$settings_list$code_spacing <- "Prompt"
     case_combo$setActive(0)
     space_combo$setActive(0)
 
+    #Update the visual ui toggles to match the reset settings
+    RGtk2::gtkToggleButtonSetActive(max_btn, T)
+    RGtk2::gtkToggleButtonSetActive(ctsh_btn, T)
+    RGtk2::gtkToggleButtonSetActive(collabel_btn, T)
+    RGtk2::gtkToggleButtonSetActive(colunique_btn, T)
+    RGtk2::gtkToggleButtonSetActive(prof_btn, F)
+    RGtk2::gtkToggleButtonSetActive(dark_btn, F)
+    RGtk2::gtkToggleButtonSetActive(tooltips_btn, T)
+    RGtk2::gtkToggleButtonSetActive(copy_msg_btn, T)
+
     #Save immediately when shortcuts are reset
     save_settings(outer_env)
     
     return(T)
-  }, data = list(cb, case_combo, space_combo, outer_env))
-
+  }, data = list(max, ctsh, collabel, colunique, profloading, darkmode, tooltips_btn, copymessages_btn, case_combo, space_combo, outer_env))
 
 
   #Display working directory for troubleshooting purposes
