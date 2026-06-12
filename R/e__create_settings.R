@@ -470,7 +470,7 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$columnlabel <- T
     outer_env$settings_list$columnunique <- T
     outer_env$settings_list$professionalloading <- F
-    outer_env$settings_list$darkmode <- F
+    outer_env$settings_list$dark_mode <- F
     outer_env$settings_list$show_tooltips <- T
     settings_obj <- RGtk2::gtkSettingsGetDefault()
     if (!is.null(settings_obj)) {
