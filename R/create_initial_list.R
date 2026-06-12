@@ -295,7 +295,7 @@ check_settings <- function(settings) {
   if (("last_update_check" %in% names(settings)) == F) {
     settings$last_update_check <- "1970-01-01"
   }
-  # Default menu item visibility to TRUE if missing
+  # Default menu item visibility
   if (!("menu_items_show" %in% names(settings))) {
     settings$menu_items_show <- list()
   }
@@ -305,7 +305,14 @@ check_settings <- function(settings) {
     }
     for (item_i in names(settings$default_table_events[[config_i]])) {
       if (!(item_i %in% names(settings$menu_items_show[[config_i]]))) {
-        settings$menu_items_show[[config_i]][[item_i]] <- TRUE
+        
+        # Default "Open Context Menu" to hidden, everything else to visible
+        if (config_i == "General" && item_i == "Open Context Menu") {
+          settings$menu_items_show[[config_i]][[item_i]] <- FALSE
+        } else {
+          settings$menu_items_show[[config_i]][[item_i]] <- TRUE
+        }
+        
       }
     }
   }
