@@ -154,8 +154,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       )
       
       outer_env[[session_name]]$show_past_code_window <- function(session_name, outer_env = totem) {
-        outer_env[[session_name]]$past_code_window_table$update(totem$settings_list$previous_code)
+        outer_env[[session_name]]$past_code_window_table$update(outer_env$settings_list$previous_code)
         RGtk2::gtkWidgetShow(outer_env[[session_name]]$past_code_window)
+        RGtk2::gtkWindowPresent(outer_env[[session_name]]$past_code_window)
       }
 
 
