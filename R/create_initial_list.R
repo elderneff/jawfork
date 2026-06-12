@@ -45,8 +45,6 @@ create_file_structure <- function(jaw_e) {
     unlink(pinned_path)
   }
 
-  logger("", jaw_e, append = F)
-
   if (file.exists(jaw_e$local_settings_rds) == F) {
     saveRDS(list(), file = jaw_e$local_settings_rds)
   }
