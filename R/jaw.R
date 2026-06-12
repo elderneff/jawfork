@@ -19,7 +19,7 @@ jaw <- function(settings_dir=NULL) {
     temp_window <- RGtk2::gtkWindow(show = F)
     temp_dialog <- RGtk2::gtkMessageDialog(parent = temp_window
                                , "destroy-with-parent"
-                               , "error"
+                               , "warning"
                                , "close"
                                , "settings.rds was corrupted. Settings were reset to defaults.")
     temp_dialog$run()
