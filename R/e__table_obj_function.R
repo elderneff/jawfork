@@ -9,7 +9,6 @@
 
 e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env) {
   is_dark <- totem$settings_list$dark_mode
-  #is_dark_mode_active <- !is.null(outer_env$settings_list$dark_mode) && outer_env$settings_list$dark_mode
   
   if (nrow(df) == 0) {
     df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
@@ -19,7 +18,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
 
   df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
 
-  # Extract alternating theme sets based on style preferences
+  #Extract alternating theme sets based on style preferences
   #Primary: blues
   c_primary_1   <- ifelse(is_dark, "#263238", "#e8edfc")
   c_primary_2   <- ifelse(is_dark, "#21272A", "#e1e5f4")
@@ -34,37 +33,43 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   c_fallback_1  <- ifelse(is_dark, "#1E1E1E", "#FFFFFF")
   c_fallback_2  <- ifelse(is_dark, "#252525", "#F1F1F1")
 
-  # Get format by variable
+  #Get format by variable
   if ("format_by_entry" %in% names(outer_env[[session_name]])) {
     format_var <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry)
   } else {
     format_var <- "USUBJID"
   }
   
-  # Get add'l format by variable
+  #Get add'l format by variable
   if ("format_by_entry2" %in% names(outer_env[[session_name]])) {
     format_var2 <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$format_by_entry2)
   } else {
     format_var2 <- ""
   }
 
-  if (format_var %in% colnames(df)) {
+  has_var1 <- format_var %in% colnames(df)
+  has_var2 <- format_var2 %in% colnames(df)
+
+  if (has_var1 || has_var2) {
     tryCatch({
-      vals1 <- df[, format_var, drop = T]
-      vals1[is.na(vals1)] <- "NA_VAL" 
+      #Promote var2 to primary if var1 is missing
+      active_var1 <- if (has_var1) format_var else format_var2
+      active_var2 <- if (has_var1 && has_var2) format_var2 else ""
+
+      vals1 <- df[, active_var1, drop = T]
+      vals1[is.na(vals1)] <- "NA_VAL"
       vals1_prev <- c("FIRST_ROW_DUMMY", vals1[1:(length(vals1) - 1)])
       
       changed1 <- (vals1 != vals1_prev)
       levels <- cumsum(changed1)
 
-      if (format_var2 %in% colnames(df) == F) {
+      if (active_var2 == "") {
         df2[, 2] <- ifelse((levels %% 2) == 1,
           ifelse((1:nrow(df) %% 2) == 1, c_primary_1, c_primary_2),
           ifelse((1:nrow(df) %% 2) == 1, c_secondary_1, c_secondary_2)
         )
-      }
-      else if (format_var2 %in% colnames(df)) {
-        vals2 <- df[, format_var2, drop = T]
+      } else {
+        vals2 <- df[, active_var2, drop = T]
         vals2[is.na(vals2)] <- "NA_VAL"
         vals2_prev <- c("FIRST_ROW_DUMMY", vals2[1:(length(vals2) - 1)])
 
@@ -85,7 +90,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_1, c_fallback_2)
   }
 
-  # Local filter state checking remains unchanged
+  #Local filter state checking remains unchanged
   has_filter <- !is.null(obj_env$filter_obj) && obj_env$filter_obj$get() != ""
   has_arrange <- !is.null(obj_env$order_by_obj) && obj_env$order_by_obj$get() != ""
   has_select <- !is.null(obj_env$select_obj) && obj_env$select_obj$get() != ""
