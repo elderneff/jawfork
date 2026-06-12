@@ -84,7 +84,7 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
       }
     }, 
     error = function(e) {
-      df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_2, c_fallback_1)
+      df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_1, c_fallback_2)
     })
   } else {
     df2[, 2] <- ifelse((1:nrow(df) %% 2) == 1, c_fallback_1, c_fallback_2)
