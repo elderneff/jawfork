@@ -94,15 +94,34 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     
     # 2. Duplicate data and assign a safe "OVERALL" category
     temp_df_overall <- temp_df_combined
+    overall_labels <- list()
+    
     for (g in group_vars) {
       safe_overall <- "OVERALL"
       # Append spaces dynamically to guarantee a unique label if "OVERALL" already exists
-      while (safe_overall %in% temp_df_combined[[g]]) {
+      while (safe_overall %in% as.character(temp_df_combined[[g]])) {
         safe_overall <- paste0(safe_overall, " ")
       }
       temp_df_overall[[g]] <- safe_overall
+      overall_labels[[g]] <- safe_overall
     }
+    
+    # Capture the proper sorted levels BEFORE combining
+    factor_levels <- list()
+    for (g in group_vars) {
+      orig_vals <- temp_df[[g]]
+      # Sort numerically if it was numeric, otherwise sort alphabetically
+      sorted_vals <- as.character(sort(unique(orig_vals), na.last = TRUE))
+      # Append the dynamic OVERALL label to the very end
+      factor_levels[[g]] <- c(sorted_vals, overall_labels[[g]])
+    }
+    
     temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
+    
+    # Apply factor levels to force dplyr's group_by to respect our custom order
+    for (g in group_vars) {
+      temp_df_combined[[g]] <- factor(as.character(temp_df_combined[[g]]), levels = factor_levels[[g]])
+    }
 
     # 3. Calculate metrics using the combined dataframe (using escaped variables)
     Output <- temp_df_combined %>% group_by_(.dots = safe_group_vars) %>% summarise(N = sum(!is.na(eval(parse(text = safe_col)))),
