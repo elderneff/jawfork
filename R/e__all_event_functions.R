@@ -363,17 +363,16 @@ e__all_event_functions <- function(outer_env = totem) {
     row_i <- current_row$row_i
     view_objects$event_mapping[["Meta Table|Trigger Value Summary with Unique By"]](session_name, current_data[row_i, "variable", drop = T])
   }
-
-  i__all_event_functions[["Meta Table"]][["dataset_layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy dataset layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_dataset_layout()
   }
-  i__all_event_functions[["Meta Table"]][["keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_keep()
   }
-  i__all_event_functions[["Meta Table"]][["label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_label()
   }
-  i__all_event_functions[["Meta Table"]][["length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_length()
   }
   i__all_event_functions[["Meta Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
