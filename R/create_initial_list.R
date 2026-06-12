@@ -23,7 +23,6 @@ create_initial_list <- function(settings_dir=NULL) {
   jaw_e$settings_dir_path <- file.path(settings_dir, "jaw")
   jaw_e$local_settings_rds <- file.path(jaw_e$settings_dir_path, "settings.rds")
   jaw_e$code_R <- file.path(jaw_e$settings_dir_path, "code.R")
-  jaw_e$jaw_log_path <- file.path(jaw_e$settings_dir_path, "jaw_log.txt")
   jaw_e$settings_list <- create_file_structure(jaw_e)
   return(jaw_e)
 }
