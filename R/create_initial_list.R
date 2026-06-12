@@ -295,6 +295,20 @@ check_settings <- function(settings) {
   if (("last_update_check" %in% names(settings)) == F) {
     settings$last_update_check <- "1970-01-01"
   }
+  # Default menu item visibility to TRUE if missing
+  if (!("menu_items_show" %in% names(settings))) {
+    settings$menu_items_show <- list()
+  }
+  for (config_i in names(settings$default_table_events)) {
+    if (!(config_i %in% names(settings$menu_items_show))) {
+      settings$menu_items_show[[config_i]] <- list()
+    }
+    for (item_i in names(settings$default_table_events[[config_i]])) {
+      if (!(item_i %in% names(settings$menu_items_show[[config_i]]))) {
+        settings$menu_items_show[[config_i]][[item_i]] <- TRUE
+      }
+    }
+  }
 
   return(settings)
 }
