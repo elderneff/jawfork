@@ -1344,7 +1344,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_tables_box)
             outer_env[[session_name]]$status_bar$simplicity_view <- T
           } 
-          #Otherwise show top boxes, disable simplicity fiew
+          #Otherwise show top boxes, disable simplicity view
           else {
             RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_code_box)
             RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_tables_box)
