@@ -197,11 +197,6 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["General"]][["Clear arrange"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$order_by_obj$clean()
   }
-  i__all_event_functions[["General"]][["Trigger code"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$show_load_window()
-    outer_env$u__load_dataset_filter(session_name)
-    outer_env$hide_load_window()
-  }
   i__all_event_functions[["General"]][["Open Context Menu"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     if (is.null(view_objects$event) == F) {
       
