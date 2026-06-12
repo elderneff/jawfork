@@ -270,7 +270,7 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
         err_dialog <- gtkMessageDialog(
           parent = outer_env[[session_name]]$windows$main_window, 
           flags = "destroy-with-parent", 
-          type = "error", 
+          type = "warning", 
           buttons = "close", 
           "Could not parse a 'Data' folder from the file path. Falling back to the temporary directory."
         )
