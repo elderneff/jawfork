@@ -86,6 +86,15 @@ u__add_text_area <- function(label, shift_function, session, outer_env) {
                         }
                     }
                 }
+                
+                #Fetch the new string immediately following the deletion.
+                end_iter_new <- RGtk2::gtkTextBufferGetEndIter(buffer)$iter
+                start_iter_new <- RGtk2::gtkTextBufferGetStartIter(buffer)$iter
+                new_str <- RGtk2::gtkTextBufferGetText(buffer, start_iter_new, end_iter_new, TRUE)
+                
+                #Explicitly log to history with a state name that skips the grouping logic!
+                outer_env$u__log_history(session, new_str, "ctrl_delete")
+                
                 #Block default GTK deletion.
                 return(TRUE) 
             }
