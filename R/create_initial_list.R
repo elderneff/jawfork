@@ -168,7 +168,7 @@ check_settings <- function(settings) {
     "Summary Table" = list(
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
-      "Add to Main Filter (no combining)" = "-"
+      "Add to Main Filter (no combining)" = "-",
       "Add Column to Main Filter" = "-",
       "Add Column to Main Filter Exclude" = "-",
       "Add grepl to Main Filter" = "-",
