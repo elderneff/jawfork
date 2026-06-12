@@ -182,7 +182,16 @@ e__create_settings <- function(outer_env = totem) {
 
 
       cb <- RGtk2::gtkCheckButtonNewWithLabel("show", show = TRUE)
-      RGtk2::gtkToggleButtonSetActive(cb, T)
+
+      # Load initial state from settings
+      is_shown <- TRUE
+      if (!is.null(outer_env$settings_list$menu_items_show[[config_i]][[item_i]])) {
+        is_shown <- outer_env$settings_list$menu_items_show[[config_i]][[item_i]]
+      }
+      RGtk2::gtkToggleButtonSetActive(cb, is_shown)
+
+      # Store a reference to this checkbox so the "reset" button can access it
+      outer_env$settings_window$settings_config_objs[[item_name]]$cb <- cb
 
       RGtk2::gtkTableAttach(outer_env$settings_window$settings_window_inner_table,
         child = cb, left.attach = 3, right.attach = 4, top.attach = inner_table_i * 2 + 1,
@@ -190,22 +199,16 @@ e__create_settings <- function(outer_env = totem) {
         xoptions = 5, yoptions = 5, xpadding = 0, ypadding = 0
       )
 
-
-
+      # Save state when toggled
       RGtk2::gSignalConnect(cb, "toggled", function(cb, data) {
         config_ia <- data[[1]]
         item_ia <- data[[2]]
-        item_name <- data[[3]]
         outer_env <- data[[4]]
+        
         current_state <- RGtk2::gtkToggleButtonGetActive(cb)
-
-
-        print(current_state)
-
-        # RGtk2::gtkLabelSetLabel(outer_env$settings_window$settings_config_objs[[item_name]]$label, current_state)
-        # outer_env$settings_window$settings_config_objs[[item_name]]$val <- current_state
-        # outer_env$settings_list$table_events[[config_ia]][[item_ia]] <- current_state
-
+        outer_env$settings_list$menu_items_show[[config_ia]][[item_ia]] <- current_state
+        
+        save_settings(outer_env)
         return(T)
       }, data = list(config_i, item_i, item_name, outer_env))
 
