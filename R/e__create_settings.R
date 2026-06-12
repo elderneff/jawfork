@@ -60,10 +60,14 @@ e__create_settings <- function(outer_env = totem) {
         outer_env$settings_window$settings_config_objs[[item_name]]$area <- config_i
         outer_env$settings_window$settings_config_objs[[item_name]]$item <- item_i
         outer_env$settings_list$table_events[[config_i]][[item_i]] <- outer_env$settings_list$default_table_events[[config_i]][[item_i]]
-        #Reset the show boxes to true
-        outer_env$settings_list$menu_items_show[[config_i]][[item_i]] <- TRUE
+        #Reset the "show" boxes
+        # Determine what the default state SHOULD be
+        is_default_shown <- !(config_i == "General" && item_i == "Open Context Menu")
+        
+        # Reset the show status
+        outer_env$settings_list$menu_items_show[[config_i]][[item_i]] <- is_default_shown
         if (!is.null(outer_env$settings_window$settings_config_objs[[item_name]]$cb)) {
-          RGtk2::gtkToggleButtonSetActive(outer_env$settings_window$settings_config_objs[[item_name]]$cb, TRUE)
+          RGtk2::gtkToggleButtonSetActive(outer_env$settings_window$settings_config_objs[[item_name]]$cb, is_default_shown)
         }
       }
 
