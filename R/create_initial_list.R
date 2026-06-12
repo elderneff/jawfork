@@ -98,11 +98,15 @@ check_settings <- function(settings) {
 
   settings$default_table_events <- list(
     "General" = list(
-
-      #"View" = "right+alt",
-      #"Add to filter" = "right+ctrl",
-      #"Add to arrange" = "right+shift",
-      "Open Context Menu" = "right+none"
+      "Open Context Menu" = "right+none",
+      "View" = "-",
+      "Refresh" = "-",
+      "Add to filter" = "-",
+      "Add to grepl to filter" = "-",
+      "Clear filter" = "-",
+      "Add to arrange" = "-",
+      "Clear arrange" = "-",
+      "Bob" = "-"
     ),
     "Copy" = list(
       "Cell value" = "middle+none",
@@ -123,23 +127,60 @@ check_settings <- function(settings) {
     "Meta Table" = list(
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt"
+      "Trigger Value Summary with Unique By" = "left+alt",
+      "Add Column to select" = "-",
+      "Move column before" = "-",
+      "Move column after" = "-",
+      "Add Count to df" = "-",
+      "Copy dataset layout" = "-",
+      "Copy keep statement" = "-",
+      "Copy label statement" = "-",
+      "Copy length statement" = "-",
+      "Format by Column" = "-",
+      "Add'l format by Column" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Full Data Table" = list(
-      "Trigger Value Summary" = "left+none",
-      "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt",
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Add to Main Filter (no combining)" = "-",
-      "Get Summary" = "middle+ctrl"
+      "Add Column to Main Filter" = "-",
+      "Add Column to Main Filter Exclude" = "-",
+      "Add grepl to Main Filter" = "-",
+      "Add Bucket to Main Filter" = "-",
+      "Add Bucket to Main Filter Exclude" = "-",
+      "Get Summary" = "middle+ctrl",
+      "Graph Summary" = "-",
+      "Scatterplot Summary" = "-",
+      "Trigger Value Summary" = "left+none",
+      "Trigger Value Summary with Group By" = "left+ctrl",
+      "Trigger Value Summary with Unique By" = "left+alt",
+      "Add Column to select" = "-",
+      "Move column before" = "-",
+      "Move column after" = "-",
+      "Add Count to df" = "-",
+      "Format by Column" = "-",
+      "Add'l format by Column" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Summary Table" = list(
-      #"Open Flat View" = "left+alt",
-      #"Open Inverted View" = "left+ctrl",
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Add to Main Filter (no combining)" = "-"
+      "Add Column to Main Filter" = "-",
+      "Add Column to Main Filter Exclude" = "-",
+      "Add grepl to Main Filter" = "-",
+      "Add Table to Main Filter" = "-",
+      "Add Bucket to Main Filter" = "-",
+      "Add Bucket to Main Filter Exclude" = "-",
+      "Open Flat View" = "-",
+      "Open Inverted View" = "-",
+      "Copy Mapping" = "-",
+      "Copy Data Columns" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Past Code Table" = list(
       "Load Code" = "left+none"
