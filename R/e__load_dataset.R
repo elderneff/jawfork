@@ -534,7 +534,7 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
         dialog <- RGtk2::gtkMessageDialog(
           parent = outer_env[[session_name]]$windows$main_window,
           flags = "destroy-with-parent",
-          type = "question",
+          type = "error",
           buttons = "ok",
           "Code Error"
         )
