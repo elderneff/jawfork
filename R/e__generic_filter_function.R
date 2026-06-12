@@ -32,7 +32,7 @@ e__generic_filter_function <- function(e, df, u__order_by, u__filter, u__select,
           flags = "destroy-with-parent",
           type = "question",
           buttons = "ok-cancel",
-          "filter Error: Should entry by cleared?"
+          "filter Error: Should entry be cleared?"
         )
         dialog["secondary-text"] <- paste0("Command: ", cmd, "\n\nError:\n", gsub("\033\\[[0-9;]*m", "", conditionMessage(e)))
   
