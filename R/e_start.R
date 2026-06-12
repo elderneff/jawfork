@@ -940,7 +940,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             RGtk2::gtkWidgetShowAll(vbox)
             
             response <- dialog$run()
-            if (response == RGtk2::GtkResponseType["ok"]) {
+            if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
               for (i in 1:length(slots)) {
                 # Pull from Dialog
                 buf <- buffers[[i]]
