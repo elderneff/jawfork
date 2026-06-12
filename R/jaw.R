@@ -137,6 +137,7 @@ jaw <- function(settings_dir=NULL) {
 
   totem$show_settings_window <- function(outer_env = totem) {
     RGtk2::gtkWidgetShow(outer_env$settings_window$settings_window)
+    RGtk2::gtkWindowPresent(outer_env$settings_window$settings_window)
   }
 
   totem$hide_file_history_window <- function(outer_env = totem) {
@@ -147,6 +148,7 @@ jaw <- function(settings_dir=NULL) {
     RGtk2::gtkEntrySetText(outer_env$file_history$file_history_window_main_new_path_entry, "")
     outer_env$file_history$file_history_window_table$update(outer_env$settings_list$file_history)
     RGtk2::gtkWidgetShow(outer_env$file_history$file_history_window)
+    RGtk2::gtkWindowPresent(outer_env$file_history$file_history_window)
   }
 
 
