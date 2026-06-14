@@ -109,18 +109,23 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     # Capture the proper sorted levels BEFORE combining
     factor_levels <- list()
     for (g in group_vars) {
-      orig_vals <- temp_df[[g]]
-      # Sort numerically if it was numeric, otherwise sort alphabetically
-      sorted_vals <- as.character(sort(unique(orig_vals), na.last = TRUE))
+      orig_vals <- temp_df[[g]]      
+      # Sort natively (numerically or alphabetically) with NAs at the end, then convert to character
+      sorted_vals <- as.character(sort(unique(orig_vals), na.last = TRUE))      
+      # Explicitly convert missing values to the string "NA" in our levels list
+      sorted_vals[is.na(sorted_vals)] <- "NA"      
       # Append the dynamic OVERALL label to the very end
-      factor_levels[[g]] <- c(sorted_vals, overall_labels[[g]])
+      factor_levels[[g]] <- unique(c(sorted_vals, overall_labels[[g]]))
     }
     
     temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
     
     # Apply factor levels to force dplyr's group_by to respect our custom order
     for (g in group_vars) {
-      temp_df_combined[[g]] <- factor(as.character(temp_df_combined[[g]]), levels = factor_levels[[g]])
+      # Ensure data NAs are treated as the string "NA" so they match our factor levels
+      char_col <- as.character(temp_df_combined[[g]])
+      char_col[is.na(char_col)] <- "NA"
+      temp_df_combined[[g]] <- factor(char_col, levels = factor_levels[[g]])
     }
 
     # 3. Calculate metrics using the combined dataframe (using escaped variables)
