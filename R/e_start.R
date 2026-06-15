@@ -1580,7 +1580,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         #Pull the version number from the description file
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-          " | ", outer_env[[session_name]]$sas_file_path, " | Ver ", as.character(packageVersion("jaw"))
+          " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.5"
         )
         RGtk2::gtkWindowSetTitle(outer_env[[session_name]]$windows$main_window, title)
 
