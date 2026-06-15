@@ -33,8 +33,28 @@ e__patch_portable_env <- function() {
       # Append the environment variables
       cat(paste0(env_lines, collapse = "\n"), "\n", file = renviron_path, append = TRUE)
     }
+
+    # --- 2. Patch Rprofile.site ---
+    rprofile_path <- file.path(etc_dir, "Rprofile.site")
+    rprofile_lines <- c(
+      "# Force R to exclusively use the internal portable library",
+      ".libPaths(file.path(R.home(), \"library\"))"
+    )
     
-    # --- 2. Patch the persistent update_jaw.bat ---
+    # Check if Rprofile patching is needed
+    needs_rprofile_patch <- TRUE
+    if (file.exists(rprofile_path)) {
+      current_rprofile <- readLines(rprofile_path, warn = FALSE)
+      if (any(grepl(".libPaths", current_rprofile, fixed = TRUE))) needs_rprofile_patch <- FALSE
+    }
+    
+    if (needs_rprofile_patch) {
+      if (!dir.exists(etc_dir)) dir.create(etc_dir, recursive = TRUE, showWarnings = FALSE)
+      # Append to Rprofile.site (starting with a newline just in case the file didn't end with one)
+      cat(paste0(c("", rprofile_lines), collapse = "\n"), "\n", file = rprofile_path, append = TRUE)
+    }
+    
+    # --- 3. Patch the persistent update_jaw.bat ---
     # Assuming the bat file is 3 levels up from R.home(): Root/R-Portable/App/R-Portable
     root_dir <- sub("/R-Portable/App/R-Portable.*", "", normalizePath(R.home(), winslash = "/", mustWork = FALSE), ignore.case = TRUE)
     bat_path <- file.path(root_dir, "update_jaw.bat")
