@@ -47,13 +47,37 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
 
       # 2. Merge running histories so we don't drop entries from other concurrent sessions
       if (!is.null(disk_settings$file_history)) {
+        
+        # Ensure the disk settings are migrated before merging
+        disk_cols <- colnames(disk_settings$file_history)
+        disk_cols[disk_cols == "mtime"] <- "modified"
+        disk_cols[disk_cols == "load_time"] <- "loaded"
+        disk_cols[disk_cols == "full_path"] <- "path"
+        colnames(disk_settings$file_history) <- disk_cols
+
         merged_history <- rbind(outer_env$settings_list$file_history, disk_settings$file_history)
-        outer_env$settings_list$file_history <- merged_history[duplicated(merged_history[, -(1:3)]) == F, ]
+        
+        # Sort descending before stripping duplicates!
+        merged_history <- merged_history[order(merged_history$loaded, decreasing = TRUE), ]
+
+        # Cap at 200 records
+        outer_env$settings_list$file_history <- head(merged_history, 200)
+        
+        # FORCE THE DESIRED COLUMN ORDER
+        merged_history <- merged_history[, c("dataset", "latest", "loaded", "modified", "path")]
+        
+        outer_env$settings_list$file_history <- merged_history[!duplicated(merged_history[, c("dataset", "path")]), ]
       }
       
       if (!is.null(disk_settings$previous_code)) {
         merged_code <- rbind(outer_env$settings_list$previous_code, disk_settings$previous_code)
-        outer_env$settings_list$previous_code <- merged_code[duplicated(merged_code[, -1]) == F, ]
+        
+        # Sort by time descending to keep newest code at the top
+        merged_code <- merged_code[order(merged_code$time, decreasing = TRUE), ]
+        merged_code <- merged_code[duplicated(merged_code[, -1]) == F, ]
+    
+        # CAP AT 500 ENTRIES
+        outer_env$settings_list$previous_code <- head(merged_code, 500)
       }
 
       # 3. Handle window sizes

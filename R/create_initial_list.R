@@ -23,7 +23,6 @@ create_initial_list <- function(settings_dir=NULL) {
   jaw_e$settings_dir_path <- file.path(settings_dir, "jaw")
   jaw_e$local_settings_rds <- file.path(jaw_e$settings_dir_path, "settings.rds")
   jaw_e$code_R <- file.path(jaw_e$settings_dir_path, "code.R")
-  jaw_e$jaw_log_path <- file.path(jaw_e$settings_dir_path, "jaw_log.txt")
   jaw_e$settings_list <- create_file_structure(jaw_e)
   return(jaw_e)
 }
@@ -40,10 +39,11 @@ create_file_structure <- function(jaw_e) {
     dir.create(path = jaw_e$settings_dir_path, showWarnings = TRUE, recursive = T)
   }
 
-
-
-  logger("", jaw_e, append = F)
-
+  #Clear pinned comparison file on startup to prevent stale data
+  pinned_path <- file.path(jaw_e$settings_dir_path, "pinned_comparison.rds")
+  if (file.exists(pinned_path)) {
+    unlink(pinned_path)
+  }
 
   if (file.exists(jaw_e$local_settings_rds) == F) {
     saveRDS(list(), file = jaw_e$local_settings_rds)
@@ -98,33 +98,89 @@ check_settings <- function(settings) {
 
   settings$default_table_events <- list(
     "General" = list(
-
-      #"View" = "right+alt",
-      #"Add to filter" = "right+ctrl",
-      #"Add to arrange" = "right+shift",
-      "Open Context Menu" = "right+none"
+      "Open Context Menu" = "right+none",
+      "View" = "-",
+      "Refresh" = "-",
+      "Add to filter" = "-",
+      "Add to grepl to filter" = "-",
+      "Clear filter" = "-",
+      "Add to arrange" = "-",
+      "Clear arrange" = "-",
+      "Bob" = "-"
     ),
     "Copy" = list(
-      "Cell value" = "middle+none"
+      "Cell value" = "middle+none",
+      "Column Name" = "-",
+      "Column=Cell" = "-",
+      "if then" = "-",
+      "if then do" = "-",
+      "Table full" = "-",
+      "Table full to file" = "-",
+      "Table filtered" = "-",
+      "Column full" = "-",
+      "Column filtered" = "-",
+      "Column Wide" = "-",
+      "Vector Column full" = "-",
+      "Vector Column filtered" = "-",
+      "Row" = "-"
     ),
     "Meta Table" = list(
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt"
+      "Trigger Value Summary with Unique By" = "left+alt",
+      "Add Column to select" = "-",
+      "Move column before" = "-",
+      "Move column after" = "-",
+      "Add Count to df" = "-",
+      "Copy dataset layout" = "-",
+      "Copy keep statement" = "-",
+      "Copy label statement" = "-",
+      "Copy length statement" = "-",
+      "Format by Column" = "-",
+      "Add'l format by Column" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Full Data Table" = list(
+      "Add to Main Filter" = "right+ctrl",
+      "Add to Main Filter Exclude" = "right+ctrl+shift",
+      "Add to Main Filter (no combining)" = "-",
+      "Add Column to Main Filter" = "-",
+      "Add Column to Main Filter Exclude" = "-",
+      "Add grepl to Main Filter" = "-",
+      "Add Bucket to Main Filter" = "-",
+      "Add Bucket to Main Filter Exclude" = "-",
+      "Get Summary" = "middle+ctrl",
+      "Graph Summary" = "-",
+      "Scatterplot Summary" = "-",
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
       "Trigger Value Summary with Unique By" = "left+alt",
-      "Add to Main Filter" = "right+ctrl",
-      "Add to Main Filter Exclude" = "right+ctrl+shift",
-      "Get Summary" = "middle+ctrl"
+      "Add Column to select" = "-",
+      "Move column before" = "-",
+      "Move column after" = "-",
+      "Add Count to df" = "-",
+      "Format by Column" = "-",
+      "Add'l format by Column" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Summary Table" = list(
-      #"Open Flat View" = "left+alt",
-      #"Open Inverted View" = "left+ctrl",
       "Add to Main Filter" = "right+ctrl",
-      "Add to Main Filter Exclude" = "right+ctrl+shift"
+      "Add to Main Filter Exclude" = "right+ctrl+shift",
+      "Add to Main Filter (no combining)" = "-",
+      "Add Column to Main Filter" = "-",
+      "Add Column to Main Filter Exclude" = "-",
+      "Add grepl to Main Filter" = "-",
+      "Add Table to Main Filter" = "-",
+      "Add Bucket to Main Filter" = "-",
+      "Add Bucket to Main Filter Exclude" = "-",
+      "Open Flat View" = "-",
+      "Open Inverted View" = "-",
+      "Copy Mapping" = "-",
+      "Copy Data Columns" = "-",
+      "Pin for Comparison" = "-",
+      "Compare with Pinned" = "-"
     ),
     "Past Code Table" = list(
       "Load Code" = "left+none"
@@ -178,17 +234,35 @@ check_settings <- function(settings) {
       "full_path" = character(),
       stringsAsFactors = FALSE
     )
+  } else {
+    # HEAL EXISTING DATA: Sort descending by time to fix any corrupted orders from old Jaw versions
+    if (nrow(settings$previous_code) > 0) {
+      settings$previous_code <- settings$previous_code[order(settings$previous_code$time, decreasing = TRUE), ]
+      
+      # Apply the 500 cap here to instantly clean up bloated files on startup!
+      settings$previous_code <- head(settings$previous_code, 500)
+    }
   }
 
 
   if (("file_history" %in% names(settings)) == F) {
+    # You can set your initial creation order here
     settings$file_history <- data.frame(
-      "latest" = logical(), "mtime" = character(),
-      "load_time" = character(),
-      "dataset" = character(),
-      "full_path" = character(),
+      "dataset" = character(), "latest" = logical(), 
+      "loaded" = character(), "modified" = character(),
+      "path" = character(),
       stringsAsFactors = FALSE
     )
+  } else {
+    # Dynamically migrate old column names for existing users
+    cols <- colnames(settings$file_history)
+    cols[cols == "mtime"] <- "modified"
+    cols[cols == "load_time"] <- "loaded"
+    cols[cols == "full_path"] <- "path"
+    colnames(settings$file_history) <- cols
+    
+    # FORCE THE DESIRED COLUMN ORDER
+    settings$file_history <- settings$file_history[, c("dataset", "latest", "loaded", "modified", "path")]
   }
 
   #Default maximize to T if there is no previous setting
@@ -261,6 +335,27 @@ check_settings <- function(settings) {
   # Default update tracking date
   if (("last_update_check" %in% names(settings)) == F) {
     settings$last_update_check <- "1970-01-01"
+  }
+  # Default menu item visibility
+  if (!("menu_items_show" %in% names(settings))) {
+    settings$menu_items_show <- list()
+  }
+  for (config_i in names(settings$default_table_events)) {
+    if (!(config_i %in% names(settings$menu_items_show))) {
+      settings$menu_items_show[[config_i]] <- list()
+    }
+    for (item_i in names(settings$default_table_events[[config_i]])) {
+      if (!(item_i %in% names(settings$menu_items_show[[config_i]]))) {
+        
+        # Default "Open Context Menu" to hidden, everything else to visible
+        if (config_i == "General" && item_i == "Open Context Menu") {
+          settings$menu_items_show[[config_i]][[item_i]] <- FALSE
+        } else {
+          settings$menu_items_show[[config_i]][[item_i]] <- TRUE
+        }
+        
+      }
+    }
   }
 
   return(settings)

@@ -27,17 +27,17 @@ e__code_r_add <- function(session_name,outer_env=totem) {
 
 e__code_r_add_cmd <- function(session_name, cmd,outer_env=totem) {
   session_tag <- session_name
-  file_content <- read_text_file(totem$code_R)
+  file_content <- read_text_file(outer_env$code_R)
 
 
   end_pat <- paste0("#end@", session_tag)
 
   if (grepl(end_pat, file_content, fixed = T) == F) {
     outer_env$u__code_r_add(session_name)
-    file_content <- read_text_file(totem$code_R)
+    file_content <- read_text_file(outer_env$code_R)
   }
   file_content <- gsub(end_pat, paste0(cmd, "\n", end_pat), file_content, fixed = T)
 
-  cat(file_content, file = totem$code_R)
-  utils::file.edit(totem$code_R)
+  cat(file_content, file = outer_env$code_R)
+  utils::file.edit(outer_env$code_R)
 }

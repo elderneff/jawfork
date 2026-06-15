@@ -7,6 +7,164 @@
 e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions <- list()
 
+  # Helper to extract frequency data based on table type
+  get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
+    if (table_type == "Summary Table") {
+      # Prevent comparison if grouping or unique by is actually populated
+      group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
+      group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
+      has_group <- group_cb && group_txt != ""
+      
+      unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
+      unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
+      has_unique <- unique_cb && unique_txt != ""
+      
+      if (has_group || has_unique) {
+        err_dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window,
+          flags = "destroy-with-parent",
+          type = "error",
+          buttons = "close",
+          "Cannot pin or compare summary table when group by or unique by are active."
+        )
+        err_dialog$run()
+        RGtk2::gtkWidgetDestroy(err_dialog)
+        return(NULL)
+      }
+      
+      current_data <- obj_env$df_obj$current_data()
+      # Index 2 because r__ is always injected as the first column in the UI table
+      col_name <- colnames(current_data)[2]
+      
+      # Convert to data frame immediately to prevent atomic vector errors
+      res <- as.data.frame(current_data[, c(col_name, "n"), drop = FALSE], stringsAsFactors = FALSE)
+      colnames(res) <- c("Value", "n")
+      res$Value <- as.character(res$Value)
+      
+      # Ensure 'n' is numeric so the difference math works later
+      res$n <- as.numeric(res$n)
+      
+      return(list(col = col_name, data = res))
+      
+    } else if (table_type == "Meta Table") {
+      # Extract values directly from the meta table itself using matrix indexing
+      current_data <- obj_env$df_obj$current_data()
+      col_name <- current_row$column
+      vals <- as.character(current_data[, col_name, drop = TRUE])
+      vals[is.na(vals)] <- "NA"
+      
+      freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
+      colnames(freq_table) <- c("Value", "n")
+      return(list(col = col_name, data = freq_table))
+      
+    } else {
+      # Extract values from the full dataset
+      col_name <- current_row$column
+      temp_df <- outer_env[[session_name]]$data2
+      vals <- as.character(temp_df[[col_name]])
+      vals[is.na(vals)] <- "NA"
+      
+      freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
+      colnames(freq_table) <- c("Value", "n")
+      return(list(col = col_name, data = freq_table))
+    }
+  }
+
+  #Action for pinning the column
+  action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
+    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
+    if (is.null(comp_info)) return()
+    
+    pinned_data <- list(
+      dataset = outer_env[[session_name]]$sas_file_basename,
+      column = comp_info$col,
+      data = comp_info$data
+    )
+    
+    #Write to cross-session RDS file
+    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
+    saveRDS(pinned_data, file = pinned_path)
+    
+    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for cross-session comparison")
+  }
+
+  #Action for compare with pinned
+  action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
+    #Determine path to the cross-session RDS file
+    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
+    
+    #Check if file exists before trying to read
+    if (!file.exists(pinned_path)) {
+      err_dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window,
+        flags = "destroy-with-parent",
+        type = "error",
+        buttons = "close",
+        "No column is currently pinned for comparison across sessions."
+      )
+      err_dialog$run()
+      RGtk2::gtkWidgetDestroy(err_dialog)
+      return()
+    }
+    
+    #Safely read the pinned data to prevent crashes if file is locked
+    pinned <- try(readRDS(pinned_path), silent = TRUE)
+    if (inherits(pinned, "try-error")) {
+      err_dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window,
+        flags = "destroy-with-parent",
+        type = "error",
+        buttons = "close",
+        "Failed to read the pinned comparison file. Try pinning the column again."
+      )
+      err_dialog$run()
+      RGtk2::gtkWidgetDestroy(err_dialog)
+      return()
+    }
+    
+    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
+    if (is.null(comp_info)) return()
+    
+    current <- list(
+      dataset = outer_env[[session_name]]$sas_file_basename,
+      column = comp_info$col,
+      data = comp_info$data
+    )
+    
+    merged_df <- merge(pinned$data, current$data, by = "Value", all = TRUE)
+    
+    #Strip file extensions for a cleaner header
+    clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
+    clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
+    
+    #Format column headers
+    col_pinned <- paste0(pinned$column, "\nPinned Counts\n", clean_pinned_ds)
+    col_current <- paste0(current$column, "\nComparison Counts\n", clean_current_ds)
+    
+    colnames(merged_df) <- c("Value", col_pinned, col_current)
+    
+    #Add presence indicator columns before zeroing out NAs
+    merged_df$Pinned <- ifelse(!is.na(merged_df[[col_pinned]]), "Y", "")
+    merged_df$Comparison <- ifelse(!is.na(merged_df[[col_current]]), "Y", "")
+    
+    #Replace missing counts with zero
+    merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
+    merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
+    
+    #Calculate difference and match
+    merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
+    merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
+    
+    #Reorder columns for logical flow
+    merged_df <- merged_df[, c("Value", col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")]
+    
+    outer_env$u__df_view(
+      merged_df, 
+      paste0("Comparison: ", pinned$column, " vs ", current$column), 
+      height = 400, width = 800
+    )
+  }
+  
   #--------------------------------------------
 
   # General
@@ -39,13 +197,27 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["General"]][["Clear arrange"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$order_by_obj$clean()
   }
-  i__all_event_functions[["General"]][["Trigger code"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$show_load_window()
-    outer_env$u__load_dataset_filter(session_name)
-    outer_env$hide_load_window()
-  }
   i__all_event_functions[["General"]][["Open Context Menu"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     if (is.null(view_objects$event) == F) {
+      
+      # Dynamically hide or show menu items based on settings right before pop-up
+      if (!is.null(outer_env$settings_list$menu_items_show)) {
+        for (config_m in names(outer_env$settings_list$menu_items_show)) {
+          for (item_m in names(outer_env$settings_list$menu_items_show[[config_m]])) {
+            is_shown <- outer_env$settings_list$menu_items_show[[config_m]][[item_m]]
+            end_node <- paste0("base|", config_m, "|", item_m)
+
+            if (!is.null(obj_env$menubar$items[[end_node]])) {
+              if (is_shown) {
+                RGtk2::gtkWidgetShow(obj_env$menubar$items[[end_node]])
+              } else {
+                RGtk2::gtkWidgetHide(obj_env$menubar$items[[end_node]])
+              }
+            }
+          }
+        }
+      }
+
       click_btn <- view_objects$event$button
       RGtk2::gtkMenuPopup(obj_env$menubar[["base"]],
         button = click_btn,
@@ -107,6 +279,7 @@ e__all_event_functions <- function(outer_env = totem) {
     } else {
       utils::writeClipboard(str = charToRaw(paste0(obj_env$table_objects_list$current_row$column, sp, "\"", obj_env$table_objects_list$current_row$value, "\" ")), format = 1)
     }
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Code copied to clipboard")
   }
 
   i__all_event_functions[["Copy"]][["if then"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
@@ -137,12 +310,37 @@ e__all_event_functions <- function(outer_env = totem) {
     obj_env$df_obj$copy_filter(obj_env$table_objects_list$current_row$column)
   }
 
+  i__all_event_functions[["Copy"]][["Column Wide"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    #Get the currently filtered data for the selected column
+    col_name <- current_row$column
+    col_data <- obj_env$df_obj$current_data()[, col_name, drop = TRUE]
+    
+    #Collapse the column values with tabs
+    col_string <- paste0(as.character(col_data), collapse = "\t")
+    utils::writeClipboard(str = charToRaw(paste0(col_string, " ")), format = 1)
+    
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Wide column copied to clipboard")
+  }
+
   i__all_event_functions[["Copy"]][["Vector Column full"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_full(obj_env$table_objects_list$current_row$column, vector = T)
   }
 
   i__all_event_functions[["Copy"]][["Vector Column filtered"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_filter(obj_env$table_objects_list$current_row$column, vector = T)
+  }
+
+  i__all_event_functions[["Copy"]][["Row"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # Extract row and drop internal UI metrics so only the true data is copied
+    row_data <- current_row$row
+    clean_cols <- setdiff(colnames(row_data), c("r__", "n", "freq", "lines", "nchar"))
+    row_data <- row_data[, clean_cols, drop = FALSE]
+    
+    # Collapse the row values with tabs
+    row_string <- paste0(as.character(row_data[1, ]), collapse = "\t")
+    utils::writeClipboard(str = charToRaw(paste0(row_string, " ")), format = 1)
+    
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Row copied to clipboard")
   }
 
   #--------------------------------------------
@@ -165,18 +363,22 @@ e__all_event_functions <- function(outer_env = totem) {
     row_i <- current_row$row_i
     view_objects$event_mapping[["Meta Table|Trigger Value Summary with Unique By"]](session_name, current_data[row_i, "variable", drop = T])
   }
-
-  i__all_event_functions[["Meta Table"]][["dataset_layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy dataset layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_dataset_layout()
   }
-  i__all_event_functions[["Meta Table"]][["keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_keep()
   }
-  i__all_event_functions[["Meta Table"]][["label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_label()
   }
-  i__all_event_functions[["Meta Table"]][["length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table"]][["Copy length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_length()
+  }
+  i__all_event_functions[["Meta Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    column <- current_data[current_row$row_i, "variable", drop = T]
+    outer_env$u__add_count_to_df_summary(session_name, column)
   }
 
   i__all_event_functions[["Meta Table"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
@@ -235,6 +437,12 @@ e__all_event_functions <- function(outer_env = totem) {
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
+  i__all_event_functions[["Meta Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Meta Table")
+  }
+  i__all_event_functions[["Meta Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Meta Table")
+  }
 
   #--------------------------------------------
 
@@ -253,10 +461,6 @@ e__all_event_functions <- function(outer_env = totem) {
     column <- current_row$column
     view_objects$event_mapping[["Full Data Table|Trigger Value Summary with Unique By"]](session_name, column)
   }
-
-
-
-
   i__all_event_functions[["Full Data Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
     col_to_toggle <- obj_env$table_objects_list$current_row$column
@@ -282,11 +486,14 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Full Data Table"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row)
   }
+  i__all_event_functions[["Full Data Table"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
+  }
   i__all_event_functions[["Full Data Table"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, exclude = T)
   }
-  i__all_event_functions[["Full Data Table"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
+  i__all_event_functions[["Full Data Table"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, combine = F)
   }
   i__all_event_functions[["Full Data Table"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row, exclude = T)
@@ -348,6 +555,12 @@ e__all_event_functions <- function(outer_env = totem) {
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
+  i__all_event_functions[["Full Data Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Full Data Table")
+  }
+  i__all_event_functions[["Full Data Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Full Data Table")
+  }
 
   #--------------------------------------------
 
@@ -357,32 +570,27 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Summary Table"]][["Open Flat View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__flat_view(session_name, current_row)
   }
-
-
   i__all_event_functions[["Summary Table"]][["Open Inverted View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__inverted_view(session_name, current_row)
   }
-
   i__all_event_functions[["Summary Table"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter(session_name, current_row)
   }
-
   i__all_event_functions[["Summary Table"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter(session_name, obj_env$table_objects_list$current_row, exclude = T)
   }
-
+  i__all_event_functions[["Summary Table"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter(session_name, obj_env$table_objects_list$current_row, combine = F)
+  }
   i__all_event_functions[["Summary Table"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
   }
-
   i__all_event_functions[["Summary Table"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row, exclude = T)
   }
-
   i__all_event_functions[["Summary Table"]][["Add Column to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj)
   }
-
   i__all_event_functions[["Summary Table"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
   }
@@ -401,17 +609,33 @@ e__all_event_functions <- function(outer_env = totem) {
     cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
     outer_env$u__append_before_code(session_name, cmd)
   }
-
   i__all_event_functions[["Summary Table"]][["Add Table to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_table(session_name, current_row)
   }
   i__all_event_functions[["Summary Table"]][["Copy Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__copy_mapping(session_name, current_row)
   }
-
-  i__all_event_functions[["Summary Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    cross_tab_names <- setdiff(colnames(obj_env$table_objects_list$current_row$row), c("r__", "n", "freq", "lines"))
-    outer_env$u__add_count_to_df_summary(session_name, cross_tab_names)
+  i__all_event_functions[["Summary Table"]][["Copy Data Columns"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    # Fetch the full summary table data currently on screen
+    current_data <- obj_env$df_obj$current_data()
+    
+    # Exclude the metrics and UI columns to isolate the grouping/focus columns
+    cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
+    
+    # Subset the data frame
+    data_to_copy <- current_data[, cross_tab_names, drop = FALSE]
+    
+    # Copy to clipboard using clipr (matches the behavior of other table copies)
+    clipr::write_clip(data_to_copy, allow_non_interactive = T)
+    
+    # Trigger the toast notification
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data columns copied to clipboard")
+  }
+  i__all_event_functions[["Summary Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Summary Table")
+  }
+  i__all_event_functions[["Summary Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Summary Table")
   }
 
   #--------------------------------------------
@@ -429,9 +653,9 @@ e__all_event_functions <- function(outer_env = totem) {
 
   #-------------------------------------------
 
-  i__all_event_functions[["File History Table"]][["New Session"]] <- function(session_name, current_row, view_objects, outer_env = totem) {
-    outer_env$start(current_row$row[, "full_path", drop = T])
-    outer_env$hide_file_history_window()
+  i__all_event_functions[["File History Table"]][["New Session"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$start(current_row$row[, "path", drop = T])
+    # outer_env$hide_file_history_window()
   }
 
 

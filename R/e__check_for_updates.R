@@ -3,6 +3,7 @@
 #' @param outer_env TODO
 #'
 #' @return Boolean indicating if an update was initiated
+
 e__check_for_updates <- function(outer_env = totem) {
   # 1. Check if we've already looked for updates today
   last_check <- as.Date(outer_env$settings_list$last_update_check)
@@ -37,7 +38,7 @@ e__check_for_updates <- function(outer_env = totem) {
       flags = "destroy-with-parent",
       type = "question",
       buttons = "yes-no",
-      paste0("A new version of jaw (", remote_version, ") is available!\n\nYou are currently using version ", local_version, ".\n\nWould you like to update now? (jaw will close to apply the update)")
+      paste0("A new version of jaw (", remote_version, ") is available!\n\nYou are currently using version ", local_version, ".\n\nWould you like to update now?\n(jaw will close to apply the update)")
     )
     response <- dialog$run()
     RGtk2::gtkWidgetDestroy(dialog)
@@ -45,11 +46,11 @@ e__check_for_updates <- function(outer_env = totem) {
     # If the user clicks Yes
     if (response == RGtk2::GtkResponseType["yes"] || response == -8) {
       
-      # Use R.home("bin") and normalize it for Windows CMD
       rscript_path <- normalizePath(file.path(R.home("bin"), "Rscript.exe"), mustWork = FALSE)
       
-      # Grab the exact directory jaw is currently loaded from and normalize slashes for the R command
-      current_lib <- normalizePath(dirname(find.package("jaw")), winslash = "/", mustWork = FALSE)
+      # Force the update into the portable library, regardless of where jaw is currently loaded from
+      portable_lib <- normalizePath(file.path(R.home(), "library"), winslash = "/", mustWork = FALSE)
+      portable_home <- normalizePath(R.home(), winslash = "/", mustWork = FALSE)
       
       bat_file <- file.path(Sys.getenv("TEMP"), paste0("jaw_update_", as.integer(Sys.time()), ".bat"))
       
@@ -58,9 +59,12 @@ e__check_for_updates <- function(outer_env = totem) {
         "echo Updating jaw, do not close this window.",
         "echo ---------------------------------------",
         "echo.",
-        paste0('"', rscript_path, '" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=F, force=TRUE, lib=\'', current_lib, '\')"'),
+        # Apply the environment variables for the update execution!
+        paste0('set "R_LIBS_USER=', portable_lib, '"'),
+        paste0('set "R_USER=', portable_home, '"'),
+        paste0('"', rscript_path, '" -e "for(p in c(\'sqldf\', \'haven\', \'lubridate\')) if(!requireNamespace(p, quietly=TRUE)) install.packages(p, repos=\'https://cloud.r-project.org\')" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=FALSE, force=TRUE, lib=\'', portable_lib, '\')"'),
         "echo.",
-        "echo Update complete! Press any key to close this window.",
+        "echo Update complete!\nPress any key to close this window.",
         "pause >nul",
         "del \"%~f0\" & exit"
       )

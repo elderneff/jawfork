@@ -1,4 +1,29 @@
-
+generate_dynamic_contents <- function(df) {
+  # Dynamically calculate length (max character count for strings, 8 for numeric)
+  col_lengths <- sapply(df, function(x) {
+    if (is.character(x) || is.factor(x)) {
+       suppressWarnings(res <- max(nchar(as.character(x)), na.rm = TRUE))
+       if (is.infinite(res) || is.na(res)) return(0) else return(res)
+    } else {
+       return(8) 
+    }
+  })
+  
+  # Extract embedded labels from foreign, haven, or sjlabelled
+  col_labels <- sapply(df, function(x) {
+    lbl <- attr(x, "label")
+    if (is.null(lbl) || length(lbl) == 0) return(NA) else return(as.character(lbl)[1])
+  })
+  
+  data.frame(
+    "variable" = colnames(df),
+    "length" = as.integer(col_lengths),
+    "type" = sapply(df, function(x) class(x)[1]),
+    "label" = col_labels,
+    "n" = nrow(df),
+    stringsAsFactors = FALSE
+  )
+}
 
 #' e__load_dataset
 #'
@@ -7,109 +32,268 @@
 #'
 #' @return TODO
 
-e__load_dataset <- function(session_name,outer_env=totem) {
+e__load_dataset <- function(session_name, outer_env = totem) {
   ls_content <- ls(name = .GlobalEnv)
+  
+  # Flag to check if this is a fresh open vs a reload
+  is_initial_load <- is.null(outer_env[[session_name]]$data1)
+
   if ((outer_env[[session_name]]$sas_file_path %in% ls_content) == F) {
-    #sas7bdat
-    if(tolower(outer_env[[session_name]]$passed_ext)=="sas7bdat"){        
-        # Attempt the read
+    
+    # sas7bdat
+    if(tolower(outer_env[[session_name]]$passed_ext) == "sas7bdat") {        
         try_read <- try(as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)      
-        # Check if an error occurred
         if (inherits(try_read, "try-error")) {
           print(paste("CRITICAL ERROR ON STARTUP:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
           message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted.")
-          readline() 
-          return(FALSE) # Exit early only on failure
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE) 
         } else {      
-          # SUCCESS PATH: Assign data and continue normally
           outer_env[[session_name]]$data1 <- try_read
           outer_env[[session_name]]$data1_contents <- sas_contents(outer_env[[session_name]]$sas_file_path)
         }
     }
-    #sav
-    else if(tolower(outer_env[[session_name]]$passed_ext)=="sav"){
-      outer_env[[session_name]]$data1 <- as.data.frame(sjlabelled::unlabel(haven::read_sav(outer_env[[session_name]]$sas_file_path)),stringsAsFactors = FALSE) 
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA,
-          "type" = NA,
-          "label" = NA,
-          "n" = NA,
-          stringsAsFactors = FALSE
-        )
+    
+    # sav
+    else if(tolower(outer_env[[session_name]]$passed_ext) == "sav") {
+      outer_env[[session_name]]$data1 <- as.data.frame(sjlabelled::unlabel(haven::read_sav(outer_env[[session_name]]$sas_file_path)), stringsAsFactors = FALSE) 
+      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
     }
-    #rds
-    else if(tolower(outer_env[[session_name]]$passed_ext)=="rds"){
-    outer_env[[session_name]]$data1 <- as.data.frame(readRDS(file=outer_env[[session_name]]$sas_file_path),stringsAsFactors = FALSE) 
-    outer_env[[session_name]]$data1_contents <- data.frame(
-        "variable" = colnames(outer_env[[session_name]]$data1),
-        "length" = NA,
-        "type" = NA,
-        "label" = NA,
-        "n" = NA,
-        stringsAsFactors = FALSE
+    
+    # rds
+    else if(tolower(outer_env[[session_name]]$passed_ext) == "rds") {
+      outer_env[[session_name]]$data1 <- as.data.frame(readRDS(file=outer_env[[session_name]]$sas_file_path), stringsAsFactors = FALSE) 
+      outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+    }
+    
+    # csv
+    else if(tolower(outer_env[[session_name]]$passed_ext) == "csv") {
+      dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window, 
+        flags = "destroy-with-parent", 
+        type = "question", 
+        buttons = "ok-cancel", 
+        "CSV Import Options:"
       )
-    }
-    #csv
-    else if(tolower(outer_env[[session_name]]$passed_ext)=="csv"){
-      outer_env[[session_name]]$data1 <- as.data.frame(read.csv(file=outer_env[[session_name]]$sas_file_path)
-                                                       , header = TRUE, sep = ",", skip = 0, stringsAsFactors = FALSE)
-      outer_env[[session_name]]$data1_contents <- data.frame(
-          "variable" = colnames(outer_env[[session_name]]$data1),
-          "length" = NA,
-          "type" = NA,
-          "label" = NA,
-          "n" = NA,
-          stringsAsFactors = FALSE
-        )
-    }
-    #xpt
-    else if(tolower(outer_env[[session_name]]$passed_ext)=="xpt"){
-      df_tmp <- as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path))
-      outer_env[[session_name]]$data1 <- df_tmp
       
-      outer_env[[session_name]]$data1_contents <- data.frame(
-        "variable" = colnames(outer_env[[session_name]]$data1),
-        "length" = NA,
-        "type" = NA,
-        "label" = NA,
-        "n" = NA,
-        stringsAsFactors = FALSE
-      )
+      vbox <- dialog[["vbox"]]
+      
+      cb_header <- RGtk2::gtkCheckButtonNewWithLabel("First row contains column names")
+      RGtk2::gtkToggleButtonSetActive(cb_header, TRUE)
+      RGtk2::gtkBoxPackStart(vbox, cb_header, FALSE, FALSE, 0)
+      
+      hbox_skip <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_skip, RGtk2::gtkLabelNew("Rows to skip:"), FALSE, FALSE, 0)
+      spin_skip <- RGtk2::gtkSpinButtonNewWithRange(0, 10000, 1)
+      RGtk2::gtkSpinButtonSetValue(spin_skip, 0)
+      RGtk2::gtkBoxPackStart(hbox_skip, spin_skip, FALSE, FALSE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_skip, FALSE, FALSE, 0)
+
+      hbox_na <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_na, RGtk2::gtkLabelNew("NA string:"), FALSE, FALSE, 0)
+      entry_na <- RGtk2::gtkEntryNew()
+      RGtk2::gtkEntrySetText(entry_na, "NA")
+      RGtk2::gtkBoxPackStart(hbox_na, entry_na, TRUE, TRUE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_na, FALSE, FALSE, 0)
+
+      hbox_policy <- RGtk2::gtkHBoxNew(FALSE, 5)
+      RGtk2::gtkBoxPackStart(hbox_policy, RGtk2::gtkLabelNew("Name enforcement policy:"), FALSE, FALSE, 0)
+      combo_policy <- RGtk2::gtkComboBoxNewText()
+      combo_policy$appendText("R (replaces spaces/special chars with dots)")
+      combo_policy$appendText("SAS (replaces invalid chars with underscores)")
+      combo_policy$appendText("None (keeps original names, may cause errors)")
+      combo_policy$setActive(1) 
+      RGtk2::gtkBoxPackStart(hbox_policy, combo_policy, TRUE, TRUE, 0)
+      RGtk2::gtkBoxPackStart(vbox, hbox_policy, FALSE, FALSE, 0)
+
+      cb_upcase <- RGtk2::gtkCheckButtonNewWithLabel("Uppercase all column names")
+      RGtk2::gtkToggleButtonSetActive(cb_upcase, TRUE)
+      RGtk2::gtkBoxPackStart(vbox, cb_upcase, FALSE, FALSE, 0)
+
+      RGtk2::gtkWidgetShowAll(vbox)
+      
+      response <- dialog$run()
+      
+      if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+        has_header <- RGtk2::gtkToggleButtonGetActive(cb_header)
+        skip_rows <- RGtk2::gtkSpinButtonGetValueAsInt(spin_skip)
+        na_str <- RGtk2::gtkEntryGetText(entry_na)
+        policy_idx <- RGtk2::gtkComboBoxGetActive(combo_policy) 
+        upcase_names <- RGtk2::gtkToggleButtonGetActive(cb_upcase)
+        
+        RGtk2::gtkWidgetDestroy(dialog)
+        
+        try_read <- try(as.data.frame(read.csv(
+          file = outer_env[[session_name]]$sas_file_path, 
+          header = has_header, 
+          skip = skip_rows, 
+          na.strings = c(na_str, "", "."), 
+          check.names = (policy_idx == 0), 
+          stringsAsFactors = FALSE
+        )), silent = TRUE)
+        
+        if (inherits(try_read, "try-error")) {
+          print(paste("CRITICAL ERROR ON CSV LOAD:", as.character(try_read)))
+          message("\n!!! DATA LOAD FAILED !!!")
+          message("The CSV file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE)
+        } else {
+          
+          if (policy_idx == 1) {
+            new_cols <- colnames(try_read)
+            new_cols <- gsub("[^A-Za-z0-9_]", "_", new_cols)
+            new_cols <- gsub("^([0-9])", "_\\1", new_cols)
+            colnames(try_read) <- new_cols
+          }
+          
+          if (upcase_names) {
+            colnames(try_read) <- toupper(colnames(try_read))
+          }
+          
+          if (length(unique(colnames(try_read))) < ncol(try_read)) {
+            err_dialog <- RGtk2::gtkMessageDialog(
+              parent = outer_env[[session_name]]$windows$main_window, 
+              flags = "destroy-with-parent", 
+              type = "error", 
+              buttons = "close", 
+              "Duplicate column names detected.\n\njaw requires all columns to have unique names. Please re-import and adjust your naming policy options, or fix the underlying file."
+            )
+            err_dialog$run()
+            RGtk2::gtkWidgetDestroy(err_dialog)
+            
+            if (is_initial_load) outer_env$close_all_windows(session_name)
+            return(FALSE)
+          }
+          
+          outer_env[[session_name]]$data1 <- try_read
+          outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+        }
+      } else {
+        RGtk2::gtkWidgetDestroy(dialog)
+        if (is_initial_load) outer_env$close_all_windows(session_name)
+        return(FALSE) 
+      }
+    }
+    
+    # xpt
+    else if(tolower(outer_env[[session_name]]$passed_ext) == "xpt") {
+      try_lookup <- try(foreign::lookup.xport(outer_env[[session_name]]$sas_file_path), silent = TRUE)
+      
+      if (inherits(try_lookup, "try-error") || length(try_lookup) <= 1) {
+        
+        try_read <- try(as.data.frame(haven::read_xpt(file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)
+        
+        if (inherits(try_read, "try-error")) {
+          print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
+          message("\n!!! DATA LOAD FAILED !!!")
+          message("The XPT file '", outer_env[[session_name]]$sas_file_basename, "' could not be read.")
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE)
+        } else {
+          outer_env[[session_name]]$data1 <- try_read
+          outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+        }
+        
+      } else {
+        ds_names <- names(try_lookup)
+        
+        dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window, 
+          flags = "destroy-with-parent", 
+          type = "question", 
+          buttons = "ok-cancel", 
+          paste0("This XPT file contains ", length(ds_names), " datasets.\n\nPlease select the one you want to load:")
+        )
+        
+        vbox <- dialog[["vbox"]]
+        
+        combo_ds <- RGtk2::gtkComboBoxNewText()
+        for (ds in ds_names) {
+          combo_ds$appendText(ds)
+        }
+        combo_ds$setActive(0) 
+        
+        RGtk2::gtkBoxPackStart(vbox, combo_ds, TRUE, TRUE, 5)
+        RGtk2::gtkWidgetShowAll(vbox)
+        
+        response <- dialog$run()
+        
+        if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+          selected_idx <- RGtk2::gtkComboBoxGetActive(combo_ds) + 1
+          selected_ds <- ds_names[selected_idx]
+          RGtk2::gtkWidgetDestroy(dialog)
+          
+          try_read <- try({
+            all_ds <- foreign::read.xport(outer_env[[session_name]]$sas_file_path)
+            df_tmp <- as.data.frame(all_ds[[selected_ds]], stringsAsFactors = FALSE)
+            
+            for (col in colnames(df_tmp)) {
+              if (is.factor(df_tmp[[col]])) {
+                df_tmp[[col]] <- as.character(df_tmp[[col]])
+              }
+            }
+            
+            # --- RESTORE LABELS STRIPPED BY FOREIGN ---
+            meta <- try_lookup[[selected_ds]]
+            if (!is.null(meta) && is.list(meta) && !is.null(meta$name) && !is.null(meta$label)) {
+              for (i in seq_along(meta$name)) {
+                c_name <- meta$name[i]
+                c_lbl <- meta$label[i]
+                if (!is.null(c_lbl) && c_lbl != "" && c_name %in% colnames(df_tmp)) {
+                  attr(df_tmp[[c_name]], "label") <- c_lbl
+                }
+              }
+            }
+            
+            df_tmp
+          }, silent = TRUE)
+          
+          if (inherits(try_read, "try-error")) {
+            print(paste("CRITICAL ERROR ON XPT LOAD:", as.character(try_read)))
+            message("\n!!! DATA LOAD FAILED !!!")
+            message("The dataset '", selected_ds, "' could not be read from the XPT file.")
+            if (is_initial_load) outer_env$close_all_windows(session_name)
+            return(FALSE)
+          } else {
+            outer_env[[session_name]]$data1 <- try_read
+            outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
+          }
+          
+        } else {
+          RGtk2::gtkWidgetDestroy(dialog)
+          if (is_initial_load) outer_env$close_all_windows(session_name)
+          return(FALSE) 
+        }
+      }
     }
   } 
   else {
-  outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
-
-
-  outer_env[[session_name]]$data1_contents <- data.frame(
-    "variable" = colnames(outer_env[[session_name]]$data1),
-    "length" = NA,
-    "type" = NA,
-    "label" = NA,
-    "n" = NA,
-    stringsAsFactors = FALSE
-  )
+    outer_env[[session_name]]$data1 <- as.data.frame(get(x = outer_env[[session_name]]$sas_file_path, envir = .GlobalEnv))
+    outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
   }
 
   file_history <- rbind(data.frame(
-    "latest" = T,
-    "mtime" = file.info(outer_env[[session_name]]$sas_file_path, extra_cols = TRUE)$mtime,
-    "load_time" = as.character(Sys.time()),
-    "dataset" = gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
-    "full_path" = outer_env[[session_name]]$sas_file_path,
+    "dataset" = sub(paste0("\\.", outer_env[[session_name]]$passed_ext, "$"), "", outer_env[[session_name]]$sas_file_basename, ignore.case = TRUE),
+    "latest" = TRUE,
+    "loaded" = as.character(Sys.time()),
+    "modified" = format(file.info(outer_env[[session_name]]$sas_file_path, extra_cols = TRUE)$mtime, "%Y-%m-%d %H:%M:%S"),
+    "path" = outer_env[[session_name]]$sas_file_path,
     stringsAsFactors = FALSE
   ), totem$settings_list$file_history)
 
-  file_history <- file_history[duplicated(file_history[, -(1:3)]) == F, ]
+  file_history <- file_history[duplicated(file_history[, c("dataset", "path")]) == F, ]
+  file_history <- file_history[, c("dataset", "latest", "loaded", "modified", "path")]
+  file_history <- head(file_history, 200)
+
   totem$settings_list$file_history <- file_history
   totem$file_history$file_history_window_table$update(file_history)
 
+  save_settings(outer_env)
 
   outer_env$u__load_dataset_filter(session_name)
 }
-
 
 #' e__load_dataset_filter
 #'
@@ -156,7 +340,7 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
     bg_color <- ifelse(is_dark, "#5C2E2E", "#F4D9D9")
   } else {
     # Blend seamlessly into the standard GTK backgrounds
-    bg_color <- ifelse(is_dark, "#2D2D2D", "#F0F0F0")
+    bg_color <- ifelse(is_dark, "#202020", "#F0F0F0")
   }
   
   RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$data_view_list$code_tool_bar_dim_eb, "normal", bg_color)
@@ -166,7 +350,7 @@ e__load_dataset_filter <- function(session_name,outer_env=totem) {
   ##################
   #Check if the code area is effectively empty (ignoring comments and whitespace)
   raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
-  clean_code <- gsub("#.*", "", raw_code) # Strips everything from '#' to the end of the line
+  clean_code <- gsub("#[^\\r\\n]*", "", raw_code)   
   is_code_empty <- (trimws(clean_code) == "")
 
   #Check if the select statement is empty or disabled via checkbox
@@ -330,12 +514,19 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
           stringsAsFactors = FALSE
         ), totem$settings_list$previous_code)
 
+        # FORCE SORT DESCENDING BEFORE DEDUPLICATION
+        previous_code <- previous_code[order(previous_code$time, decreasing = TRUE), ]
+        
         previous_code <- previous_code[duplicated(previous_code[, -1]) == F, ]
+        
+        # CAP AT 500 ENTRIES
+        previous_code <- head(previous_code, 500)
+
         totem$settings_list$previous_code <- previous_code
         outer_env[[session_name]]$past_code_window_table$update(previous_code)
-
-
-
+        
+        # Save to disk immediately
+        save_settings(outer_env)
 
         return(outer_env$u__load_dataset_filter_inner_select(session_name, outer_env[[session_name]]$e$df))
       },
@@ -343,7 +534,7 @@ e__load_dataset_filter_inner <- function(session_name,outer_env=totem) {
         dialog <- RGtk2::gtkMessageDialog(
           parent = outer_env[[session_name]]$windows$main_window,
           flags = "destroy-with-parent",
-          type = "question",
+          type = "error",
           buttons = "ok",
           "Code Error"
         )

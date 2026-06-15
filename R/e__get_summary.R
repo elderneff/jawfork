@@ -48,9 +48,31 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
   # Escape the target column with backticks for eval(parse())
   safe_col <- paste0("`", current_row$column, "`")
 
-  #Check if group by checkbox is checked before pulling value
+  # Check if group by checkbox is checked before pulling value
   if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)) {
     group_by_entry <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry)
+    
+    if (group_by_entry != "") {
+      group_vars_check <- trimws(strsplit(group_by_entry, ",")[[1]])
+      group_vars_check <- group_vars_check[group_vars_check != ""]
+      
+      # Identify variables that are in the entry but NOT in the dataset
+      missing_vars <- setdiff(group_vars_check, colnames(temp_df))
+      
+      if (length(missing_vars) > 0) {
+        err_dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env[[session_name]]$windows$main_window, 
+          flags = "destroy-with-parent", 
+          type = "error", 
+          buttons = "close", 
+          paste0("The following Group By variables do not exist in the dataset:\n\n", paste(missing_vars, collapse = ", "))
+        )
+        err_dialog$run()
+        RGtk2::gtkWidgetDestroy(err_dialog)
+        return()
+      }
+    }
+    # ----------------------------
   } else {
     group_by_entry <- ""
   }
@@ -72,15 +94,39 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
     
     # 2. Duplicate data and assign a safe "OVERALL" category
     temp_df_overall <- temp_df_combined
+    overall_labels <- list()
+    
     for (g in group_vars) {
       safe_overall <- "OVERALL"
       # Append spaces dynamically to guarantee a unique label if "OVERALL" already exists
-      while (safe_overall %in% temp_df_combined[[g]]) {
+      while (safe_overall %in% as.character(temp_df_combined[[g]])) {
         safe_overall <- paste0(safe_overall, " ")
       }
       temp_df_overall[[g]] <- safe_overall
+      overall_labels[[g]] <- safe_overall
     }
+    
+    # Capture the proper sorted levels BEFORE combining
+    factor_levels <- list()
+    for (g in group_vars) {
+      orig_vals <- temp_df[[g]]      
+      # Sort natively (numerically or alphabetically) with NAs at the end, then convert to character
+      sorted_vals <- as.character(sort(unique(orig_vals), na.last = TRUE))      
+      # Explicitly convert missing values to the string "NA" in our levels list
+      sorted_vals[is.na(sorted_vals)] <- "NA"      
+      # Append the dynamic OVERALL label to the very end
+      factor_levels[[g]] <- unique(c(sorted_vals, overall_labels[[g]]))
+    }
+    
     temp_df_combined <- rbind(temp_df_combined, temp_df_overall)
+    
+    # Apply factor levels to force dplyr's group_by to respect our custom order
+    for (g in group_vars) {
+      # Ensure data NAs are treated as the string "NA" so they match our factor levels
+      char_col <- as.character(temp_df_combined[[g]])
+      char_col[is.na(char_col)] <- "NA"
+      temp_df_combined[[g]] <- factor(char_col, levels = factor_levels[[g]])
+    }
 
     # 3. Calculate metrics using the combined dataframe (using escaped variables)
     Output <- temp_df_combined %>% group_by_(.dots = safe_group_vars) %>% summarise(N = sum(!is.na(eval(parse(text = safe_col)))),

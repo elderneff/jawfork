@@ -13,30 +13,13 @@ jaw <- function(settings_dir=NULL) {
   color_bg_1 <- "#FFFFFF"
   color_bg_2 <- "#f9f9f9"
   totem <- create_initial_list(settings_dir)
-
-  ##########################################
-  # Copy console and errors to jaw_log.txt #
-  ##########################################
-  #Open an explicit connection to the log file in append mode
-  log_con <- file(totem$jaw_log_path, open = "a")
-  #Log standard output
-  sink(log_con, type = "output", split = TRUE)
-  #Log errors (messages, warnings, crashes)
-  #Note: R does not support split = TRUE for messages, so errors will go directly to the log
-  sink(log_con, type = "message")  
-  #Ensure the sinks are safely closed when the jaw() function exits or crashes
-  on.exit({
-    sink(type = "message")
-    sink(type = "output")
-    close(log_con)
-  }, add = TRUE)
   
   #Generate error if settings were corrupted
   if (class(try_settings) == "try-error") {
     temp_window <- RGtk2::gtkWindow(show = F)
     temp_dialog <- RGtk2::gtkMessageDialog(parent = temp_window
                                , "destroy-with-parent"
-                               , "error"
+                               , "warning"
                                , "close"
                                , "settings.rds was corrupted. Settings were reset to defaults.")
     temp_dialog$run()
@@ -45,6 +28,10 @@ jaw <- function(settings_dir=NULL) {
   }  
   
   totem$while_loop_running <- F
+
+  # Run the auto-patcher to tell R to look in R Portable for the jaw library
+  # Edits update_jaw.bat and Rprofile.site
+  try({ e__patch_portable_env() }, silent = TRUE)
 
   totem$check_for_updates <- e__with_env(e__check_for_updates)
   
@@ -150,6 +137,7 @@ jaw <- function(settings_dir=NULL) {
 
   totem$show_settings_window <- function(outer_env = totem) {
     RGtk2::gtkWidgetShow(outer_env$settings_window$settings_window)
+    RGtk2::gtkWindowPresent(outer_env$settings_window$settings_window)
   }
 
   totem$hide_file_history_window <- function(outer_env = totem) {
@@ -160,6 +148,7 @@ jaw <- function(settings_dir=NULL) {
     RGtk2::gtkEntrySetText(outer_env$file_history$file_history_window_main_new_path_entry, "")
     outer_env$file_history$file_history_window_table$update(outer_env$settings_list$file_history)
     RGtk2::gtkWidgetShow(outer_env$file_history$file_history_window)
+    RGtk2::gtkWindowPresent(outer_env$file_history$file_history_window)
   }
 
 
@@ -168,6 +157,8 @@ jaw <- function(settings_dir=NULL) {
   stop <- e__with_env(e__stop)
   block <- e__with_env(e__block)
   io_window_show <- function(outer_env = totem) {
+    # Initialize the global theme before showing the file history window
+    outer_env$u__apply_theme(NULL, outer_env)
     outer_env$show_file_history_window()
   }
   return(

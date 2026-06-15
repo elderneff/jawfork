@@ -9,21 +9,49 @@
 #' @return TODO
 
 e__add_before_filter_full_data_bucket <- function(session_name, current_row, exclude = F, outer_env = totem) {
+  temp_df <- outer_env[[session_name]]$data2
   cross_tab_names <- current_row$column
 
   my_title <- rep(NA, length(cross_tab_names))
   i <- 1
   for (x in cross_tab_names) {
     temp_string <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$status_bar$box_bucket_entry)
+    
     #Sandwich column name with backticks if it has special characters
     if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", x)) { 
       clean_x <- paste0("`", x, "`") 
     } else {
       clean_x <- x
     }
-    my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
+
+    # Determine how to format the right side of %in% based on column class
+    if (is.character(temp_df[[x]])) {
+      my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
+    } 
+    else if (is.numeric(temp_df[[x]])) {
+      my_title[[i]] <- paste0("round(", clean_x, ", 5) %in% round(c(", temp_string, "), 5)")
+    }
+    else if (is.logical(temp_df[[x]])) {
+      clean_temp <- gsub('"', '', temp_string)
+      my_title[[i]] <- paste0(clean_x, " %in% c(", clean_temp, ")")
+    }
+    else if (lubridate::is.Date(temp_df[[x]])) {
+      my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(", temp_string, "))")
+    }
+    else if (inherits(temp_df[[x]], "difftime")) {
+      clean_temp <- gsub('"', '', temp_string)
+      clean_temp <- gsub("[a-z ]", "", clean_temp) # Strip letters and spaces
+      my_title[[i]] <- paste0("as.numeric(", clean_x, ") %in% c(", clean_temp, ")")
+    }
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "POSIXct", "POSIXt")) > 0) {
+      my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(", temp_string, ")")
+    } else {
+      my_title[[i]] <- paste0(clean_x, " %in% c(", temp_string, ")")
+    }
+
     #Clean filter
     my_title[[i]] <- gsub("\\\\", "\\\\\\\\", my_title[[i]])
+    my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
 
     i <- i + 1
   }
@@ -63,6 +91,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
     } else {
       clean_x <- x
     }
+  
     #Character - put quotes around values
     if (is.character(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% c(\"", paste0(sort(unique(filtered_data[, x, drop = T]), na.last = T), collapse = "\", \""), "\")")
@@ -78,14 +107,29 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
         my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(trimws(vals), collapse = ", "), ")")
       }
     }
+    #Logical - no quotes around values
+    else if (is.logical(temp_df[[x]])) {
+      vals <- as.logical(sort(unique(filtered_data[, x, drop = T]), na.last = T))
+      my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(vals, collapse = ", "), ")")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = "\", \""), "\"))")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }  
-    #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+    #Difftime - strip string artifacts introduced by matrix coercion
+    else if (inherits(temp_df[[x]], "difftime")) {
+      raw_vals <- sort(unique(filtered_data[, x, drop = T]), na.last = T)
+      clean_vals <- gsub("[^0-9.-]", "", raw_vals)
+      clean_vals[clean_vals == ""] <- NA
+      vals <- as.numeric(clean_vals)
+      my_title[[i]] <- paste0("as.numeric(", clean_x, ") %in% c(", paste0(trimws(vals), collapse = ", "), ")")
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+    }
+    #POSIXct/POSIXt (numeric datetime columns) and hms (time columns) - wrap column in "as.character" and wrap values in quotes
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", paste0(as.character(sort(unique(filtered_data[, x, drop = T]), na.last = T)), collapse = "\", \""), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -117,7 +161,7 @@ e__add_before_filter_full_data_column <- function(session_name, current_row, df_
 #'
 #' @return TODO
 
-e__add_before_filter_full_data <- function(session_name, current_row, exclude = F, outer_env = totem) {
+e__add_before_filter_full_data <- function(session_name, current_row, exclude = F, outer_env = totem, combine = T) {
   temp_df <- outer_env[[session_name]]$data2
 
   cross_tab_names <- current_row$column
@@ -146,14 +190,29 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
         my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
       }
     }
+    #Logical - no quotes around values
+    else if (is.logical(temp_df[[x]])) {
+      vals <- as.logical(current_row$row[, x, drop = T])
+      my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(vals, collapse = ", "), ")")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     }  
-    #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+    #Difftime - strip string artifacts introduced by matrix coercion
+    else if (inherits(temp_df[[x]], "difftime")) {
+      raw_vals <- current_row$row[, x, drop = T]
+      clean_vals <- gsub("[^0-9.-]", "", raw_vals)
+      clean_vals[clean_vals == ""] <- NA
+      vals <- as.numeric(clean_vals)
+      my_title[[i]] <- paste0("as.numeric(", clean_x, ") %in% c(", paste0(trimws(vals), collapse = ", "), ")")
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+    }
+    #POSIXct/POSIXt (numeric datetime columns) and hms (time columns) - wrap column in "as.character" and wrap values in quotes
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -171,7 +230,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  outer_env$u__append_before_code(session_name, cmd)
+  outer_env$u__append_before_code(session_name, cmd, combine = combine)
 }
 
 #' e__add_before_filter
@@ -183,7 +242,7 @@ e__add_before_filter_full_data <- function(session_name, current_row, exclude = 
 #'
 #' @return TODO
 
-e__add_before_filter <- function(session_name, current_row, exclude = F, outer_env = totem) {
+e__add_before_filter <- function(session_name, current_row, exclude = F, outer_env = totem, combine = T) {
   temp_df <- outer_env[[session_name]]$data2
 
   cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
@@ -212,14 +271,29 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
         my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
       }
     }
+    #Logical - no quotes around values
+    else if (is.logical(temp_df[[x]])) {
+      vals <- as.logical(current_row$row[, x, drop = T])
+      my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(vals, collapse = ", "), ")")
+    }
     #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
     else if (lubridate::is.Date(temp_df[[x]])) {
       my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(current_row$row[, x, drop = T]), "\"))")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
     } 
-    #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-    else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+    #Difftime - strip string artifacts introduced by matrix coercion
+    else if (inherits(temp_df[[x]], "difftime")) {
+      raw_vals <- current_row$row[, x, drop = T]
+      clean_vals <- gsub("[^0-9.-]", "", raw_vals)
+      clean_vals[clean_vals == ""] <- NA
+      vals <- as.numeric(clean_vals)
+      my_title[[i]] <- paste0("as.numeric(", clean_x, ") %in% c(", paste0(trimws(vals), collapse = ", "), ")")
+      #Remove quotes from around NA
+      my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+    }
+    #POSIXct/POSIXt (numeric datetime columns) and hms (time columns) - wrap column in "as.character" and wrap values in quotes
+    else if (sum(class(temp_df[[x]]) %in% c("hms", "POSIXct", "POSIXt")) > 0) {
       my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(current_row$row[, x, drop = T]), "\")")
       #Remove quotes from around NA
       my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -231,14 +305,13 @@ e__add_before_filter <- function(session_name, current_row, exclude = F, outer_e
     i <- i + 1
   }
 
-
   if (exclude) {
     cmd <- paste0("df <- df %>% filter((", paste0(my_title, collapse = " & "), ")==F)")
   } else {
     cmd <- paste0("df <- df %>% filter(", paste0(my_title, collapse = " & "), ")")
   }
 
-  outer_env$u__append_before_code(session_name, cmd)
+  outer_env$u__append_before_code(session_name, cmd, combine = combine)
 }
 
 #' e__add_before_filter_table
@@ -285,14 +358,29 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
           my_title[[i]] <- paste0(clean_x, " %in% c(", trimws(vals), ")")
         }
       }
+      #Logical - no quotes around values
+      else if (is.logical(temp_df[[x]])) {
+        vals <- as.logical(meta_row[, x, drop = T])
+        my_title[[i]] <- paste0(clean_x, " %in% c(", paste0(vals, collapse = ", "), ")")
+      }
       #Date (numeric date columns without time portion) - wrap values in "as.Date" and quotes
       else if (lubridate::is.Date(temp_df[[x]])) {
         my_title[[i]] <- paste0(clean_x, " %in% as.Date(c(\"", as.character(meta_row[, x, drop = T]), "\"))")
         #Remove quotes from around NA
         my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
       } 
-      #POSIXct/POSIXt (numeric datetime columns) and hms/difftime (time columns) - wrap column in "as.character" and wrap values in quotes
-      else if (sum(class(temp_df[[x]]) %in% c("hms", "difftime", "POSIXct", "POSIXt")) > 0) {
+      #Difftime - strip string artifacts introduced by matrix coercion
+      else if (inherits(temp_df[[x]], "difftime")) {
+        raw_vals <- meta_row[, x, drop = T]
+        clean_vals <- gsub("[^0-9.-]", "", raw_vals)
+        clean_vals[clean_vals == ""] <- NA
+        vals <- as.numeric(clean_vals)
+        my_title[[i]] <- paste0("as.numeric(", clean_x, ") %in% c(", paste0(trimws(vals), collapse = ", "), ")")
+        #Remove quotes from around NA
+        my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
+      }
+      #POSIXct/POSIXt (numeric datetime columns) and hms (time columns) - wrap column in "as.character" and wrap values in quotes
+      else if (sum(class(temp_df[[x]]) %in% c("hms", "POSIXct", "POSIXt")) > 0) {
         my_title[[i]] <- paste0("as.character(", clean_x, ") %in% c(\"", as.character(meta_row[, x, drop = T]), "\")")
         #Remove quotes from around NA
         my_title[[i]] <- gsub('"NA"', 'NA', my_title[[i]])
@@ -316,7 +404,6 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
 }
 
 
-
 #' e__add_count_to_df_summary
 #'
 #' @param session_name TODO
@@ -327,7 +414,80 @@ e__add_before_filter_table <- function(session_name, current_row, exclude = F, o
 
 e__add_count_to_df_summary <- function(session_name, cross_tab_names, outer_env = totem) {
   cmd <- paste0("df$n__1 <- add_cross_counts(df, c(\"", paste0(cross_tab_names, collapse = "\", \""), "\"))")
-  outer_env$u__append_before_code(session_name, gsub('"NA"', 'NA', cmd))
+  cmd <- gsub('"NA"', 'NA', cmd)
+  
+  source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
+  
+  replaced <- FALSE
+  is_duplicate <- FALSE
+
+  # Try to combine appended code with previous line if it's the same add_cross_counts block
+  if (source_file == F) {
+    raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+    code_lines <- strsplit(raw_code, "\n")[[1]]
+
+    # Find the last active line (ignore blanks and comments)
+    active_idx <- -1
+    if (length(code_lines) > 0) {
+      for (i in length(code_lines):1) {
+        clean_line <- trimws(gsub("#.*", "", code_lines[i]))
+        if (clean_line != "") {
+          active_idx <- i
+          break
+        }
+      }
+    }
+
+    # Regex to match the add_cross_counts pattern up to the 'c('
+    rgx <- "^(.*add_cross_counts\\([^,]*,\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
+
+    if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
+      last_line <- code_lines[active_idx]
+
+      last_pfx <- sub(rgx, "\\1", last_line)
+      last_val <- sub(rgx, "\\2", last_line)
+      last_sfx <- sub(rgx, "\\3", last_line)
+
+      cmd_pfx <- sub(rgx, "\\1", cmd)
+      cmd_val <- sub(rgx, "\\2", cmd)
+      cmd_sfx <- sub(rgx, "\\3", cmd)
+
+      if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
+        # Extract individual columns to check for exact matches
+        existing_cols <- trimws(unlist(strsplit(last_val, ",")))
+        new_cols <- trimws(unlist(strsplit(cmd_val, ",")))
+        
+        # Check if all new columns are already in the existing columns
+        if (all(new_cols %in% existing_cols)) {
+          is_duplicate <- TRUE
+        } else {
+          # Combine unique columns
+          cols_to_add <- new_cols[!new_cols %in% existing_cols]
+          combined_val <- paste0(last_val, ", ", paste0(cols_to_add, collapse = ", "))
+          code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+        }
+        replaced <- TRUE
+      }
+    }
+  }
+
+  if (is_duplicate) {
+    #Show duplicate toast if exact match.
+    outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#E07878")
+  } else if (replaced) {
+    # Overwrite the text area with the updated, combined block
+    u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+    
+    # Fetch and log history
+    buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+    end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+    start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+    str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+    outer_env$u__log_history(session_name, str, "button_click")
+  } else {
+    # Fallback to normal appending if it's a new logic block or writing to Source file
+    outer_env$u__append_before_code(session_name, cmd)
+  }
 }
 
 #' e__get_summary
@@ -368,80 +528,107 @@ e__get_summary <- function(session_name, current_row,outer_env=totem) {
 #' @param session_name TODO
 #' @param cmd TODO
 #' @param outer_env TODO
+#' @param combine Boolean indicating if the app should try to merge this code with the previous line
 #'
 #' @return TODO
 
-e__append_before_code <- function(session_name, cmd, outer_env = totem) {
-  source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
+e__append_before_code <- function(session_name, cmd, outer_env = totem, combine = TRUE) {
+  source_file <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$file_source_cb)
 
-  #Try to combine appended coe with previous line if the filter is the same
-  replaced <- FALSE
-  
-  if (source_file == F) {
-    raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
-    code_lines <- strsplit(raw_code, "\n")[[1]]
+  #Try to combine appended code with previous line if the filter is the same.
+  replaced <- FALSE
+  is_exact_duplicate <- FALSE
+  
+  if (source_file == F && combine) {
+    raw_code <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+    code_lines <- strsplit(raw_code, "\n")[[1]]
 
-    # Find the last active line (ignore blanks and comments)
-    active_idx <- -1
-    if (length(code_lines) > 0) {
-      for (i in length(code_lines):1) {
-        clean_line <- trimws(gsub("#.*", "", code_lines[i]))
-        if (clean_line != "") {
-          active_idx <- i
-          break
-        }
-      }
-    }
+    #Find the last active line ignoring blanks and comments.
+    active_idx <- -1
+    if (length(code_lines) > 0) {
+      for (i in length(code_lines):1) {
+        # Strip carriage returns just in case!
+        safe_line <- gsub("\r", "", code_lines[i])
+        clean_line <- trimws(gsub("#.*", "", safe_line))
+        if (clean_line != "") {
+          active_idx <- i
+          break
+        }
+      }
+    }
 
-    # Greedy match up to the last 'c(', then grab values (ignoring parentheses inside strings), then grab the suffix
-    rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
+    if (active_idx > 0) {
+        # Ensure we also strip \r from cmd just in case
+        safe_cmd <- trimws(gsub("\r", "", cmd))
+        safe_active_line <- trimws(gsub("#.*", "", gsub("\r", "", code_lines[active_idx])))
+        
+        #First check if it is a perfect match of the entire command.
+        if (safe_active_line == safe_cmd) {
+            is_exact_duplicate <- TRUE
+            replaced <- TRUE
+        } else {
+            #Greedy match up to the last opening parenthesis.
+            rgx <- "^(.*%in%\\s*c\\()((?:\"[^\"]*\"|'[^']*'|[^)])+)(\\).*)$"
 
-    if (active_idx > 0 && grepl(rgx, code_lines[active_idx], perl = TRUE) && grepl(rgx, cmd, perl = TRUE)) {
-      last_line <- code_lines[active_idx]
+            if (grepl(rgx, safe_active_line, perl = TRUE) && grepl(rgx, safe_cmd, perl = TRUE)) {
+              last_pfx <- sub(rgx, "\\1", safe_active_line)
+              last_val <- sub(rgx, "\\2", safe_active_line)
+              last_sfx <- sub(rgx, "\\3", safe_active_line)
 
-      last_pfx <- sub(rgx, "\\1", last_line)
-      last_val <- sub(rgx, "\\2", last_line)
-      last_sfx <- sub(rgx, "\\3", last_line)
+              cmd_pfx <- sub(rgx, "\\1", safe_cmd)
+              cmd_val <- sub(rgx, "\\2", safe_cmd)
+              cmd_sfx <- sub(rgx, "\\3", safe_cmd)
 
-      cmd_pfx <- sub(rgx, "\\1", cmd)
-      cmd_val <- sub(rgx, "\\2", cmd)
-      cmd_sfx <- sub(rgx, "\\3", cmd)
+              #If the structures match perfectly combine them.
+              if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
+                #Format comma-spaces consistently for searching
+                clean_last <- gsub(",\\s*", ", ", last_val)
+                clean_cmd <- gsub(",\\s*", ", ", cmd_val)
+                
+                #Pad with commas to ensure exact element matching without partial string overlaps
+                if (grepl(paste0(", ", clean_cmd, ", "), paste0(", ", clean_last, ", "), fixed = TRUE)) {
+                    is_exact_duplicate <- TRUE
+                } else {
+                    combined_val <- paste0(last_val, ", ", cmd_val)
+                    # Update the actual code_lines entry!
+                    code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
+                }
+                replaced <- TRUE
+              }
+            }
+        }
+    }
+  }
 
-      # If the structures match perfectly, combine them!
-      if (last_pfx == cmd_pfx && last_sfx == cmd_sfx) {
-        # Prevent exact duplicate additions if the user spams the same button
-        if (last_val != cmd_val) {
-          # Combine the values! (R's %in% logic naturally handles duplicates 
-          # if they accidentally click a value already inside the larger vector string)
-          combined_val <- paste0(last_val, ", ", cmd_val)
-          code_lines[active_idx] <- paste0(last_pfx, combined_val, last_sfx)
-        }
-        replaced <- TRUE
-      }
-    }
-  }
+  if (replaced) {
+    if (is_exact_duplicate) {
+        #Show duplicate toast if exact match.
+        outer_env$u__show_toast(session_name, "Attempted filter is already present in code area", bg_color = "#E07878")
+    } else {
+        #Overwrite the text area with the updated combined block.
+        u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
+    }
+  } else {
+    #Fallback to normal appending if it is a new logic block or writing to source file.
+    if (source_file == T) {
+      outer_env$u__code_r_add_cmd(session_name, cmd)
+    } else {
+      u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
+    }
+  }
 
-  if (replaced) {
-    # Overwrite the text area with the updated, combined block
-    u__text_area_set_text(outer_env[[session_name]]$text_area_1, paste0(code_lines, collapse = "\n"))
-  } else {
-    # Fallback to normal appending if it's a new logic block or writing to Source file
-    if (source_file == T) {
-      outer_env$u__code_r_add_cmd(session_name, cmd)
-    } else {
-      u__text_area_append_text(outer_env[[session_name]]$text_area_1, cmd)
-    }
-  }
-
-  # Fetch the newly injected text
-  buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
-  end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
-  start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
-  str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
-  
-  # Send it to the timeline tracker as a unique event!
-  outer_env$u__log_history(session_name, str, "button_click")
+  #If we did not skip it fetch the newly injected text and log history.
+  if (!is_exact_duplicate) {
+      buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+      end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+      start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+      str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+      
+      #Send it to the timeline tracker as a unique event.
+      outer_env$u__log_history(session_name, str, "button_click")
+  }
 }
+
 
 #' e__set_before_code
 #'
@@ -452,5 +639,15 @@ e__append_before_code <- function(session_name, cmd, outer_env = totem) {
 #' @return TODO
 
 e__set_before_code <- function(session_name, cmd, outer_env = totem) {
+  # 1. Overwrite the text area with the past code
   u__text_area_set_text(outer_env[[session_name]]$text_area_1, cmd)
+
+  # 2. Fetch the newly injected text from the buffer
+  buffer <- RGtk2::gtkTextViewGetBuffer(outer_env[[session_name]]$text_area_1$View)
+  end_iter <- RGtk2::gtkTextBufferGetEndIter(buffer)
+  start_iter <- RGtk2::gtkTextBufferGetStartIter(buffer)
+  str <- RGtk2::gtkTextBufferGetText(buffer, start_iter$iter, end_iter$iter, include.hidden.chars = TRUE)
+  
+  # 3. Log it to the timeline tracker as a unique event so Ctrl+Z works!
+  outer_env$u__log_history(session_name, str, "past_code_load")
 }

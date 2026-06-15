@@ -14,7 +14,7 @@ e__inverted_view <- function(session_name, current_row,outer_env=totem) {
   temp_df2 <- temp_df2[, -ncol(temp_df2)]
 
 
-  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
+  cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines", "nchar"))
 
   my_filter <- rep(T, nrow(temp_df))
   my_title <- ""

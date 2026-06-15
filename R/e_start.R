@@ -154,8 +154,9 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       )
       
       outer_env[[session_name]]$show_past_code_window <- function(session_name, outer_env = totem) {
-        outer_env[[session_name]]$past_code_window_table$update(totem$settings_list$previous_code)
+        outer_env[[session_name]]$past_code_window_table$update(outer_env$settings_list$previous_code)
         RGtk2::gtkWidgetShow(outer_env[[session_name]]$past_code_window)
+        RGtk2::gtkWindowPresent(outer_env[[session_name]]$past_code_window)
       }
 
 
@@ -374,8 +375,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
           if (group_by_entry != "") {
             cvar <- c(trimws(strsplit(x = group_by_entry, split = ",", fixed = T)[[1]]), cvar)
-            cvar <- cvar[cvar %in% colnames(temp_df)]
             cvar <- unique(cvar)
+            
+            missing_vars <- setdiff(cvar, colnames(temp_df))
+            if (length(missing_vars) > 0) {
+              outer_env$u__show_toast(session_name, paste0("Missing Group By vars ignored: ", paste(missing_vars, collapse = ", ")), bg_color = "#E07878")
+            }           
+            
+            cvar <- cvar[cvar %in% colnames(temp_df)]
           }
 
           
@@ -934,7 +941,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             RGtk2::gtkWidgetShowAll(vbox)
             
             response <- dialog$run()
-            if (response == RGtk2::GtkResponseType["ok"]) {
+            if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
               for (i in 1:length(slots)) {
                 # Pull from Dialog
                 buf <- buffers[[i]]
@@ -1338,7 +1345,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
             RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$top_tables_box)
             outer_env[[session_name]]$status_bar$simplicity_view <- T
           } 
-          #Otherwise show top boxes, disable simplicity fiew
+          #Otherwise show top boxes, disable simplicity view
           else {
             RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_code_box)
             RGtk2::gtkWidgetShow(outer_env[[session_name]]$data_view_list$top_tables_box)
@@ -1570,7 +1577,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       refresh <- function(session_name, outer_env = totem) {
         outer_env$show_load_window()
 
-        #Update version number here with substantial updates
+        #Pull the version number from the description file
         title <- paste0(
           gsub(paste0("\\.",outer_env[[session_name]]$passed_ext), "", outer_env[[session_name]]$sas_file_basename),
           " | ", outer_env[[session_name]]$sas_file_path, " | ", "Ver 1.1.2.5"
@@ -1587,16 +1594,20 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         # Nullify data2 so syntax errors fall back directly to unfiltered data1 on reload
         outer_env[[session_name]]$data2 <- NULL
 
-        outer_env$u__load_dataset(session_name)
+        # Load the dataset and capture the result
+        load_status <- outer_env$u__load_dataset(session_name)
+
+        # If the load completely failed (returned FALSE), abort the rest of the startup sequence
+        if (identical(load_status, FALSE)) {
+          return(FALSE)
+        }
 
         outer_env[[session_name]]$objects$current_view <- outer_env[[session_name]]$objects$next_view
         outer_env$hide_load_window()
       }
       
-      #Smart startup sequence: evaluate theme adjustments *after* functions are fully bound
-      if (outer_env[[session_name]]$status_bar$dark_mode) {
-        outer_env$u__apply_theme(session_name, outer_env)
-      }
+      #Apply theme regardless of dark or light
+      outer_env$u__apply_theme(session_name, outer_env)
 
       refresh(session_name)
       RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
@@ -1607,9 +1618,6 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       message("STARTUP ERROR:")
       message(as.character(e))
       message("*********************************\n")
-      
-      message("Press [Enter] to exit...")
-      readline()
     
       try({ outer_env$hide_load_window() })
     }

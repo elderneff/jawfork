@@ -25,7 +25,7 @@ sas_contents <- function(sas_path) {
 
 
   if (file.exists(sas_path) == F) {
-    message("File does not exists.")
+    message("File does not exist.")
     return(output_df)
   }
   if (grepl("\\.sas7bdat$", sas_path) == F) {
