@@ -203,7 +203,7 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
     box = top_box,
     start = T, padding = 1,
     stock_id = "gtk-leave-fullscreen",
-    tool_tip = "Show Header",
+    tool_tip = "Show Local Filter",
     call_back_fct = function(widget, event, data) {
       if (inner_env$hidden_table) {
         RGtk2::gtkWidgetShow(header_table)
