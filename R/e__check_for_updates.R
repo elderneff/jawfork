@@ -64,7 +64,8 @@ e__check_for_updates <- function(outer_env = totem) {
         paste0('set "R_USER=', portable_home, '"'),
         paste0('"', rscript_path, '" -e "for(p in c(\'sqldf\', \'haven\', \'lubridate\')) if(!requireNamespace(p, quietly=TRUE)) install.packages(p, repos=\'https://cloud.r-project.org\')" -e "devtools::install_github(\'elderneff/jawfork\', dependencies=FALSE, force=TRUE, lib=\'', portable_lib, '\')"'),
         "echo.",
-        "echo Update complete!\nPress any key to close this window.",
+        "echo Update complete!",
+        "echo Press any key to close this window.",
         "pause >nul",
         "del \"%~f0\" & exit"
       )
