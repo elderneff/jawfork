@@ -138,24 +138,13 @@ e__move_column <- function(placement, session_name, current_row, outer_env=totem
     
     #Combine explicit columns and helpers
     newst <- paste(c(final_explicit_cols, helpers), collapse = ", ")
-    } else {
-     # If the string was empty, explicitly list all columns up to the moved items 
-      # to lock in their absolute structural position, then add everything()
-      max_idx <- max(which(target_cols == selection), which(target_cols == target))
-      explicit_cols <- target_cols[1:max_idx]
-      
-      explicit_cols <- sapply(explicit_cols, function(x) {
-        if (!grepl("^[a-zA-Z0-9]*$", x)) paste0("`", x, "`") else x
-      }, USE.NAMES = FALSE)
-      newst <- paste(c(explicit_cols, "everything()"), collapse = ", ")
-    }
-
+    
     # Force the select checkbox to be active so the move actually applies
     RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_cb, TRUE)
     
     #Replace select field with new column order and run code
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, newst)
-    
+  
     outer_env$show_load_window()
     outer_env$u__load_dataset_filter(session_name)
     outer_env$hide_load_window()
