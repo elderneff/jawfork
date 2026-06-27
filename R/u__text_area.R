@@ -269,6 +269,9 @@ u__text_area_get_text <- function(obj) {
     include.hidden.chars = TRUE
   )
 
+  #Strip Windows carriage returns to prevent parsing errors
+  cmd <- gsub("\r", "", cmd)
+
   return(cmd)
 }
 

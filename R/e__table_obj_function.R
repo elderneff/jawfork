@@ -11,10 +11,11 @@ e__table_obj_function_df2 <- function(df, outer_env = totem, obj_env = inner_env
   is_dark <- totem$settings_list$dark_mode
   
   if (nrow(df) == 0) {
-    df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
-    colnames(df2) <- c("f___1", "f___2")
-    return(df2)
-  }
+  #Update ncol to 3 and add f___3 to the column names
+  df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 3, nrow = nrow(df))
+  colnames(df2) <- c("f___1", "f___2", "f___3")
+  return(df2)
+}
 
   df2 <- matrix(ifelse(is_dark, "#2D2D2D", "#F1F1F1"), ncol = 2, nrow = nrow(df))
 
@@ -342,8 +343,18 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view, obj_env$table_objects_list$model)
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view_frozen, obj_env$table_objects_list$model)
     
-    RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view)
-    RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view_frozen)
+    #Push the autosize and redraw commands to the end of the GTK event queue
+    # to ensure the model is fully realized before calculating widths
+    RGtk2::gIdleAdd(function(data) {
+      RGtk2::gtkTreeViewColumnsAutosize(data$view)
+      RGtk2::gtkTreeViewColumnsAutosize(data$frozen)
+      RGtk2::gtkWidgetQueueDraw(data$view)
+      RGtk2::gtkWidgetQueueDraw(data$frozen)
+      return(FALSE)
+    }, data = list(
+      view = obj_env$table_objects_list$view, 
+      frozen = obj_env$table_objects_list$view_frozen
+    ))
     
     if (is_full_data_table) {
       for (j in setdiff(seq_len(ncol(df) - 3), 1)) {

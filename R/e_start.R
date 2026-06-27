@@ -360,6 +360,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         try({
           temp_df <- outer_env[[session_name]]$data2
 
+          #Prevent summary triggers on internal UI columns
+          if (!(cvar %in% colnames(temp_df))) {
+            return(FALSE)
+          }
+
           RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$status_bar$info_label, paste0(
             cvar,
             " min length:", min(nchar(as.character(temp_df[[cvar]]))),
@@ -605,24 +610,30 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         return(T)
       }, data = list(session_name, outer_env))
 
-      u__button(
-        box = outer_env[[session_name]]$data_view_list$select_box,
-        start = T, padding = 2,
-        but_txt = "e",
-        tool_tip = "everything",
-        call_back_fct = function(widget, event, data) {
-          session_name <- data[[1]]
-          outer_env <- data[[2]]
-          st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
-          if (st != "") {
-            st <- paste0(st, ", everything()")
-          } else {
-            st <- "everything()"
-          }
-          RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
-          return(FALSE)
-        }, data = list(session_name, outer_env)
-      )
+      #everything() checkbox to replace the 'e' button
+      outer_env[[session_name]]$data_view_list$select_everything_cb <- RGtk2::gtkCheckButtonNewWithLabel("everything()")
+      #Get state from user settings
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_everything_cb, totem$settings_list$select_everything)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_everything_cb, F, F, padding = 2)
+
+      # Trigger data reload and save preference when toggled
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$select_everything_cb, "toggled", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        
+        # Capture the new state and save it globally to settings.rds
+        current_state <- RGtk2::gtkToggleButtonGetActive(widget)
+        outer_env$settings_list$select_everything <- current_state
+        save_settings(outer_env)
+        
+        # Proceed with data reload
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+      
       u__button(
         box = outer_env[[session_name]]$data_view_list$select_box,
         start = T, padding = 2,
@@ -1072,7 +1083,15 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
           x <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+
+          #Strip trailing newlines to prevent copying blank lines.
+          x <- sub("[\r\n]+$", "", x)
+          
           clipr::write_clip(x, allow_non_interactive = T)
+
+          if (outer_env$settings_list$copy_messages) {
+            outer_env$u__show_toast(session_name, "Code copied to clipboard")
+          }
           return(FALSE)
         }, data = list(session_name, outer_env)
       )
@@ -1087,6 +1106,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
           x <- clipr::read_clip(allow_non_interactive = T)
+
+          #Combine into a single string first
+          x_str <- paste0(x, collapse = "\n")
+          
+          #Aggressively strip ALL carriage returns, then strip trailing newlines
+          x_str <- gsub("\r", "", x_str)
+          x_str <- sub("[\n]+$", "", x_str)
 
           u__text_area_append_text(outer_env[[session_name]]$text_area_1, paste0(x, collapse = "\n"))
 
@@ -1567,7 +1593,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         columnlabel = totem$settings_list$columnlabel,
         columnunique = totem$settings_list$columnunique,
         professionalloading = totem$settings_list$professionalloading,
-        table_events = totem$settings_list$table_events
+        table_events = totem$settings_list$table_events,
+        select_everything = totem$settings_list$select_everything
       )
 
       #----------------------------------------
