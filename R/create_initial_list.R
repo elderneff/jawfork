@@ -316,6 +316,10 @@ check_settings <- function(settings) {
   if (("copy_messages" %in% names(settings)) == F) {
     settings$copy_messages <- T
   }
+  # Default select_everything to T if there is no previous setting
+  if (("select_everything" %in% names(settings)) == F) {
+    settings$select_everything <- T
+  }
   # Default code generation preferences to "Prompt" if there is no previous setting
   if (("code_case" %in% names(settings)) == F) {
     settings$code_case <- "Prompt"
