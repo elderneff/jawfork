@@ -1082,6 +1082,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           x <- sub("[\r\n]+$", "", x)
           
           clipr::write_clip(x, allow_non_interactive = T)
+
+          if (outer_env$settings_list$copy_messages) {
+            outer_env$u__show_toast(session_name, "Code copied to clipboard")
+          }
           return(FALSE)
         }, data = list(session_name, outer_env)
       )
@@ -1097,10 +1101,12 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           outer_env <- data[[2]]
           x <- clipr::read_clip(allow_non_interactive = T)
 
-          #Drop empty strings returned by read_clip to prevent trailing line breaks.
-          while(length(x) > 0 && x[length(x)] == "") {
-            x <- x[-length(x)]
-          }
+          #Combine into a single string first
+          x_str <- paste0(x, collapse = "\n")
+          
+          #Aggressively strip ALL carriage returns, then strip trailing newlines
+          x_str <- gsub("\r", "", x_str)
+          x_str <- sub("[\n]+$", "", x_str)
 
           u__text_area_append_text(outer_env[[session_name]]$text_area_1, paste0(x, collapse = "\n"))
 
