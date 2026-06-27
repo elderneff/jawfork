@@ -612,6 +612,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       #everything() checkbox to replace the 'e' button
       outer_env[[session_name]]$data_view_list$select_everything_cb <- RGtk2::gtkCheckButtonNewWithLabel("everything()")
+      RGtk2::gtkWidgetSetTooltipText(outer_env[[session_name]]$data_view_list$select_everything_cb, "Invisibly append everything() to end of select:")
       #Get state from user settings
       RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_everything_cb, totem$settings_list$select_everything)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_everything_cb, F, F, padding = 2)
