@@ -1077,6 +1077,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
           x <- u__text_area_get_text(outer_env[[session_name]]$text_area_1)
+
+          #Strip trailing newlines to prevent copying blank lines.
+          x <- sub("[\r\n]+$", "", x)
+          
           clipr::write_clip(x, allow_non_interactive = T)
           return(FALSE)
         }, data = list(session_name, outer_env)
@@ -1092,6 +1096,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
           session_name <- data[[1]]
           outer_env <- data[[2]]
           x <- clipr::read_clip(allow_non_interactive = T)
+
+          #Drop empty strings returned by read_clip to prevent trailing line breaks.
+          while(length(x) > 0 && x[length(x)] == "") {
+            x <- x[-length(x)]
+          }
 
           u__text_area_append_text(outer_env[[session_name]]$text_area_1, paste0(x, collapse = "\n"))
 
