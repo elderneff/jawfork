@@ -616,13 +616,21 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_everything_cb, totem$settings_list$select_everything)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_everything_cb, F, F, padding = 2)
 
-      #Trigger data reload when toggled
+      # Trigger data reload and save preference when toggled
       RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$select_everything_cb, "toggled", function(widget, data) {
         session_name <- data[[1]]
         outer_env <- data[[2]]
+        
+        # Capture the new state and save it globally to settings.rds
+        current_state <- RGtk2::gtkToggleButtonGetActive(widget)
+        outer_env$settings_list$select_everything <- current_state
+        save_settings(outer_env)
+        
+        # Proceed with data reload
         outer_env$show_load_window()
         outer_env$u__load_dataset_filter(session_name)
         outer_env$hide_load_window()
+        
         return(TRUE)
       }, data = list(session_name, outer_env))
       
