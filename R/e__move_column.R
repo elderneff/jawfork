@@ -101,8 +101,11 @@ e__move_column <- function(placement, session_name, current_row, outer_env=totem
     target_cols <- append(current_cols, selection, after = new_index - 1)
     target_cols <- target_cols[-delete_index]
     
-    #Parse the existing select string to keep it clean and minimal
+    #Parse the existing select string
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
+    
+    explicit_cols <- c()
+    helpers <- c()
     
     if (st != "") {
       #Split by comma while ignoring commas inside parentheses
@@ -112,20 +115,29 @@ e__move_column <- function(placement, session_name, current_row, outer_env=totem
       helpers <- vst[grepl("\\(\\)", vst)]
       explicit_cols <- vst[!grepl("\\(\\)", vst)]
       explicit_cols <- gsub("`", "", explicit_cols)
-      
-      #Ensure the moved columns are tracked explicitly
-      explicit_cols <- unique(c(explicit_cols, selection, target))
-      
-      #Sort explicit columns by their new relative order
-      explicit_cols <- target_cols[target_cols %in% explicit_cols]
-      
-      #Re-apply backticks if needed
-      explicit_cols <- sapply(explicit_cols, function(x) {
-        if (!grepl("^[a-zA-Z0-9]*$", x)) paste0("`", x, "`") else x
-      }, USE.NAMES = FALSE)
-      
-      #Combine explicit columns and helpers
-      newst <- paste(c(explicit_cols, helpers), collapse = ", ")
+    }
+    
+    #Ensure the newly moved columns are tracked explicitly alongside previous ones
+    explicit_cols <- unique(c(explicit_cols, selection, target))
+    
+    #Find the furthest column index we need to explicitly declare to maintain structural integrity
+    max_idx <- max(which(target_cols %in% explicit_cols))
+    
+    #Explicitly declare ALL columns from index 1 up to max_idx in their exact new order
+    final_explicit_cols <- target_cols[1:max_idx]
+    
+    #Re-apply backticks if needed
+    final_explicit_cols <- sapply(final_explicit_cols, function(x) {
+      if (!grepl("^[a-zA-Z0-9]*$", x)) paste0("`", x, "`") else x
+    }, USE.NAMES = FALSE)
+    
+    #If everything() isn't already in the helpers, add it to grab the remaining tail columns
+    if (!any(grepl("everything\\(\\)", helpers))) {
+      helpers <- c(helpers, "everything()")
+    }
+    
+    #Combine explicit columns and helpers
+    newst <- paste(c(final_explicit_cols, helpers), collapse = ", ")
     } else {
      # If the string was empty, explicitly list all columns up to the moved items 
       # to lock in their absolute structural position, then add everything()
