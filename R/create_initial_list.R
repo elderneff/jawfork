@@ -78,7 +78,22 @@ save_settings <- function(jaw_e) {
     message(paste0("Removed: ", jaw_e$settings_dir_path))
     unlink(jaw_e$settings_dir_path, recursive = T)
   } else {
-    saveRDS(jaw_e$settings_list, file = jaw_e$local_settings_rds)
+    # 1. Create a unique temporary file using the process ID to avoid collisions
+    temp_file <- paste0(jaw_e$local_settings_rds, ".tmp.", Sys.getpid())
+    
+    tryCatch({
+      # 2. Write the binary data to the isolated temporary file
+      saveRDS(jaw_e$settings_list, file = temp_file)
+      
+      # 3. Attempt an atomic rename. If Windows throws a strict lock, fallback to a forced copy.
+      if (!file.rename(temp_file, jaw_e$local_settings_rds)) {
+        file.copy(temp_file, jaw_e$local_settings_rds, overwrite = TRUE)
+        unlink(temp_file)
+      }
+    }, error = function(e) {
+      # 4. Clean up the temp file if anything goes catastrophically wrong
+      if (file.exists(temp_file)) unlink(temp_file)
+    })
   }
 }
 
