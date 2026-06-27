@@ -35,7 +35,7 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
     if (is.list(disk_settings)) {
       
       # 1. Sync global checkboxes and keybinds
-      for (setting_name in c("maximize", "ctrlshift", "columnlabel", "columnunique", "professionalloading", "table_events")) {
+      for (setting_name in c("maximize", "ctrlshift", "columnlabel", "columnunique", "professionalloading", "table_events", "select_everything")) {
         # If this session DID NOT change the setting from its initial state...
         if (identical(outer_env$settings_list[[setting_name]], outer_env[[session_name]]$initial_settings_snapshot[[setting_name]])) {
           # ...safely inherit the latest version from the disk
