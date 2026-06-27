@@ -403,6 +403,14 @@ e__load_dataset_filter_inner_select <- function(session_name, df,outer_env=totem
     return(df)
   }
 
+  #Invisibly append everything() if the checkbox is checked
+  if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$select_everything_cb)) {
+    # Guard against duplication in case the user manually typed it anyway
+    if (!grepl("everything\\(\\)", select_txt)) {
+      select_txt <- paste0(select_txt, ", everything()")
+    }
+  }
+
   outer_env[[session_name]]$e$df <- df
 
   cmd <- paste0("df <- df %>% select(", select_txt, ")")
