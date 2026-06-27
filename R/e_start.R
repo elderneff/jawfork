@@ -612,7 +612,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       #everything() checkbox to replace the 'e' button
       outer_env[[session_name]]$data_view_list$select_everything_cb <- RGtk2::gtkCheckButtonNewWithLabel("everything()")
-      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_everything_cb, TRUE)
+      #Get state from user settings
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$select_everything_cb, totem$settings_list$select_everything)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$select_box, outer_env[[session_name]]$data_view_list$select_everything_cb, F, F, padding = 2)
 
       #Trigger data reload when toggled
@@ -1584,7 +1585,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         columnlabel = totem$settings_list$columnlabel,
         columnunique = totem$settings_list$columnunique,
         professionalloading = totem$settings_list$professionalloading,
-        table_events = totem$settings_list$table_events
+        table_events = totem$settings_list$table_events,
+        select_everything = totem$settings_list$select_everything
       )
 
       #----------------------------------------
