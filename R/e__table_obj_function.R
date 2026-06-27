@@ -343,8 +343,18 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view, obj_env$table_objects_list$model)
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view_frozen, obj_env$table_objects_list$model)
     
-    RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view)
-    RGtk2::gtkTreeViewColumnsAutosize(obj_env$table_objects_list$view_frozen)
+    #Push the autosize and redraw commands to the end of the GTK event queue
+    # to ensure the model is fully realized before calculating widths
+    RGtk2::gIdleAdd(function(data) {
+      RGtk2::gtkTreeViewColumnsAutosize(data$view)
+      RGtk2::gtkTreeViewColumnsAutosize(data$frozen)
+      RGtk2::gtkWidgetQueueDraw(data$view)
+      RGtk2::gtkWidgetQueueDraw(data$frozen)
+      return(FALSE)
+    }, data = list(
+      view = obj_env$table_objects_list$view, 
+      frozen = obj_env$table_objects_list$view_frozen
+    ))
     
     if (is_full_data_table) {
       for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
