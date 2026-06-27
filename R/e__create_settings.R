@@ -286,6 +286,11 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gtkToggleButtonSetActive(copymessages_btn, outer_env$settings_list$copy_messages)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, copymessages_btn, F, F, padding = 4)
 
+  #Add button for select everything setting
+  selecteverything_btn <- RGtk2::gtkCheckButtonNewWithLabel("Append everything() to select statements by default", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(selecteverything_btn, outer_env$settings_list$select_everything)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, selecteverything_btn, F, F, padding = 4)
+
   # Add combo box for Code Case
   case_box <- RGtk2::gtkHBox()
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, case_box, F, F, padding = 4)
@@ -468,6 +473,13 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$copy_messages <- current_state
     return(T)
   })
+
+  #Define function to call when select everything button clicked
+  RGtk2::gSignalConnect(selecteverything_btn, "toggled", function(selecteverything_btn) {
+    current_state <- RGtk2::gtkToggleButtonGetActive(selecteverything_btn)
+    outer_env$settings_list$select_everything <- current_state
+    return(T)
+  })
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
@@ -493,6 +505,7 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$dark_mode <- F 
     outer_env$settings_list$show_tooltips <- T
     outer_env$settings_list$copy_messages <- T
+    outer_env$settings_list$select_everything <- T
     
     settings_obj <- RGtk2::gtkSettingsGetDefault()
     if (!is.null(settings_obj)) {
