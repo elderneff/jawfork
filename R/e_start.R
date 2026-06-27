@@ -360,6 +360,11 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         try({
           temp_df <- outer_env[[session_name]]$data2
 
+          #Prevent summary triggers on internal UI columns
+          if (!(cvar %in% colnames(temp_df))) {
+            return(FALSE)
+          }
+
           RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$status_bar$info_label, paste0(
             cvar,
             " min length:", min(nchar(as.character(temp_df[[cvar]]))),
