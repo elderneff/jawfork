@@ -346,10 +346,23 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     #Push the autosize and redraw commands to the end of the GTK event queue
     # to ensure the model is fully realized before calculating widths
     RGtk2::gIdleAdd(function(data) {
+      #Force GTK to dump its width cache by temporarily toggling the sizing mode
+      for (col in RGtk2::gtkTreeViewGetColumns(data$view)) {
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["fixed"])
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["autosize"])
+      }
+      
+      #Apply the same cache wipe to the frozen row number column
+      for (col in RGtk2::gtkTreeViewGetColumns(data$frozen)) {
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["fixed"])
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["autosize"])
+      }
+      
       RGtk2::gtkTreeViewColumnsAutosize(data$view)
       RGtk2::gtkTreeViewColumnsAutosize(data$frozen)
       RGtk2::gtkWidgetQueueDraw(data$view)
       RGtk2::gtkWidgetQueueDraw(data$frozen)
+      
       return(FALSE)
     }, data = list(
       view = obj_env$table_objects_list$view, 
