@@ -34,30 +34,39 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       my_sub_str_name <- my_sub_str
       item_d_name <- paste0(parent_name, "|", my_sub_str_name)
       
-      # Use native GtkMenuItem generation to preserve standard geometry and padding
+      #Use native GtkMenuItem generation to preserve standard geometry and padding.
       menu_item <- RGtk2::gtkMenuItem(label = my_sub_str_name)
       
-      # If the item is in the dark block, use Cairo to color the full width natively
+      #If the item is in the dark block, use Cairo to color the full width natively.
       if (my_sub_str_name %in% dark_items) {
         RGtk2::gSignalConnect(menu_item, "expose-event", function(widget, event, data) {
-          # Allow the native Windows engine to take over if the user is hovering.
-          # This preserves the readable native blue highlight and white text.
-          if (widget[["state"]] == RGtk2::GtkStateType["prelight"]) {
-            return(FALSE)
-          }
-          
-          # Otherwise, manually paint the dark grey box across the entire allocation.
-          # This securely paints over the invisible left gutter area.
-          alloc <- widget[["allocation"]]
           cr <- RGtk2::gdkCairoCreate(widget[["window"]])
+          alloc <- widget[["allocation"]]
           
-          # #D0D0D0 corresponds to RGB: 208/255 = 0.8157
-          RGtk2::cairoSetSourceRgb(cr, 0.8157, 0.8157, 0.8157)
-          RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
-          RGtk2::cairoFill(cr)
-          
-          # Return FALSE so GTK still knows to draw the text label on top of our rectangle
-          return(FALSE)
+          if (widget[["state"]] == RGtk2::GtkStateType["prelight"]) {
+            #Wipe the background clean with the standard menu color.
+            #This prevents the native Windows transparent blue hover from mixing with dark grey.
+            RGtk2::cairoSetSourceRgb(cr, 240/255, 240/255, 240/255)
+            RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
+            RGtk2::cairoFill(cr)
+            
+            #Return FALSE to let GTK draw the native blue hover and the text label.
+            return(FALSE)
+          } else {
+            #Paint the dark grey box across the entire allocation.
+            RGtk2::cairoSetSourceRgb(cr, 208/255, 208/255, 208/255)
+            RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
+            RGtk2::cairoFill(cr)
+            
+            #Manually draw the text label since we are about to block the native painter.
+            child <- RGtk2::gtkBinGetChild(widget)
+            if (!is.null(child)) {
+              RGtk2::gtkContainerPropagateExpose(widget, child, event)
+            }
+            
+            #Return TRUE to block the native engine from painting light grey over our dark grey.
+            return(TRUE)
+          }
         })
       }
       
