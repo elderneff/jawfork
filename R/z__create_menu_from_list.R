@@ -34,46 +34,32 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       my_sub_str_name <- my_sub_str
       item_d_name <- paste0(parent_name, "|", my_sub_str_name)
       
-      #1. Create an empty menu item.
-      menu_item <- RGtk2::gtkMenuItemNew()
+      # Use native GtkMenuItem generation to preserve standard geometry and padding
+      menu_item <- RGtk2::gtkMenuItem(label = my_sub_str_name)
       
-      #2. Create an event box to control background rendering completely.
-      eb <- RGtk2::gtkEventBoxNew()
-      
-      #3. Create the text label and align it left.
-      lbl <- RGtk2::gtkLabelNew(my_sub_str_name)
-      lbl$xalign <- 0
-      
-      #Add visual padding to mimic a native menu item.
-      lbl["xpad"] <- 0
-      lbl["ypad"] <- 0
-      
-      #4. Pack them together.
-      RGtk2::gtkContainerAdd(eb, lbl)
-      RGtk2::gtkContainerAdd(menu_item, eb)
-      
-      #5. Determine the colors for the block.
+      # If the item is in the dark block, use Cairo to color the full width natively
       if (my_sub_str_name %in% dark_items) {
-        c_norm <- RGtk2::gdkColorParse("#D0D0D0")$color
-        c_hov <- RGtk2::gdkColorParse("#B0B0B0")$color
-      } else {
-        c_norm <- RGtk2::gdkColorParse("#F0F0F0")$color
-        c_hov <- RGtk2::gdkColorParse("#E5E5E5")$color
+        RGtk2::gSignalConnect(menu_item, "expose-event", function(widget, event, data) {
+          # Allow the native Windows engine to take over if the user is hovering.
+          # This preserves the readable native blue highlight and white text.
+          if (widget[["state"]] == RGtk2::GtkStateType["prelight"]) {
+            return(FALSE)
+          }
+          
+          # Otherwise, manually paint the dark grey box across the entire allocation.
+          # This securely paints over the invisible left gutter area.
+          alloc <- widget[["allocation"]]
+          cr <- RGtk2::gdkCairoCreate(widget[["window"]])
+          
+          # #D0D0D0 corresponds to RGB: 208/255 = 0.8157
+          RGtk2::cairoSetSourceRgb(cr, 0.8157, 0.8157, 0.8157)
+          RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
+          RGtk2::cairoFill(cr)
+          
+          # Return FALSE so GTK still knows to draw the text label on top of our rectangle
+          return(FALSE)
+        })
       }
-      
-      #Set the normal background.
-      RGtk2::gtkWidgetModifyBg(eb, "normal", c_norm)
-      
-      #6. Manually capture hover states to swap colors.
-      RGtk2::gSignalConnect(menu_item, "select", function(widget, data) {
-        RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_hov)
-        return(FALSE)
-      }, data = list(eb = eb, c_hov = c_hov))
-      
-      RGtk2::gSignalConnect(menu_item, "deselect", function(widget, data) {
-        RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_norm)
-        return(FALSE)
-      }, data = list(eb = eb, c_norm = c_norm))
       
       obj$items[[item_d_name]] <- menu_item
       RGtk2::gtkMenuShellAppend(obj[[parent_name]], obj$items[[item_d_name]])
