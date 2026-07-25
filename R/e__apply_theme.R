@@ -1,10 +1,3 @@
-#' e__apply_theme
-#'
-#' @param session_name TODO
-#' @param outer_env TODO
-#'
-#' @return TODO
-
 e__apply_theme <- function(session_name = NULL, outer_env = totem) {
   if (is.null(session_name)) {
     is_dark <- outer_env$settings_list$dark_mode
@@ -18,6 +11,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
   entry_bg <- ifelse(is_dark, "#3D3D3D", "#FFFFFF")
 
   if (is_dark) {
+    #Restore native wimp engine and black text specifically for menus
     rc_style <- "
       style 'jaw_dark' {
         engine \"\" {} 
@@ -43,16 +37,20 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
         fg[INSENSITIVE]   = '#505050'  
       }
       style 'jaw_menu_light' {
-        engine \"\" {}
+        engine \"wimp\" {}
         font_name = \"Segoe UI 9\"
         bg[NORMAL]        = '#F0F0F0'
+        bg[PRELIGHT]      = '#E5E5E5'
         fg[NORMAL]        = '#000000'
+        fg[PRELIGHT]      = '#000000'
         text[NORMAL]      = '#000000'
+        text[PRELIGHT]    = '#000000'
       }
       
       widget_class '*' style 'jaw_dark'
-      widget_class '*Menu*' style 'jaw_menu_light'
-      widget_class '*MenuItem*' style 'jaw_menu_light'
+      widget_class '*GtkMenu*' style 'jaw_menu_light'
+      widget_class '*GtkMenuItem*' style 'jaw_menu_light'
+      widget_class '*GtkMenuItem*GtkLabel*' style 'jaw_menu_light'
     "
   } else {
     rc_style <- "
@@ -74,8 +72,9 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
       }
       
       widget_class '*' style 'jaw_light'
-      widget_class '*Menu*' style 'jaw_light'
-      widget_class '*MenuItem*' style 'jaw_light'
+      widget_class '*GtkMenu*' style 'jaw_light'
+      widget_class '*GtkMenuItem*' style 'jaw_light'
+      widget_class '*GtkMenuItem*GtkLabel*' style 'jaw_light'
     "
   }
   
@@ -92,7 +91,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
     }
   }
   
-  # Now safely apply recursive resets
+  #Now safely apply recursive resets
   if (!is.null(session_name)) {
     reset_rc_recursive(outer_env[[session_name]]$windows$main_window)
   }
@@ -101,7 +100,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
   }
   if (!is.null(outer_env$file_history$file_history_window)) {
     reset_rc_recursive(outer_env$file_history$file_history_window)
-    # Explicitly color the File History window backgrounds
+    #Explicitly color the File History window backgrounds
     RGtk2::gtkWidgetModifyBg(outer_env$file_history$file_history_window, "normal", bg_color)
     RGtk2::gtkWidgetModifyBg(outer_env$file_history$file_history_window_main_box, "normal", bg_color)
     if (!is.null(outer_env$file_history$file_history_window_main_new_path_box)) {
@@ -109,7 +108,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
     }
   }
   
-  # Wrap session-specific UI modifiers
+  #Wrap session-specific UI modifiers
   if (!is.null(session_name)) {
     RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$windows$main_window, "normal", bg_color)
     RGtk2::gtkWidgetModifyBg(outer_env[[session_name]]$main$main_box, "normal", bg_color)

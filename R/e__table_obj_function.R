@@ -167,9 +167,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   is_dark <- totem$settings_list$dark_mode
   
   #Rebuild if the column names, column classes, or the theme state change
-  if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F ||
-      (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F ||
-      !identical(obj_env$table_objects_list$current_dark_mode, is_dark)) {
+  if ((paste0(obj_env$table_objects_list$current_columns, collapse = "|") == paste0(colnames(df), collapse = "|")) == F || (paste0(obj_env$table_objects_list$current_classes, collapse = "|") == new_classes_str) == F || !identical(obj_env$table_objects_list$current_dark_mode, is_dark)) {
     
     #Capture old horizontal scroll position before destroying the table
     old_h_val <- 0
@@ -343,19 +341,6 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view, obj_env$table_objects_list$model)
     RGtk2::gtkTreeViewSetModel(obj_env$table_objects_list$view_frozen, obj_env$table_objects_list$model)
     
-    #Push the autosize and redraw commands to the end of the GTK event queue
-    # to ensure the model is fully realized before calculating widths
-    RGtk2::gIdleAdd(function(data) {
-      RGtk2::gtkTreeViewColumnsAutosize(data$view)
-      RGtk2::gtkTreeViewColumnsAutosize(data$frozen)
-      RGtk2::gtkWidgetQueueDraw(data$view)
-      RGtk2::gtkWidgetQueueDraw(data$frozen)
-      return(FALSE)
-    }, data = list(
-      view = obj_env$table_objects_list$view, 
-      frozen = obj_env$table_objects_list$view_frozen
-    ))
-    
     if (is_full_data_table) {
       for (j in setdiff(seq_len(ncol(df) - 3), 1)) {
         data3 <- outer_env[[session_name]]$data3
@@ -451,6 +436,36 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
      RGtk2::gtkWidgetHide(obj_env$table_objects_list$allColumns[[1]]$evt$y)
      RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
   }
+
+  #Force GTK to respect custom header widths and wipe autosize caches
+  RGtk2::gIdleAdd(function(data) {
+    enforce_widths <- function(view) {
+      cols <- RGtk2::gtkTreeViewGetColumns(view)
+      for (col in cols) {
+        #Fetch custom widget to enforce minimum header width
+        hw <- RGtk2::gtkTreeViewColumnGetWidget(col)
+        if (!is.null(hw)) {
+          req <- RGtk2::gtkWidgetSizeRequest(hw)$requisition
+          #Twelve pixel padding covers GTK native column separators and margins
+          RGtk2::gtkTreeViewColumnSetMinWidth(col, req$width + 12)
+        }
+
+        #Toggle sizing mode to wipe GTK internal width cache
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["fixed"])
+        RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["autosize"])
+      }
+      RGtk2::gtkTreeViewColumnsAutosize(view)
+      RGtk2::gtkWidgetQueueDraw(view)
+    }
+
+    enforce_widths(data$view)
+    enforce_widths(data$frozen)
+
+    return(FALSE)
+  }, data = list(
+    view = obj_env$table_objects_list$view,
+    frozen = obj_env$table_objects_list$view_frozen
+  ))
 }
 
   clear_filters <- function() {
