@@ -49,10 +49,20 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
         fg[NORMAL]        = '#000000'
         text[NORMAL]      = '#000000'
       }
+      style 'jaw_menu_dark_grey' {
+        engine \"\" {}
+        font_name = \"Segoe UI 9\"
+        bg[NORMAL]        = '#D0D0D0'
+        bg[PRELIGHT]      = '#B0B0B0'
+        fg[NORMAL]        = '#000000'
+        fg[PRELIGHT]      = '#000000'
+        text[NORMAL]      = '#000000'
+      }
       
       widget_class '*' style 'jaw_dark'
       widget_class '*Menu*' style 'jaw_menu_light'
       widget_class '*MenuItem*' style 'jaw_menu_light'
+      widget '*MenuItemDark*' style 'jaw_menu_dark_grey'
     "
   } else {
     rc_style <- "
@@ -72,10 +82,20 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
         fg[PRELIGHT]      = '#000000'
         fg[ACTIVE]        = '#000000'
       }
+      style 'jaw_menu_dark_grey' {
+        engine \"\" {}
+        font_name = \"Segoe UI 9\"
+        bg[NORMAL]        = '#D0D0D0'
+        bg[PRELIGHT]      = '#B0B0B0'
+        fg[NORMAL]        = '#000000'
+        fg[PRELIGHT]      = '#000000'
+        text[NORMAL]      = '#000000'
+      }
       
       widget_class '*' style 'jaw_light'
       widget_class '*Menu*' style 'jaw_light'
       widget_class '*MenuItem*' style 'jaw_light'
+      widget '*MenuItemDark*' style 'jaw_menu_dark_grey'
     "
   }
   
