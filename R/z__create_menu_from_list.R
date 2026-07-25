@@ -7,7 +7,7 @@
 #' @return TODO
 
 z__create_menu_from_list <- function(obj, parent_name, my_list) {
-  #Define items that should have the darker grey background.
+  # Define items that should have the darker grey background.
   dark_items <- c(
     "if then", "if then do",
     "Column full", "Column filtered", "Column Wide",
@@ -15,14 +15,65 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
     "Add Bucket to Main Filter Exclude"
   )
   
+  # Inject an RC style that strips the Windows Wimp engine from these specific widgets.
+  # This returns total background control to standard GTK, eliminating the forced left gutter.
+  rc_style <- "
+    style 'jaw_menu_base' {
+      engine \"\" {}
+      bg[NORMAL] = '#F0F0F0'
+    }
+    style 'jaw_light_item' {
+      engine \"\" {}
+      bg[NORMAL] = '#F0F0F0'
+      bg[PRELIGHT] = '#CCE8FF'
+      fg[NORMAL] = '#000000'
+      fg[PRELIGHT] = '#000000'
+      text[NORMAL] = '#000000'
+      text[PRELIGHT] = '#000000'
+    }
+    style 'jaw_dark_item' {
+      engine \"\" {}
+      bg[NORMAL] = '#C8C8C8'
+      bg[PRELIGHT] = '#CCE8FF'
+      fg[NORMAL] = '#000000'
+      fg[PRELIGHT] = '#000000'
+      text[NORMAL] = '#000000'
+      text[PRELIGHT] = '#000000'
+    }
+    widget '*jaw_context_menu*' style 'jaw_menu_base'
+    widget '*jaw_context_menu*.*' style 'jaw_light_item'
+    widget '*jaw_context_menu*.jaw_dark_item' style 'jaw_dark_item'
+    widget '*jaw_context_menu*.jaw_dark_item.*' style 'jaw_dark_item'
+  "
+  RGtk2::gtkRcParseString(rc_style)
+
+  # Name the parent menu so it gets caught by the RC wildcard string above
+  if (!is.null(obj[[parent_name]])) {
+    RGtk2::gtkWidgetSetName(obj[[parent_name]], "jaw_context_menu")
+  }
+
   if (is.list(my_list)) {
     menu_dirs <- names(my_list)
     for (my_sub_str in menu_dirs) {
       my_sub_str_name <- my_sub_str
       item_d_name <- paste0(parent_name, "|", my_sub_str_name)
-      obj$items[[item_d_name]] <- RGtk2::gtkMenuItem(label = my_sub_str_name)
+      
+      menu_item <- RGtk2::gtkMenuItem(label = my_sub_str_name)
+      
+      # Assign the native style names
+      if (my_sub_str_name %in% dark_items) {
+        RGtk2::gtkWidgetSetName(menu_item, "jaw_dark_item")
+      } else {
+        RGtk2::gtkWidgetSetName(menu_item, "jaw_light_item")
+      }
+      
+      obj$items[[item_d_name]] <- menu_item
       RGtk2::gtkMenuShellAppend(obj[[parent_name]], obj$items[[item_d_name]])
+      
+      # Create submenu and tag it to propagate the Wimp-free zone
       obj[[item_d_name]] <- RGtk2::gtkMenu()
+      RGtk2::gtkWidgetSetName(obj[[item_d_name]], "jaw_context_menu")
+      
       RGtk2::gtkMenuItemSetSubmenu(obj$items[[item_d_name]], obj[[item_d_name]])
       obj <- z__create_menu_from_list(
         obj, item_d_name,
@@ -34,40 +85,13 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       my_sub_str_name <- my_sub_str
       item_d_name <- paste0(parent_name, "|", my_sub_str_name)
       
-      #Use native GtkMenuItem generation to preserve standard geometry and padding.
       menu_item <- RGtk2::gtkMenuItem(label = my_sub_str_name)
       
-      #If the item is in the dark block, use Cairo to color the full width natively.
+      # Assign the native style names
       if (my_sub_str_name %in% dark_items) {
-        RGtk2::gSignalConnect(menu_item, "expose-event", function(widget, event, data) {
-          cr <- RGtk2::gdkCairoCreate(widget[["window"]])
-          alloc <- widget[["allocation"]]
-          
-          if (widget[["state"]] == RGtk2::GtkStateType["prelight"]) {
-            #Wipe the background clean with the standard menu color.
-            #This prevents the native Windows transparent blue hover from mixing with dark grey.
-            RGtk2::cairoSetSourceRgb(cr, 240/255, 240/255, 240/255)
-            RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
-            RGtk2::cairoFill(cr)
-            
-            #Return FALSE to let GTK draw the native blue hover and the text label.
-            return(FALSE)
-          } else {
-            #Paint the dark grey box across the entire allocation.
-            RGtk2::cairoSetSourceRgb(cr, 208/255, 208/255, 208/255)
-            RGtk2::cairoRectangle(cr, alloc[["x"]], alloc[["y"]], alloc[["width"]], alloc[["height"]])
-            RGtk2::cairoFill(cr)
-            
-            #Manually draw the text label since we are about to block the native painter.
-            child <- RGtk2::gtkBinGetChild(widget)
-            if (!is.null(child)) {
-              RGtk2::gtkContainerPropagateExpose(widget, child, event)
-            }
-            
-            #Return TRUE to block the native engine from painting light grey over our dark grey.
-            return(TRUE)
-          }
-        })
+        RGtk2::gtkWidgetSetName(menu_item, "jaw_dark_item")
+      } else {
+        RGtk2::gtkWidgetSetName(menu_item, "jaw_light_item")
       }
       
       obj$items[[item_d_name]] <- menu_item
