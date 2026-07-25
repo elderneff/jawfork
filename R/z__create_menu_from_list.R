@@ -56,8 +56,8 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       lbl$xalign <- 0
       
       #Add visual padding inside the EventBox so it mimics native menus.
-      lbl["xpad"] <- 25
-      lbl["ypad"] <- 4
+      lbl["xpad"] <- 0
+      lbl["ypad"] <- 0
       
       #Pack them together.
       RGtk2::gtkContainerAdd(eb, lbl)
