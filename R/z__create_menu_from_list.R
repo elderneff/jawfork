@@ -1,10 +1,12 @@
 z__create_menu_from_list <- function(obj, parent_name, my_list) {
   # Define items that should have the darker grey background.
   dark_items <- c(
-    "if then", "if then do",
-    "Column full", "Column filtered", "Column Wide",
-    "Add Column to Main Filter Exclude", "Add to Main Filter Exclude",
-    "Add Bucket to Main Filter Exclude"
+    "Add to filter", "Add to grepl to filter", "Clear filter", "Bob",
+    "if then", "if then do", "Column full", "Column filtered", "Column Wide", "Row",
+    "Add Column to Main Filter", "Add Column to Main Filter Exclude", "Get Summary", "Graph Summary", "Scatterplot Summary",
+      "Add Column to select", "Move column before", "Move column after", "Format by Column", "Add'l format by Column",
+    "Copy dataset layout", "Copy keep statement", "Copy label statmenet", "Copy length statement",
+    "Open Flat View", "Open Inverted View"
   )
   
   # Inject RC string to permanently collapse the invisible left gutter 
