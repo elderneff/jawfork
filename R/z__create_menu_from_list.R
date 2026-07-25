@@ -1,11 +1,3 @@
-#' z__create_menu_from_list
-#'
-#' @param obj TODO
-#' @param parent_name TODO
-#' @param my_list TODO
-#'
-#' @return TODO
-
 z__create_menu_from_list <- function(obj, parent_name, my_list) {
   #Define items that should have the darker grey background.
   dark_items <- c(
@@ -72,17 +64,21 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
         c_hov <- RGtk2::gdkColorParse("#91C9F7")$color
       }
       
-      #Set the normal background.
+      #Set the normal and prelight backgrounds initially.
       RGtk2::gtkWidgetModifyBg(eb, "normal", c_norm)
+      RGtk2::gtkWidgetModifyBg(eb, "prelight", c_norm)
       
       #Manually capture hover states to swap colors with solid paint.
+      #Update both normal and prelight states to ensure the EventBox color fully applies.
       RGtk2::gSignalConnect(menu_item, "select", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_hov)
+        RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_hov)
         return(FALSE)
       }, data = list(eb = eb, c_hov = c_hov))
       
       RGtk2::gSignalConnect(menu_item, "deselect", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_norm)
+        RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_norm)
         return(FALSE)
       }, data = list(eb = eb, c_norm = c_norm))
       
