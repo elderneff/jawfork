@@ -1,5 +1,5 @@
 z__create_menu_from_list <- function(obj, parent_name, my_list) {
-  #Define items that should have the darker grey background.
+  # Define items that should have the darker grey background.
   dark_items <- c(
     "if then", "if then do",
     "Column full", "Column filtered", "Column Wide",
@@ -7,14 +7,8 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
     "Add Bucket to Main Filter Exclude"
   )
   
-  # Check dark mode status globally
-  is_dark <- FALSE
-  if (exists("totem") && !is.null(totem$settings_list$dark_mode)) {
-    is_dark <- totem$settings_list$dark_mode
-  }
-  
-  #Inject RC string to permanently collapse the invisible left gutter 
-  #and strip native engine rendering to eliminate the default blue box.
+  # Inject RC string to permanently collapse the invisible left gutter 
+  # and strip native engine rendering to eliminate the default blue box.
   RGtk2::gtkRcParseString("
     style 'jaw_menu_flush' {
       engine \"\" {}
@@ -43,67 +37,56 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       my_sub_str_name <- my_sub_str
       item_d_name <- paste0(parent_name, "|", my_sub_str_name)
       
-      #Create an empty menu item.
+      # Create an empty menu item.
       menu_item <- RGtk2::gtkMenuItemNew()
       
-      #Create an event box to control background rendering completely.
+      # Create an event box to control background rendering completely.
       eb <- RGtk2::gtkEventBoxNew()
       RGtk2::gtkWidgetSetHasWindow(eb, TRUE)
       
-      #Create the text label and align it left.
+      # Create the text label and align it left.
       lbl <- RGtk2::gtkLabelNew(my_sub_str_name)
       lbl$xalign <- 0
       
-      #Add visual padding inside the EventBox so it mimics native menus.
+      # Add visual padding inside the EventBox so it mimics native menus.
       lbl["xpad"] <- 0
       lbl["ypad"] <- 0
       
-      #Pack them together.
+      # Pack them together.
       RGtk2::gtkContainerAdd(eb, lbl)
       RGtk2::gtkContainerAdd(menu_item, eb)
       
-      #Determine the normal background color for the block[cite: 1].
+      # Determine the normal background color for the block.
       if (my_sub_str_name %in% dark_items) {
         c_norm <- RGtk2::gdkColorParse("#C8C8C8")$color
       } else {
         c_norm <- RGtk2::gdkColorParse("#F0F0F0")$color
       }
       
-      # Determine hover colors dynamically based on dark mode.
-      if (is_dark) {
-        c_hov <- RGtk2::gdkColorParse("#505050")$color
-        text_hov <- RGtk2::gdkColorParse("#FFFFFF")$color
-      } else {
-        c_hov <- RGtk2::gdkColorParse("#91C9F7")$color
-        text_hov <- RGtk2::gdkColorParse("#000000")$color
-      }
+      # Lock hover color to the light blue permanently.
+      c_hov <- RGtk2::gdkColorParse("#91C9F7")$color
       
-      text_norm <- RGtk2::gdkColorParse("#000000")$color
-      
-      #Set the normal and prelight backgrounds initially on BOTH components.
+      # Set the normal and prelight backgrounds initially on BOTH components.
       RGtk2::gtkWidgetModifyBg(eb, "normal", c_norm)
       RGtk2::gtkWidgetModifyBg(eb, "prelight", c_norm)
       RGtk2::gtkWidgetModifyBg(menu_item, "normal", c_norm)
       RGtk2::gtkWidgetModifyBg(menu_item, "prelight", c_norm)
-      RGtk2::gtkWidgetModifyFg(lbl, "normal", text_norm)
       
-      #Manually capture hover states to swap colors with solid paint[cite: 1].
-      #Apply color to widget (menu_item) to stop native blue box bleeding through.
+      # Manually capture hover states to swap colors with solid paint.
+      # Apply color to widget (menu_item) to stop native blue box bleeding through.
       RGtk2::gSignalConnect(menu_item, "select", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_hov)
         RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_hov)
         RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_hov)
-        RGtk2::gtkWidgetModifyFg(data$lbl, "normal", data$text_hov)
         return(FALSE)
-      }, data = list(eb = eb, lbl = lbl, c_hov = c_hov, text_hov = text_hov))
+      }, data = list(eb = eb, c_hov = c_hov))
       
       RGtk2::gSignalConnect(menu_item, "deselect", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_norm)
         RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_norm)
         RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_norm)
-        RGtk2::gtkWidgetModifyFg(data$lbl, "normal", data$text_norm)
         return(FALSE)
-      }, data = list(eb = eb, lbl = lbl, c_norm = c_norm, text_norm = text_norm))
+      }, data = list(eb = eb, c_norm = c_norm))
       
       obj$items[[item_d_name]] <- menu_item
       RGtk2::gtkMenuShellAppend(obj[[parent_name]], obj$items[[item_d_name]])
