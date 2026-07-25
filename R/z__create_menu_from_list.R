@@ -5,7 +5,7 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
     "if then", "if then do", "Column full", "Column filtered", "Column Wide", "Row",
     "Add Column to Main Filter", "Add Column to Main Filter Exclude", "Get Summary", "Graph Summary", "Scatterplot Summary",
       "Add Column to select", "Move column before", "Move column after", 
-    "Copy dataset layout", "Copy keep statement", "Copy label statment", "Copy length statement",
+    "Copy dataset layout", "Copy keep statement", "Copy label statement", "Copy length statement",
     "Open Flat View", "Open Inverted View"
   )
   
