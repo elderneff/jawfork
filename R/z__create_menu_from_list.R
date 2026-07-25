@@ -13,10 +13,11 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
     is_dark <- totem$settings_list$dark_mode
   }
   
-  #Inject RC string to permanently collapse the invisible left gutter.
-  #This allows our EventBox to stretch entirely edge-to-edge.
+  #Inject RC string to permanently collapse the invisible left gutter 
+  #and strip native engine rendering to eliminate the default blue box.
   RGtk2::gtkRcParseString("
     style 'jaw_menu_flush' {
+      engine \"\" {}
       GtkMenuItem::toggle-spacing = 0
       GtkMenuItem::indicator-size = 0
     }
@@ -61,7 +62,7 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       RGtk2::gtkContainerAdd(eb, lbl)
       RGtk2::gtkContainerAdd(menu_item, eb)
       
-      #Determine the normal background color for the block.
+      #Determine the normal background color for the block[cite: 1].
       if (my_sub_str_name %in% dark_items) {
         c_norm <- RGtk2::gdkColorParse("#C8C8C8")$color
       } else {
@@ -70,7 +71,7 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       
       # Determine hover colors dynamically based on dark mode.
       if (is_dark) {
-        c_hov <- RGtk2::gdkColorParse("#404040")$color
+        c_hov <- RGtk2::gdkColorParse("#505050")$color
         text_hov <- RGtk2::gdkColorParse("#FFFFFF")$color
       } else {
         c_hov <- RGtk2::gdkColorParse("#91C9F7")$color
@@ -79,16 +80,19 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       
       text_norm <- RGtk2::gdkColorParse("#000000")$color
       
-      #Set the normal and prelight backgrounds initially.
+      #Set the normal and prelight backgrounds initially on BOTH components.
       RGtk2::gtkWidgetModifyBg(eb, "normal", c_norm)
       RGtk2::gtkWidgetModifyBg(eb, "prelight", c_norm)
+      RGtk2::gtkWidgetModifyBg(menu_item, "normal", c_norm)
+      RGtk2::gtkWidgetModifyBg(menu_item, "prelight", c_norm)
       RGtk2::gtkWidgetModifyFg(lbl, "normal", text_norm)
       
-      #Manually capture hover states to swap colors with solid paint.
-      #Update both normal and prelight states to ensure the EventBox color fully applies.
+      #Manually capture hover states to swap colors with solid paint[cite: 1].
+      #Apply color to widget (menu_item) to stop native blue box bleeding through.
       RGtk2::gSignalConnect(menu_item, "select", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_hov)
         RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_hov)
+        RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_hov)
         RGtk2::gtkWidgetModifyFg(data$lbl, "normal", data$text_hov)
         return(FALSE)
       }, data = list(eb = eb, lbl = lbl, c_hov = c_hov, text_hov = text_hov))
@@ -96,6 +100,7 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
       RGtk2::gSignalConnect(menu_item, "deselect", function(widget, data) {
         RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_norm)
         RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_norm)
+        RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_norm)
         RGtk2::gtkWidgetModifyFg(data$lbl, "normal", data$text_norm)
         return(FALSE)
       }, data = list(eb = eb, lbl = lbl, c_norm = c_norm, text_norm = text_norm))
