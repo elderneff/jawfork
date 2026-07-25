@@ -73,9 +73,18 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
         fg[ACTIVE]        = '#000000'
       }
       
+      style 'jaw_menu_light_custom' {
+        engine "" {}
+        font_name = \"Segoe UI 9\"
+        bg[NORMAL]        = '#F0F0F0'
+        bg[PRELIGHT]      = '#E5E5E5'
+        fg[NORMAL]        = '#000000'
+        text[NORMAL]      = '#000000'
+      }
+      
       widget_class '*' style 'jaw_light'
-      widget_class '*Menu*' style 'jaw_light'
-      widget_class '*MenuItem*' style 'jaw_light'
+      widget_class '*Menu*' style 'jaw_menu_light_custom'
+      widget_class '*MenuItem*' style 'jaw_menu_light_custom'
     "
   }
   
