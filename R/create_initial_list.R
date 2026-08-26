@@ -339,6 +339,18 @@ check_settings <- function(settings) {
       list(name = "Slot 5", code = "")
     )
   }
+  # Default startup freeze text to blank
+  if (("startup_freeze" %in% names(settings)) == F) {
+    settings$default_freeze <- ""
+  }
+  # Default startup layout to false
+  if (("startup_layout" %in% names(settings)) == F) {
+    settings$fixed_layout <- FALSE
+  }
+  # Default pending startup layout trigger to false
+  if (("pending_startup_layout" %in% names(settings)) == F) {
+    settings$pending_fixed_layout <- FALSE
+  }
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)
 
