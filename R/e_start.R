@@ -1650,7 +1650,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         columnunique = totem$settings_list$columnunique,
         professionalloading = totem$settings_list$professionalloading,
         table_events = totem$settings_list$table_events,
-        select_everything = totem$settings_list$select_everything
+        select_everything = totem$settings_list$select_everything,
+        default_freeze = totem$settings_list$default_freeze,
+        startup_layout = totem$settings_list$startup_layout,
+        pending_startup_layout = totem$settings_list$pending_startup_layout
       )
 
       #----------------------------------------
