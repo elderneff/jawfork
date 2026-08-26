@@ -248,10 +248,10 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
     return(T)
   }
 
-  #Expose the freeze column method to the parent environment
-  freeze_column_passthrough <- function(col_name) {
+  #Expose freeze_column wrapper bound to inner_env.
+  freeze_column <- e__with_env(function(col_name) {
     inner_env$df_obj$freeze_column(col_name)
-  }
+  })
   
-  return(list(update = update, freeze_column = freeze_column_passthrough))
+  return(list(update = update, freeze_column = freeze_column))
 }
