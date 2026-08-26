@@ -339,8 +339,8 @@ check_settings <- function(settings) {
       list(name = "Slot 5", code = "")
     )
   }
-  # Default startup freeze text to blank
-  if (("startup_freeze" %in% names(settings)) == F) {
+  # Default default freeze text to blank
+  if (("default_freeze" %in% names(settings)) == F) {
     settings$default_freeze <- ""
   }
   # Default startup layout to false
