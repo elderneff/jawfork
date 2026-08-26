@@ -722,6 +722,8 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_cb, F, F, padding = 2)
 
       outer_env[[session_name]]$data_view_list$freeze_entry <- RGtk2::gtkEntry()
+      #Initialize the freeze box with the global default setting
+      RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$freeze_entry, totem$settings_list$default_freeze)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_entry, T, T)
 
       # Trigger data reload when checkbox is toggled
