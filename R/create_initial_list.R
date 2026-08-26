@@ -154,7 +154,8 @@ check_settings <- function(settings) {
       "Format by Column" = "-",
       "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-"
+      "Compare with Pinned" = "-",
+      "Freeze Column" = "-"
     ),
     "Full Data Table" = list(
       "Add to Main Filter" = "right+ctrl",
@@ -178,7 +179,8 @@ check_settings <- function(settings) {
       "Format by Column" = "-",
       "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-"
+      "Compare with Pinned" = "-",
+      "Freeze Column" = "-"
     ),
     "Summary Table" = list(
       "Add to Main Filter" = "right+ctrl",
