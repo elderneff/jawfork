@@ -707,7 +707,59 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }, data = list(session_name, outer_env)
       )
 
+      #----------------------------------------
+      # data view: freeze
+      #----------------------------------------
 
+      outer_env[[session_name]]$data_view_list$freeze_box <- RGtk2::gtkHBox()
+
+      outer_env[[session_name]]$data_view_list$freeze_label <- RGtk2::gtkLabel("  freeze:")
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_label, F, F, padding = 2)
+      
+      #Checkbox to temporarily disable frozen columns
+      outer_env[[session_name]]$data_view_list$freeze_cb <- RGtk2::gtkCheckButtonNew()
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$freeze_cb, TRUE)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_cb, F, F, padding = 2)
+
+      outer_env[[session_name]]$data_view_list$freeze_entry <- RGtk2::gtkEntry()
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_entry, T, T)
+
+      # Trigger data reload when checkbox is toggled
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$freeze_cb, "toggled", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      # Trigger data reload when user presses enter in the field
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$freeze_entry, "activate", function(menu, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      # Clear button
+      u__button(
+        box = outer_env[[session_name]]$data_view_list$freeze_box,
+        start = T, padding = 2,
+        stock_id = "gtk-close",
+        tool_tip = "Clear",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$freeze_entry, "")
+          outer_env$show_load_window()
+          outer_env$u__load_dataset_filter(session_name)
+          outer_env$hide_load_window()
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
 
 
       #----------------------------------------
@@ -1133,6 +1185,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$select_box, T, T, padding = 1)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$group_by_box, T, T, padding = 1)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$freeze_box, T, T, padding = 1)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$unique_by_box, T, T, padding = 1)
 
 
