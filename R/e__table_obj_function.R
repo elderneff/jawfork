@@ -199,6 +199,19 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     RGtk2::gtkTreeViewSetGridLines(obj_env$table_objects_list$view_frozen, "none")
     
     obj_env$table_objects_list$allColumns <- vector("list", ncol(df) - 3)
+
+    # Parse the currently frozen columns dynamically from the UI text field.
+    frozen_cols <- c()
+    if (!is.null(outer_env[[session_name]]$data_view_list$freeze_cb)) {
+      if (RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$freeze_cb)) {
+        freeze_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$freeze_entry))
+        if (freeze_txt != "") {
+          frozen_cols <- trimws(strsplit(freeze_txt, ",")[[1]])
+        }
+      }
+    }
+    # Save it to the obj_env so e__add_column_label knows to tint the background!
+    obj_env$table_objects_list$frozen_columns <- frozen_cols
     
     #Append columns to their respective views.
     for (j in seq_len(ncol(df) - 3)) {
@@ -487,13 +500,28 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
   }
 
   freeze_column <- function(col_name) {
-    #Toggle freeze state for multiple columns.
-    if (col_name %in% obj_env$table_objects_list$frozen_columns) {
-      obj_env$table_objects_list$frozen_columns <- setdiff(obj_env$table_objects_list$frozen_columns, col_name)
+    # 1. Read current entry
+    freeze_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$freeze_entry))
+    if (freeze_txt == "") {
+      frozen_cols <- c()
     } else {
-      obj_env$table_objects_list$frozen_columns <- c(obj_env$table_objects_list$frozen_columns, col_name)
+      frozen_cols <- trimws(strsplit(freeze_txt, ",")[[1]])
     }
-    #Force GTK to completely rebuild the table views by spoofing a column mismatch.
+    
+    # 2. Toggle column in the vector
+    if (col_name %in% frozen_cols) {
+      frozen_cols <- setdiff(frozen_cols, col_name)
+    } else {
+      frozen_cols <- c(frozen_cols, col_name)
+    }
+    
+    # 3. Force the checkbox ON if they are actively using the right-click command
+    RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$freeze_cb, TRUE)
+    
+    # 4. Push text to the UI field
+    RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$freeze_entry, paste0(frozen_cols, collapse = ", "))
+    
+    # 5. Spoof a mismatch to force GTK to cleanly rebuild the split-pane views
     obj_env$table_objects_list$current_columns <- c("FORCE_REDRAW")
     obj_env$df_obj$draw_table()
   }
