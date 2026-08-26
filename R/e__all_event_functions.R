@@ -444,7 +444,12 @@ e__all_event_functions <- function(outer_env = totem) {
     action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Meta Table")
   }
   i__all_event_functions[["Meta Table"]][["Freeze Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    obj_env$df_obj$freeze_column(current_row$column)
+    #Extract the true column name from the clicked row in the meta table
+    current_data <- obj_env$df_obj$current_data()
+    col_name <- current_data[current_row$row_i, "variable", drop = T]
+    
+    #Route the freeze command to the Full Data Table
+    outer_env[[session_name]]$data_view_list$slot1_list$full_table$freeze_column(col_name)
   }
 
   #--------------------------------------------
