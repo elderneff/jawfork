@@ -128,6 +128,7 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
 
   obj_env$table_objects_list$current_columns <- c("x")
   obj_env$table_objects_list$current_classes <- c("y")
+  obj_env$table_objects_list$frozen_column <- NULL
   obj_env$table_objects_list$current_dark_mode <- NA
   obj_env$table_objects_list$raw_df <- data.frame("x" = character())
   obj_env$table_objects_list$model <- RGtk2::rGtkDataFrame(obj_env$table_objects_list$raw_df)
@@ -203,8 +204,8 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     for (j in seq_len(ncol(df) - 3)) {
       tmp <- obj_env$new_tree_view_column(df, j)
       
-      #If it is the row number column, put it in the frozen view
-      if (colnames(df)[j] == "r__") {
+      #If it is the row number column OR the user-frozen column, put it in the frozen view.
+      if (colnames(df)[j] == "r__" || identical(colnames(df)[j], obj_env$table_objects_list$frozen_column)) {
         RGtk2::gtkTreeViewAppendColumn(obj_env$table_objects_list$view_frozen, tmp$column)
       } else {
         RGtk2::gtkTreeViewAppendColumn(obj_env$table_objects_list$view, tmp$column)
@@ -485,9 +486,17 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     obj_env$select_obj$add(txt)
   }
 
-
-
-
+  freeze_column <- function(col_name) {
+    #Toggle freeze state.
+    if (identical(obj_env$table_objects_list$frozen_column, col_name)) {
+      obj_env$table_objects_list$frozen_column <- NULL
+    } else {
+      obj_env$table_objects_list$frozen_column <- col_name
+    }
+    #Force GTK to completely rebuild the table views by spoofing a column mismatch.
+    obj_env$table_objects_list$current_columns <- c("FORCE_REDRAW")
+    obj_env$df_obj$draw_table()
+  }
 
   get_current_row <- function() {
     return(obj_env$table_objects_list$current_row)
@@ -504,6 +513,6 @@ e__table_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
 
   return(list(
     update_table = update_table,
-    clear_filters = clear_filters, clear_arrange = clear_arrange, clear_select = clear_select, add_select = add_select, get_current_row = get_current_row, hide = hide, show = show
+    clear_filters = clear_filters, clear_arrange = clear_arrange, clear_select = clear_select, add_select = add_select, get_current_row = get_current_row, hide = hide, show = show, freeze_column = freeze_column
   ))
 }
