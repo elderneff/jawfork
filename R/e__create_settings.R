@@ -331,19 +331,33 @@ e__create_settings <- function(outer_env = totem) {
   outer_env$settings_window$space_combo <- space_combo
 
   #Add Freeze default field
-  freeze_box <- RGtk2::gtkHBox()
-  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, freeze_box, F, F, padding = 4)
-  RGtk2::gtkBoxPackStart(freeze_box, RGtk2::gtkLabel("Freeze on startup: "), F, F, padding = 2)
-  freeze_entry <- RGtk2::gtkEntry()
-  RGtk2::gtkEntrySetText(freeze_entry, outer_env$settings_list$default_freeze)
-  RGtk2::gtkBoxPackStart(freeze_box, freeze_entry, F, F, padding = 2)
-  
-  RGtk2::gSignalConnect(freeze_entry, "changed", function(widget, data) {
-    outer_env <- data
-    outer_env$settings_list$default_freeze <- RGtk2::gtkEntryGetText(widget)
-    save_settings(outer_env)
-    return(TRUE)
-  }, data = outer_env)
+    freeze_box <- RGtk2::gtkHBox()
+    RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, freeze_box, F, F, padding = 4)
+    RGtk2::gtkBoxPackStart(freeze_box, RGtk2::gtkLabel("Freeze on dataset open: "), F, F, padding = 2)
+    
+    #Store a safe reference to the entry
+    outer_env$settings_window$freeze_entry <- RGtk2::gtkEntry()
+    
+    #Safely extract and set the text
+    def_freeze <- outer_env$settings_list$default_freeze
+    if (is.null(def_freeze)) def_freeze <- ""
+    RGtk2::gtkEntrySetText(outer_env$settings_window$freeze_entry, def_freeze)
+    
+    RGtk2::gtkBoxPackStart(freeze_box, outer_env$settings_window$freeze_entry, F, F, padding = 2)
+    
+    #Update memory instantaneously as the user types
+    RGtk2::gSignalConnect(outer_env$settings_window$freeze_entry, "changed", function(widget, data) {
+      outer_env <- data
+      outer_env$settings_list$default_freeze <- RGtk2::gtkEntryGetText(widget)
+      return(TRUE)
+    }, data = outer_env)
+    
+    #Write to disk only when they click away to prevent Windows file lock collisions!
+    RGtk2::gSignalConnect(outer_env$settings_window$freeze_entry, "focus-out-event", function(widget, event, data) {
+      outer_env <- data
+      save_settings(outer_env)
+      return(FALSE)
+    }, data = outer_env)
 
   # Initialize lists to store widget references for syncing
   outer_env$settings_window$ccd_name_entries <- list()
