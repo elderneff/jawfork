@@ -89,15 +89,25 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
   }, silent = TRUE)
 
   if (!is.null(initial)) {
-    # GTK often shifts panes/windows by 1-2 pixels during rendering. 
-    # We require a difference of > 5 pixels to count as a deliberate user resize.
-    if (abs(main_position - initial$main_pane) > 5) outer_env$settings_list$default_sizes$main_pane <- main_position
-    if (abs(top_position - initial$top_pane) > 5) outer_env$settings_list$default_sizes$top_pane <- top_position
-    if (abs(slot_position - initial$slot_pane) > 5) outer_env$settings_list$default_sizes$slot_pane <- slot_position
-    if (simplicity_view != initial$simplicity) outer_env$settings_list$simplicity <- simplicity_view
+    #Check if we are allowed to save layouts
+    can_save_layout <- !outer_env$settings_list$fixed_layout || outer_env$settings_list$pending_fixed_layout
     
-    if (abs(window_size[1] - initial$window[1]) > 5 || abs(window_size[2] - initial$window[2]) > 5) {
-      outer_env$settings_list$default_sizes$window <- window_size
+    if (can_save_layout) {
+      #GTK often shifts panes/windows by 1-2 pixels during rendering. 
+      #We require a difference of > 5 pixels to count as a deliberate user resize.
+      if (abs(main_position - initial$main_pane) > 5) outer_env$settings_list$default_sizes$main_pane <- main_position
+      if (abs(top_position - initial$top_pane) > 5) outer_env$settings_list$default_sizes$top_pane <- top_position
+      if (abs(slot_position - initial$slot_pane) > 5) outer_env$settings_list$default_sizes$slot_pane <- slot_position
+      if (simplicity_view != initial$simplicity) outer_env$settings_list$simplicity <- simplicity_view
+      
+      if (abs(window_size[1] - initial$window[1]) > 5 || abs(window_size[2] - initial$window[2]) > 5) {
+        outer_env$settings_list$default_sizes$window <- window_size
+      }
+      
+      #Turn off pending flag so it becomes permanently frozen on next close
+      if (outer_env$settings_list$pending_fixed_layout) {
+        outer_env$settings_list$pending_fixed_layout <- FALSE
+      }
     }
   }
 
