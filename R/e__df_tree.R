@@ -247,5 +247,11 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
     inner_env$df_obj$call_generate_full_df(df)
     return(T)
   }
-  return(list(update = update))
+
+  #Expose the freeze column method to the parent environment
+  freeze_column_passthrough <- function(col_name) {
+    inner_env$df_obj$freeze_column(col_name)
+  }
+  
+  return(list(update = update, freeze_column = freeze_column_passthrough))
 }
