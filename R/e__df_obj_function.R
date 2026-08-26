@@ -370,6 +370,10 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Length statement copied to clipboard")
   }
 
+  freeze_column <- function(col_name) {
+    table_obj$freeze_column(col_name)
+  }
+
 
   return(list(
     full_data = full_data, get_filtered_df_nrow = get_filtered_df_nrow, update_filter = update_filter,
@@ -377,6 +381,6 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     current_data = current_data, get_current_row = get_current_row, clear_filters = clear_filters,
     view = view, copy_full = copy_full, copy_full_to_file = copy_full_to_file, copy_filter = copy_filter,
     copy_dataset_layout = copy_dataset_layout, copy_keep = copy_keep,
-    copy_label = copy_label, copy_length = copy_length, get_column_classes = get_column_classes, get_column_values = get_column_values
+    copy_label = copy_label, copy_length = copy_length, get_column_classes = get_column_classes, get_column_values = get_column_values, freeze_column = freeze_column
   ))
 }
