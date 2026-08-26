@@ -124,6 +124,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
       outer_env[[session_name]]$data_view_list$select_entry,
       outer_env[[session_name]]$data_view_list$group_by_entry,
       outer_env[[session_name]]$data_view_list$unique_by_entry,
+      outer_env[[session_name]]$data_view_list$freeze_entry,
       outer_env[[session_name]]$status_bar$box_bucket_entry,
       outer_env[[session_name]]$export_name_entry,
       outer_env[[session_name]]$format_by_entry,
@@ -142,6 +143,7 @@ e__apply_theme <- function(session_name = NULL, outer_env = totem) {
       outer_env[[session_name]]$data_view_list$select_label,
       outer_env[[session_name]]$data_view_list$group_by_label,
       outer_env[[session_name]]$data_view_list$unique_by_label,
+      outer_env[[session_name]]$data_view_list$freeze_label,
       outer_env[[session_name]]$export_label,
       outer_env[[session_name]]$format_by_label,
       outer_env[[session_name]]$format_by_label2
