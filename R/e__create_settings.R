@@ -291,6 +291,11 @@ e__create_settings <- function(outer_env = totem) {
   RGtk2::gtkToggleButtonSetActive(selecteverything_btn, outer_env$settings_list$select_everything)
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, selecteverything_btn, F, F, padding = 4)
 
+  #Add button for startup layout
+  startuplayout <- RGtk2::gtkCheckButtonNewWithLabel("Set permanent layout size defaults", show = TRUE)
+  RGtk2::gtkToggleButtonSetActive(startuplayout, outer_env$settings_list$startup_layout)
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, startuplayout, F, F, padding = 4)
+
   # Add combo box for Code Case
   case_box <- RGtk2::gtkHBox()
   RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, case_box, F, F, padding = 4)
@@ -324,6 +329,21 @@ e__create_settings <- function(outer_env = totem) {
   }, data = outer_env)  
 
   outer_env$settings_window$space_combo <- space_combo
+
+  #Add Freeze default field
+  freeze_box <- RGtk2::gtkHBox()
+  RGtk2::gtkBoxPackStart(outer_env$settings_window$settings_window_main_box, freeze_box, F, F, padding = 4)
+  RGtk2::gtkBoxPackStart(freeze_box, RGtk2::gtkLabel("Freeze on startup: "), F, F, padding = 2)
+  freeze_entry <- RGtk2::gtkEntry()
+  RGtk2::gtkEntrySetText(freeze_entry, outer_env$settings_list$default_freeze)
+  RGtk2::gtkBoxPackStart(freeze_box, freeze_entry, F, F, padding = 2)
+  
+  RGtk2::gSignalConnect(freeze_entry, "changed", function(widget, data) {
+    outer_env <- data
+    outer_env$settings_list$default_freeze <- RGtk2::gtkEntryGetText(widget)
+    save_settings(outer_env)
+    return(TRUE)
+  }, data = outer_env)
 
   # Initialize lists to store widget references for syncing
   outer_env$settings_window$ccd_name_entries <- list()
@@ -480,6 +500,49 @@ e__create_settings <- function(outer_env = totem) {
     outer_env$settings_list$select_everything <- current_state
     return(T)
   })
+
+  #Signal connection for startup layout using 'clicked' to avoid programmatic toggle loops
+  RGtk2::gSignalConnect(startuplayout, "clicked", function(widget, data) {
+    outer_env <- data
+    current_state <- RGtk2::gtkToggleButtonGetActive(widget)
+    
+    if (current_state) {
+      dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env$settings_window$settings_window, 
+        flags = "destroy-with-parent", 
+        type = "question", 
+        buttons = "ok-cancel", 
+        "Resize the windows within this dataset then close it to save those dimensions as the startup default. The startup default will not be overwritten if future datasets are resized. To change these dimensions, uncheck the box in settings then check it again."
+      )
+      response <- dialog$run()
+      RGtk2::gtkWidgetDestroy(dialog)
+      
+      if (response == RGtk2::GtkResponseType["ok"] || response == -5) {
+        outer_env$settings_list$startup_layout <- TRUE
+        outer_env$settings_list$pending_startup_layout <- TRUE
+        save_settings(outer_env)
+      } else {
+        cancel_dialog <- RGtk2::gtkMessageDialog(
+          parent = outer_env$settings_window$settings_window, 
+          flags = "destroy-with-parent", 
+          type = "info", 
+          buttons = "ok", 
+          "Default layout sizes will not be saved."
+        )
+        cancel_dialog$run()
+        RGtk2::gtkWidgetDestroy(cancel_dialog)
+        
+        #Revert checkbox safely
+        RGtk2::gtkToggleButtonSetActive(widget, FALSE)
+        outer_env$settings_list$startup_layout <- FALSE
+      }
+    } else {
+      outer_env$settings_list$startup_layout <- FALSE
+      outer_env$settings_list$pending_startup_layout <- FALSE
+      save_settings(outer_env)
+    }
+    return(TRUE)
+  }, data = outer_env)
   
   #Define function to call when reset button clicked
   RGtk2::gSignalConnect(header_reset, "button-press-event", function(widget, event, data) {
