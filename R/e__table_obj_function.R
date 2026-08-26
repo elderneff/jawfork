@@ -294,7 +294,8 @@ e__table_obj_function <- function(box, outer_env = totem, obj_env=inner_env) {
       table_hbox <- RGtk2::gtkHBox()
       RGtk2::gtkBoxPackStart(table_hbox, sw_frozen, F, F) 
       #Add custom right border if multiple columns are frozen
-      if (length(frozen_cols) > 0) {
+      valid_frozen <- intersect(frozen_cols, colnames(df))
+      if (length(valid_frozen) > 0 && is_full_data_table) {
         frozen_border <- RGtk2::gtkEventBox()
         RGtk2::gtkWidgetSetSizeRequest(frozen_border, 3, -1)
         border_hex <- ifelse(is_dark, "#606060", "#A0A0A0")
