@@ -293,6 +293,15 @@ e__table_obj_function <- function(box, outer_env = totem, obj_env=inner_env) {
       #Pack main and frozen side-by-side in an Hbox
       table_hbox <- RGtk2::gtkHBox()
       RGtk2::gtkBoxPackStart(table_hbox, sw_frozen, F, F) 
+      #Add custom right border if multiple columns are frozen
+      if (length(frozen_cols) > 0) {
+        frozen_border <- RGtk2::gtkEventBox()
+        RGtk2::gtkWidgetSetSizeRequest(frozen_border, 3, -1)
+        border_hex <- ifelse(is_dark, "#606060", "#A0A0A0")
+        border_c <- RGtk2::gdkColorParse(border_hex)$color
+        RGtk2::gtkWidgetModifyBg(frozen_border, "normal", border_c)
+        RGtk2::gtkBoxPackStart(table_hbox, frozen_border, F, F)
+      }      
       RGtk2::gtkBoxPackStart(table_hbox, sw, T, T)
       
       RGtk2::gtkBoxPackStart(obj_env$table_objects_list$inner_box, table_hbox, T, T)
@@ -411,15 +420,9 @@ e__table_obj_function <- function(box, outer_env = totem, obj_env=inner_env) {
             if (totem$settings_list$columnlabel & totem$settings_list$columnunique) { RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[j]]$evt$y, paste0(result, " \nU: ", my_row[, "unique"])) } else if (totem$settings_list$columnlabel & !totem$settings_list$columnunique) { RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[j]]$evt$y, paste0(result, " ")) } else if (!totem$settings_list$columnlabel & totem$settings_list$columnunique) { RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[j]]$evt$y, paste0("U: ", my_row[, "unique"])) }
           }
           
+          #Determine default header color
           is_dark <- totem$settings_list$dark_mode
-          
-          #Check if the current column is in the frozen UI list to preserve the tint
-          is_frozen <- isTRUE(colnames(df)[j] %in% frozen_cols)
-          if (is_frozen) {
-            header_bg <- ifelse(is_dark, "#404040", "#E0E0E0")
-          } else {
-            header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
-          }
+          header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
           
           RGtk2::gtkWidgetSetTooltipText(obj_env$table_objects_list$allColumns[[j]]$evt$evb, my_tool_tip)
           RGtk2::gtkWidgetModifyBg(object = obj_env$table_objects_list$allColumns[[j]]$evt$evb, state = "normal", color = header_bg)
