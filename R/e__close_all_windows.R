@@ -90,7 +90,7 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
 
   if (!is.null(initial)) {
     #Check if we are allowed to save layouts
-    can_save_layout <- !outer_env$settings_list$fixed_layout || outer_env$settings_list$pending_fixed_layout
+    can_save_layout <- !outer_env$settings_list$startup_layout || outer_env$settings_list$pending_startup_layout
     
     if (can_save_layout) {
       #GTK often shifts panes/windows by 1-2 pixels during rendering. 
@@ -105,8 +105,8 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
       }
       
       #Turn off pending flag so it becomes permanently frozen on next close
-      if (outer_env$settings_list$pending_fixed_layout) {
-        outer_env$settings_list$pending_fixed_layout <- FALSE
+      if (outer_env$settings_list$pending_startup_layout) {
+        outer_env$settings_list$pending_startup_layout <- FALSE
       }
     }
   }
