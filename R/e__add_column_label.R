@@ -119,7 +119,15 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
   }
 
   is_dark <- totem$settings_list$dark_mode
-  header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
+  
+  #Determine if this column is the actively frozen one
+  is_frozen <- !is.null(obj_env$table_objects_list$frozen_column) && identical(label, obj_env$table_objects_list$frozen_column)
+  
+  if (is_frozen) {
+    header_bg <- ifelse(is_dark, "#404040", "#E0E0E0")
+  } else {
+    header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
+  }
 
   if (is.null(var_class) == F) {
     if (var_class == "numeric") {
