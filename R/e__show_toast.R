@@ -13,7 +13,6 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   toast_win <- RGtk2::gtkWindowNew("toplevel")
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
-  # RGtk2::gtkWindowSetKeepAbove(toast_win, TRUE)
   RGtk2::gtkWindowSetPosition(toast_win, 0L)
   
   #Apply the opacity setting to the top-level window.
@@ -43,6 +42,11 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   
   if (!is.null(parent_window)) {
     true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
+    
+    #Force GTK to generate the underlying Windows HWND before modifying window states.
+    RGtk2::gtkWidgetRealize(toast_win)
+    
+    #Transient-for keeps it above jaw without breaking global OS z-order.
     RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
     
     #Request the dimensions of our newly built toast.
