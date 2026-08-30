@@ -109,20 +109,52 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
     outer_env$u__df_view(obj_env$df_obj_list$full_df, paste0("Full Data: ", as.character(Sys.time())), height = 400, width = 500)
   }
 
+  #Helper function to dynamically pad strings for perfect text editor alignment.
+  u__align_dataframe <- function(df) {
+    df_char <- as.data.frame(lapply(df, function(x) {
+      val <- as.character(x)
+      val[is.na(val)] <- "NA"
+      val
+    }), stringsAsFactors = FALSE)
+    
+    if (ncol(df_char) > 1) {
+      for (j in seq_len(ncol(df_char) - 1)) {
+        #Strip embedded newlines to preserve column widths.
+        col_vals <- gsub("\n", " ", df_char[[j]])
+        col_name <- gsub("\n", " ", colnames(df_char)[j])
+        
+        df_char[[j]] <- col_vals
+        colnames(df_char)[j] <- col_name
+        
+        col_max <- max(nchar(c(col_name, col_vals)), na.rm = TRUE)
+        
+        #Pad column names with spaces.
+        hdr_pad <- col_max - nchar(col_name)
+        if (hdr_pad > 0) colnames(df_char)[j] <- paste0(col_name, strrep(" ", hdr_pad))
+        
+        #Pad cell values with spaces.
+        pads <- col_max - nchar(col_vals)
+        df_char[[j]] <- paste0(col_vals, strrep(" ", pads))
+      }
+    }
+    return(df_char)
+  }
+
   copy_full <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
-      clipr::write_clip(obj_env$df_obj_list$full_df, allow_non_interactive = T)
+      aligned_df <- u__align_dataframe(obj_env$df_obj_list$full_df)
+      clipr::write_clip(aligned_df, allow_non_interactive = T)
       if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$full_df[, pass_columns, drop = F]
-        clipr::write_clip(x, allow_non_interactive = T)
+        aligned_df <- u__align_dataframe(x)
+        clipr::write_clip(aligned_df, allow_non_interactive = T)
         if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$full_df[, pass_columns, drop = T])
-        #If copying as a vector, remove all newlines
+        #If copying as a vector, remove all newlines.
         x <- gsub("\n", "", x)
-        #Use utils::writeClipboard instead of clipr::write_clip to remove linebreak
         utils::writeClipboard(str = charToRaw(paste0(x, " ")), format = 1)
         if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       }
@@ -318,18 +350,19 @@ e__df_obj_function <- function(box, outer_env = totem,obj_env=inner_env) {
 
   copy_filter <- function(pass_columns = NULL, vector = F) {
     if (is.null(pass_columns) == T) {
-      clipr::write_clip(obj_env$df_obj_list$filtered_df, allow_non_interactive = T)
+      aligned_df <- u__align_dataframe(obj_env$df_obj_list$filtered_df)
+      clipr::write_clip(aligned_df, allow_non_interactive = T)
       if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
     } else {
       if (vector == F) {
         x <- obj_env$df_obj_list$filtered_df[, pass_columns, drop = F]
-        clipr::write_clip(x, allow_non_interactive = T)
+        aligned_df <- u__align_dataframe(x)
+        clipr::write_clip(aligned_df, allow_non_interactive = T)
         if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       } else {
         x <- datapasta::vector_construct(obj_env$df_obj_list$filtered_df[, pass_columns, drop = T])
-        #If copying as a vector, remove all newlines
+        #If copying as a vector, remove all newlines.
         x <- gsub("\n", "", x)
-        #Use utils::writeClipboard instead of clipr::write_clip to remove linebreak
         utils::writeClipboard(str = charToRaw(paste0(x, " ")), format = 1)
         if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data copied to clipboard")
       }
