@@ -10,13 +10,13 @@
 #' @return TODO
 
 e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2500, opacity = 0.85, bg_color = "#ACFFAE", outer_env = totem) {
-  toast_win <- RGtk2::gtkWindowNew("toplevel")
-  RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
-  RGtk2::gtkWindowSetResizable(toast_win, FALSE)
-  RGtk2::gtkWindowSetKeepAbove(toast_win, FALSE)
-  RGtk2::gtkWindowSetPosition(toast_win, 0L)
+  #Create as a "popup" instead of "toplevel" to natively avoid window decorations
+  #and bypass the Windows SetWindowLong bug entirely.
+  toast_win <- RGtk2::gtkWindowNew("popup")
   
-  #Apply the opacity setting to the top-level window.
+  RGtk2::gtkWindowSetResizable(toast_win, FALSE)
+  
+  #Apply the opacity setting to the window.
   RGtk2::gtkWindowSetOpacity(toast_win, opacity)
   
   #Custom background color.
@@ -43,11 +43,9 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   
   if (!is.null(parent_window)) {
     true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
-    RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
     
     #Request the dimensions of our newly built toast.
     req <- RGtk2::gtkWidgetSizeRequest(toast_win)$requisition
-    toast_w <- req$width
     toast_h <- req$height
     
     #Pull the exact variables using the dot syntax.
@@ -56,7 +54,6 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     
     parent_x <- p_pos$root.x
     parent_y <- p_pos$root.y
-    parent_w <- p_size$width
     parent_h <- p_size$height
     
     #Calculate bottom-left placement.
@@ -70,8 +67,8 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     RGtk2::gtkWindowSetPosition(toast_win, 1L) 
   }
   
+  #Show the window without grabbing focus.
   RGtk2::gtkWidgetShowAll(toast_win)
-  RGtk2::gtkWindowPresent(toast_win)
   
   RGtk2::gTimeoutAdd(duration_ms, function(...) {
     RGtk2::gtkWidgetDestroy(toast_win)
