@@ -1623,9 +1623,46 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$format_by_label = RGtk2::gtkLabel("Format by: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry, F, F)
+
+      #Trigger table redraws on enter key in the first format field.
+      RGtk2::gSignalConnect(outer_env[[session_name]]$format_by_entry, "activate", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+        outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+        RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
       outer_env[[session_name]]$format_by_label2 = RGtk2::gtkLabel("Add'l format: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label2, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry2, F, F)
+
+      #Trigger table redraws on enter key in the second format field.
+      RGtk2::gSignalConnect(outer_env[[session_name]]$format_by_entry2, "activate", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+        outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+        RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      #Add play button to apply formatting immediately.
+      u__button(
+        box = outer_env[[session_name]]$status_bar$box,
+        start = T, padding = 2,
+        stock_id = "gtk-media-play",
+        tool_tip = "Apply formatting",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+          outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+          RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
 
 
 
