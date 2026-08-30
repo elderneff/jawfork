@@ -468,40 +468,24 @@ e__table_obj_function <- function(box, outer_env = totem, obj_env=inner_env) {
        RGtk2::gtkLabelSetText(obj_env$table_objects_list$allColumns[[1]]$evt$y, "")
     }
 
-    #Force GTK to calculate fixed widths based on the entire dataset to prevent jumping on sort.
+    #Force GTK to respect custom header widths and wipe autosize caches
     RGtk2::gIdleAdd(function(data) {
       enforce_widths <- function(view) {
         cols <- RGtk2::gtkTreeViewGetColumns(view)
         for (col in cols) {
-          #Get the exact column title to fetch full data length.
-          col_title <- RGtk2::gtkTreeViewColumnGetTitle(col)
-          
-          #Estimate pixel width based on the maximum character length in the full dataset.
-          data_px <- 0
-          if (!is.null(col_title) && !is.null(data$full_df) && col_title %in% colnames(data$full_df)) {
-             max_chars <- suppressWarnings(max(nchar(as.character(data$full_df[[col_title]])), na.rm = TRUE))
-             if (!is.infinite(max_chars) && !is.na(max_chars)) {
-               #Approx 8 pixels per character for standard UI font.
-               data_px <- max_chars * 8
-             }
-          }
-          
-          #Fetch custom widget to measure minimum header width.
-          header_px <- 0
+          #Fetch custom widget to enforce minimum header width
           hw <- RGtk2::gtkTreeViewColumnGetWidget(col)
           if (!is.null(hw)) {
             req <- RGtk2::gtkWidgetSizeRequest(hw)$requisition
-            header_px <- req$width
+            #Twelve pixel padding covers GTK native column separators and margins
+            RGtk2::gtkTreeViewColumnSetMinWidth(col, req$width + 12)
           }
 
-          #Compare data requirements vs header requirements, add 20px padding.
-          #Cap at 400px to prevent massively wide text columns from ruining navigation.
-          final_width <- min(max(data_px, header_px) + 20, 400)
-
-          #Lock sizing mode to fixed and explicitly set the calculated width.
+          #Toggle sizing mode to wipe GTK internal width cache
           RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["fixed"])
-          RGtk2::gtkTreeViewColumnSetFixedWidth(col, final_width)
+          RGtk2::gtkTreeViewColumnSetSizing(col, RGtk2::GtkTreeViewColumnSizing["autosize"])
         }
+        RGtk2::gtkTreeViewColumnsAutosize(view)
         RGtk2::gtkWidgetQueueDraw(view)
       }
 
@@ -511,8 +495,7 @@ e__table_obj_function <- function(box, outer_env = totem, obj_env=inner_env) {
       return(FALSE)
     }, data = list(
       view = obj_env$table_objects_list$view,
-      frozen = obj_env$table_objects_list$view_frozen,
-      full_df = obj_env$df_obj$current_data()
+      frozen = obj_env$table_objects_list$view_frozen
     ))
   }
 
