@@ -7,7 +7,7 @@
 #'
 #' @return TODO
 
-e__new_tree_view_column <- function(df, j,outer_env=totem,obj_env=inner_env) {
+e__new_tree_view_column <- function(df, j, outer_env=totem, obj_env=inner_env) {
   renderer <- RGtk2::gtkCellRendererText()
 
   renderer["ypad"] <- 3
@@ -23,16 +23,15 @@ e__new_tree_view_column <- function(df, j,outer_env=totem,obj_env=inner_env) {
   } else {
     RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "background", as.integer(ncol(df) - 2))
   }
-  #Set text color based on f__3
+  #Set text color based on f__3.
   RGtk2::gtkTreeViewColumnAddAttribute(column, renderer, "foreground", as.integer(ncol(df) - 1))
 
-
-  RGtk2::gtkTreeViewColumnSetSizing(column, RGtk2::GtkTreeViewColumnSizing["autosize"])
+  #Lock to fixed sizing to prevent jumping on double-clicks.
+  RGtk2::gtkTreeViewColumnSetSizing(column, RGtk2::GtkTreeViewColumnSizing["fixed"])
   RGtk2::gtkTreeViewColumnSetResizable(column, TRUE)
   RGtk2::gtkTreeViewColumnSetVisible(column, TRUE)
   RGtk2::gtkTreeViewColumnSetReorderable(column, F)
   RGtk2::gtkTreeViewColumnSetClickable(column, T)
-
 
   if (is_full_data_table & j > 1) {
     data3 <- outer_env[[session_name]]$data3
@@ -49,14 +48,10 @@ e__new_tree_view_column <- function(df, j,outer_env=totem,obj_env=inner_env) {
     evt <- obj_env$add_column_label(column, colnames(df)[j], j)
   }
 
-
   RGtk2::gSignalConnect(column, "clicked", function(treeviewcolumn, data) {
     obj_env$order_by_obj$add(data)
     return(T)
   }, data = colnames(df)[j])
-
-
-
 
   return(list(column = column, renderer = renderer, col.idx = j, evt = evt))
 }
