@@ -11,9 +11,18 @@
 
 e__show_toast <- function(session_name, message = "Code copied to clipboard!", duration_ms = 2500, opacity = 0.85, bg_color = "#ACFFAE", outer_env = totem) {
   toast_win <- RGtk2::gtkWindowNew("toplevel")
+  
+  # Establish parent relationship IMMEDIATELY before setting any other properties.
+  # This avoids the GTK 'SetWindowLong' console warning on Windows.
+  parent_window <- outer_env[[session_name]]$windows$main_window
+  true_parent <- NULL
+  if (!is.null(parent_window)) {
+    true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
+    RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
+  }
+
   RGtk2::gtkWindowSetDecorated(toast_win, FALSE)
   RGtk2::gtkWindowSetResizable(toast_win, FALSE)
-  RGtk2::gtkWindowSetPosition(toast_win, 0L)
   
   #Apply the opacity setting to the top-level window.
   RGtk2::gtkWindowSetOpacity(toast_win, opacity)
@@ -38,20 +47,9 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
   RGtk2::gtkLabelSetMarkup(label, markup)
   RGtk2::gtkBoxPackStart(vbox, label, TRUE, TRUE, 0)
   
-  parent_window <- outer_env[[session_name]]$windows$main_window
-  
-  if (!is.null(parent_window)) {
-    true_parent <- RGtk2::gtkWidgetGetToplevel(parent_window)
-    
-    #Force GTK to generate the underlying Windows HWND before modifying window states.
-    RGtk2::gtkWidgetRealize(toast_win)
-    
-    #Transient-for keeps it above jaw without breaking global OS z-order.
-    RGtk2::gtkWindowSetTransientFor(toast_win, true_parent)
-    
+  if (!is.null(true_parent)) {
     #Request the dimensions of our newly built toast.
     req <- RGtk2::gtkWidgetSizeRequest(toast_win)$requisition
-    toast_w <- req$width
     toast_h <- req$height
     
     #Pull the exact variables using the dot syntax.
@@ -60,7 +58,6 @@ e__show_toast <- function(session_name, message = "Code copied to clipboard!", d
     
     parent_x <- p_pos$root.x
     parent_y <- p_pos$root.y
-    parent_w <- p_size$width
     parent_h <- p_size$height
     
     #Calculate bottom-left placement.
