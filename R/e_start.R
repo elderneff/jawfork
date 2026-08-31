@@ -1729,11 +1729,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env$hide_load_window()
       }
       
-      #Apply theme regardless of dark or light
+      #Apply theme regardless of dark or light.
       outer_env$u__apply_theme(session_name, outer_env)
 
-      refresh(session_name)
-      RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
+      refresh_status <- refresh(session_name)
+      #Only attempt to show the window if the load was successful.
+      if (!identical(refresh_status, FALSE)) {
+        RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
+      }
       outer_env$hide_load_window()
     },
     error = function(e) {
