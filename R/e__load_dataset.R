@@ -46,7 +46,36 @@ e__load_dataset <- function(session_name, outer_env = totem) {
         if (inherits(try_read, "try-error")) {
           print(paste("CRITICAL ERROR ON STARTUP:", as.character(try_read)))
           message("\n!!! DATA LOAD FAILED !!!")
-          message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted.")
+          
+          #Check if the file is genuinely empty using the custom raw parser.
+          fallback_meta <- try(sas_contents(outer_env[[session_name]]$sas_file_path), silent = TRUE)
+          
+          if (!inherits(fallback_meta, "try-error") && nrow(fallback_meta) == 0) {
+            message("The file '", outer_env[[session_name]]$sas_file_basename, "' has 0 rows and 0 columns.")
+            
+            err_dialog <- RGtk2::gtkMessageDialog(
+              parent = outer_env[[session_name]]$windows$main_window, 
+              flags = "destroy-with-parent", 
+              type = "error", 
+              buttons = "close", 
+              paste0("Cannot open '", outer_env[[session_name]]$sas_file_basename, "'. The dataset has 0 rows and 0 columns.")
+            )
+            err_dialog$run()
+            RGtk2::gtkWidgetDestroy(err_dialog)
+          } else {
+            message("The file '", outer_env[[session_name]]$sas_file_basename, "' may be corrupted.")
+            
+            err_dialog <- RGtk2::gtkMessageDialog(
+              parent = outer_env[[session_name]]$windows$main_window, 
+              flags = "destroy-with-parent", 
+              type = "error", 
+              buttons = "close", 
+              paste0("Cannot open '", outer_env[[session_name]]$sas_file_basename, "'. The file may be corrupted.")
+            )
+            err_dialog$run()
+            RGtk2::gtkWidgetDestroy(err_dialog)
+          }
+
           if (is_initial_load) outer_env$close_all_windows(session_name)
           return(FALSE) 
         } else {      
