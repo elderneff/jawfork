@@ -40,7 +40,7 @@ e__load_dataset <- function(session_name, outer_env = totem) {
 
   if ((outer_env[[session_name]]$sas_file_path %in% ls_content) == F) {
     
-    # sas7bdat
+    #sas7bdat
     if(tolower(outer_env[[session_name]]$passed_ext) == "sas7bdat") {        
         try_read <- try(as.data.frame(haven::read_sas(data_file = outer_env[[session_name]]$sas_file_path)), silent = TRUE)      
         if (inherits(try_read, "try-error")) {
@@ -50,15 +50,27 @@ e__load_dataset <- function(session_name, outer_env = totem) {
           #Check if the file is genuinely empty using the custom raw parser.
           fallback_meta <- try(sas_contents(outer_env[[session_name]]$sas_file_path), silent = TRUE)
           
-          if (!inherits(fallback_meta, "try-error") && nrow(fallback_meta) == 0) {
-            message("The file '", outer_env[[session_name]]$sas_file_basename, "' has 0 rows and 0 columns.")
+          #Check for 0 columns, 0 rows, or haven's specific memory allocation crash.
+          is_zero_cols <- (!inherits(fallback_meta, "try-error") && nrow(fallback_meta) == 0)
+          is_zero_rows <- (!inherits(fallback_meta, "try-error") && nrow(fallback_meta) > 0 && !is.na(fallback_meta$n[1]) && fallback_meta$n[1] == 0)
+          is_haven_mem_bug <- grepl("Unable to allocate memory", as.character(try_read), ignore.case = TRUE)
+          
+          if (is_zero_cols || is_zero_rows || is_haven_mem_bug) {
+            #Provide precise messaging depending on what the metadata reveals.
+            if (is_zero_rows) {
+              details <- paste0("0 rows and ", nrow(fallback_meta), " columns")
+            } else {
+              details <- "0 rows and 0 columns"
+            }
+            
+            message("The file '", outer_env[[session_name]]$sas_file_basename, "' has ", details, ".")
             
             err_dialog <- RGtk2::gtkMessageDialog(
               parent = outer_env[[session_name]]$windows$main_window, 
               flags = "destroy-with-parent", 
               type = "error", 
               buttons = "close", 
-              paste0("Cannot open '", outer_env[[session_name]]$sas_file_basename, "'. The dataset has 0 rows and 0 columns.")
+              paste0("Cannot open '", outer_env[[session_name]]$sas_file_basename, "'. The dataset has ", details, ".")
             )
             err_dialog$run()
             RGtk2::gtkWidgetDestroy(err_dialog)
