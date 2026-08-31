@@ -88,7 +88,14 @@ e__load_dataset <- function(session_name, outer_env = totem) {
             RGtk2::gtkWidgetDestroy(err_dialog)
           }
 
-          if (is_initial_load) outer_env$close_all_windows(session_name)
+          if (is_initial_load) {
+            outer_env$close_all_windows(session_name)
+            
+            # If no other sessions are currently open, kill the R process completely to close the console.
+            if (length(outer_env$all_sessions) == 0) {
+              quit(save = "no")
+            }
+          }
           return(FALSE) 
         } else {      
           outer_env[[session_name]]$data1 <- try_read
