@@ -9,25 +9,26 @@ e__all_event_functions <- function(outer_env = totem) {
 
   #Helper to extract frequency data based on table type.
   get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
+    # 1. Universally prevent comparison if unique by is active.
+    unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
+    unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
+    has_unique <- unique_cb && unique_txt != ""
+    
+    if (has_unique) {
+      err_dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window,
+        flags = "destroy-with-parent",
+        type = "error",
+        buttons = "close",
+        "Cannot pin or compare data when unique by is active."
+      )
+      err_dialog$run()
+      RGtk2::gtkWidgetDestroy(err_dialog)
+      return(NULL)
+    }
+
+    # 2. Extract data safely.
     if (table_type == "Summary Table") {
-      #Prevent comparison if unique by is active.
-      unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
-      unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
-      has_unique <- unique_cb && unique_txt != ""
-      
-      if (has_unique) {
-        err_dialog <- RGtk2::gtkMessageDialog(
-          parent = outer_env[[session_name]]$windows$main_window,
-          flags = "destroy-with-parent",
-          type = "error",
-          buttons = "close",
-          "Cannot pin or compare summary table when unique by is active."
-        )
-        err_dialog$run()
-        RGtk2::gtkWidgetDestroy(err_dialog)
-        return(NULL)
-      }
-      
       current_data <- obj_env$df_obj$current_data()
       
       #Extract all grouping and target columns by removing internal UI variables.
@@ -46,15 +47,53 @@ e__all_event_functions <- function(outer_env = totem) {
     } else {
       #Meta Table or Full Data Table logic.
       col_name <- current_row$column
-      current_data <- if (table_type == "Meta Table") obj_env$df_obj$current_data() else outer_env[[session_name]]$data2
       
-      vals <- as.character(current_data[, col_name, drop = TRUE])
-      vals[is.na(vals)] <- "NA"
+      #Determine base data (Full Data Table local filters are respected via data2).
+      temp_df <- outer_env[[session_name]]$data2
       
-      freq_table <- as.data.frame(table(vals), stringsAsFactors = FALSE)
-      colnames(freq_table) <- c(col_name, "n")
+      #Check for Group By variables.
+      group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
+      group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
       
-      return(list(keys = col_name, data = freq_table))
+      group_cols <- c()
+      if (group_cb && group_txt != "") {
+        parsed_groups <- trimws(strsplit(group_txt, ",")[[1]])
+        parsed_groups <- parsed_groups[parsed_groups != ""]
+        group_cols <- intersect(parsed_groups, colnames(temp_df))
+      }
+      
+      #Combine grouping columns with the target column.
+      all_keys <- unique(c(group_cols, col_name))
+      all_keys <- intersect(all_keys, colnames(temp_df))
+      
+      target_data <- temp_df[, all_keys, drop = FALSE]
+      
+      #Convert NA to "NA" for grouping consistency.
+      for (col in all_keys) {
+        char_vals <- as.character(target_data[[col]])
+        char_vals[is.na(char_vals)] <- "NA"
+        target_data[[col]] <- char_vals
+      }
+      
+      #Generate frequency table dynamically.
+      if (length(all_keys) > 1) {
+        res <- as.data.frame(table(target_data), stringsAsFactors = FALSE)
+        
+        #Drop combinations that have 0 frequency.
+        res <- res[res$Freq > 0, , drop = FALSE]
+        colnames(res)[colnames(res) == "Freq"] <- "n"
+      } else {
+        res <- as.data.frame(table(target_data[[all_keys[1]]]), stringsAsFactors = FALSE)
+        colnames(res) <- c(all_keys[1], "n")
+      }
+      
+      #Ensure data types are safe for merging.
+      res$n <- as.numeric(res$n)
+      for (col in all_keys) {
+        res[[col]] <- as.character(res[[col]])
+      }
+      
+      return(list(keys = all_keys, data = res))
     }
   }
 
@@ -163,8 +202,10 @@ e__all_event_functions <- function(outer_env = totem) {
     
     #Reorder columns for logical flow.
     metric_cols <- c(col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")
-    key_cols <- setdiff(colnames(merged_df), metric_cols)
-    merged_df <- merged_df[, c(key_cols, metric_cols)]
+    
+    #Ensure all grouping and target keys lead the table.
+    all_keys_union <- unique(c(pinned$keys, current$keys))
+    merged_df <- merged_df[, c(all_keys_union, metric_cols)]
     
     #Dynamically generate the window title based on the keys used.
     title_str <- paste0("Comparison: ", paste(pinned$keys, collapse = ", "), " vs ", paste(current$keys, collapse = ", "))
