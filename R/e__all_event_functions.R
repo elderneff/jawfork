@@ -7,25 +7,21 @@
 e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions <- list()
 
-  # Helper to extract frequency data based on table type
+  #Helper to extract frequency data based on table type.
   get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
     if (table_type == "Summary Table") {
-      # Prevent comparison if grouping or unique by is actually populated
-      group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
-      group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
-      has_group <- group_cb && group_txt != ""
-      
+      #Prevent comparison if unique by is active.
       unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
       unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
       has_unique <- unique_cb && unique_txt != ""
       
-      if (has_group || has_unique) {
+      if (has_unique) {
         err_dialog <- RGtk2::gtkMessageDialog(
           parent = outer_env[[session_name]]$windows$main_window,
           flags = "destroy-with-parent",
           type = "error",
           buttons = "close",
-          "Cannot pin or compare summary table when group by or unique by are active."
+          "Cannot pin or compare summary table when unique by is active."
         )
         err_dialog$run()
         RGtk2::gtkWidgetDestroy(err_dialog)
@@ -33,81 +29,73 @@ e__all_event_functions <- function(outer_env = totem) {
       }
       
       current_data <- obj_env$df_obj$current_data()
-      # Index 2 because r__ is always injected as the first column in the UI table
-      col_name <- colnames(current_data)[2]
       
-      # Convert to data frame immediately to prevent atomic vector errors
-      res <- as.data.frame(current_data[, c(col_name, "n"), drop = FALSE], stringsAsFactors = FALSE)
-      colnames(res) <- c("Value", "n")
-      res$Value <- as.character(res$Value)
+      #Extract all grouping and target columns by removing internal UI variables.
+      cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
       
-      # Ensure 'n' is numeric so the difference math works later
+      res <- as.data.frame(current_data[, c(cross_tab_names, "n"), drop = FALSE], stringsAsFactors = FALSE)
       res$n <- as.numeric(res$n)
       
-      return(list(col = col_name, data = res))
+      #Convert all key columns to character to ensure safe merging.
+      for (col in cross_tab_names) {
+        res[[col]] <- as.character(res[[col]])
+      }
       
-    } else if (table_type == "Meta Table") {
-      # Extract values directly from the meta table itself using matrix indexing
-      current_data <- obj_env$df_obj$current_data()
+      return(list(keys = cross_tab_names, data = res))
+      
+    } else {
+      #Meta Table or Full Data Table logic.
       col_name <- current_row$column
+      current_data <- if (table_type == "Meta Table") obj_env$df_obj$current_data() else outer_env[[session_name]]$data2
+      
       vals <- as.character(current_data[, col_name, drop = TRUE])
       vals[is.na(vals)] <- "NA"
       
-      freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
-      colnames(freq_table) <- c("Value", "n")
-      return(list(col = col_name, data = freq_table))
+      freq_table <- as.data.frame(table(vals), stringsAsFactors = FALSE)
+      colnames(freq_table) <- c(col_name, "n")
       
-    } else {
-      # Extract values from the full dataset
-      col_name <- current_row$column
-      temp_df <- outer_env[[session_name]]$data2
-      vals <- as.character(temp_df[[col_name]])
-      vals[is.na(vals)] <- "NA"
-      
-      freq_table <- as.data.frame(table(Value = vals), stringsAsFactors = FALSE)
-      colnames(freq_table) <- c("Value", "n")
-      return(list(col = col_name, data = freq_table))
+      return(list(keys = col_name, data = freq_table))
     }
   }
 
-  #Action for pinning the column
+  #Action for pinning the column.
   action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
     if (is.null(comp_info)) return()
     
     pinned_data <- list(
       dataset = outer_env[[session_name]]$sas_file_basename,
-      column = comp_info$col,
+      keys = comp_info$keys,
       data = comp_info$data
     )
     
-    #Write to cross-session RDS file
+    #Write to cross-session RDS file.
     pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
     saveRDS(pinned_data, file = pinned_path)
     
-    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Column pinned for cross-session comparison")
+    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data pinned for cross-session comparison")
   }
 
-  #Action for compare with pinned
+  #Action for compare with pinned.
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
-    #Determine path to the cross-session RDS file
+    #Determine path to the cross-session RDS file.
     pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
     
-    #Check if file exists before trying to read
+    #Check if file exists before trying to read.
     if (!file.exists(pinned_path)) {
       err_dialog <- RGtk2::gtkMessageDialog(
         parent = outer_env[[session_name]]$windows$main_window,
         flags = "destroy-with-parent",
         type = "error",
         buttons = "close",
-        "No column is currently pinned for comparison across sessions."
+        "No data is currently pinned for comparison across sessions."
       )
       err_dialog$run()
       RGtk2::gtkWidgetDestroy(err_dialog)
       return()
     }
     
-    #Safely read the pinned data to prevent crashes if file is locked
+    #Safely read the pinned data to prevent crashes if file is locked.
     pinned <- try(readRDS(pinned_path), silent = TRUE)
     if (inherits(pinned, "try-error")) {
       err_dialog <- RGtk2::gtkMessageDialog(
@@ -115,7 +103,7 @@ e__all_event_functions <- function(outer_env = totem) {
         flags = "destroy-with-parent",
         type = "error",
         buttons = "close",
-        "Failed to read the pinned comparison file. Try pinning the column again."
+        "Failed to read the pinned comparison file. Try pinning the data again."
       )
       err_dialog$run()
       RGtk2::gtkWidgetDestroy(err_dialog)
@@ -127,40 +115,63 @@ e__all_event_functions <- function(outer_env = totem) {
     
     current <- list(
       dataset = outer_env[[session_name]]$sas_file_basename,
-      column = comp_info$col,
+      keys = comp_info$keys,
       data = comp_info$data
     )
     
-    merged_df <- merge(pinned$data, current$data, by = "Value", all = TRUE)
+    #Determine matching keys for the merge.
+    merge_keys <- intersect(pinned$keys, current$keys)
     
-    #Strip file extensions for a cleaner header
+    if (length(merge_keys) == 0) {
+      err_dialog <- RGtk2::gtkMessageDialog(
+        parent = outer_env[[session_name]]$windows$main_window,
+        flags = "destroy-with-parent",
+        type = "error",
+        buttons = "close",
+        "Cannot compare: The pinned data and current data have no columns in common."
+      )
+      err_dialog$run()
+      RGtk2::gtkWidgetDestroy(err_dialog)
+      return()
+    }
+    
+    #Strip file extensions for cleaner headers.
     clean_pinned_ds <- sub("\\.[^.]+$", "", pinned$dataset)
     clean_current_ds <- sub("\\.[^.]+$", "", current$dataset)
     
-    #Format column headers
-    col_pinned <- paste0(pinned$column, "\nPinned Counts\n", clean_pinned_ds)
-    col_current <- paste0(current$column, "\nComparison Counts\n", clean_current_ds)
+    col_pinned <- paste0("Pinned Counts\n", clean_pinned_ds)
+    col_current <- paste0("Comparison Counts\n", clean_current_ds)
     
-    colnames(merged_df) <- c("Value", col_pinned, col_current)
+    #Explicitly rename the target metrics before merging to guarantee column safety.
+    colnames(pinned$data)[colnames(pinned$data) == "n"] <- col_pinned
+    colnames(current$data)[colnames(current$data) == "n"] <- col_current
     
-    #Add presence indicator columns before zeroing out NAs
+    #Merge the data dynamically based on the overlapping keys.
+    merged_df <- merge(pinned$data, current$data, by = merge_keys, all = TRUE)
+    
+    #Add presence indicator columns before zeroing out NAs.
     merged_df$Pinned <- ifelse(!is.na(merged_df[[col_pinned]]), "Y", "")
     merged_df$Comparison <- ifelse(!is.na(merged_df[[col_current]]), "Y", "")
     
-    #Replace missing counts with zero
+    #Replace missing counts with zero.
     merged_df[[col_pinned]][is.na(merged_df[[col_pinned]])] <- 0
     merged_df[[col_current]][is.na(merged_df[[col_current]])] <- 0
     
-    #Calculate difference and match
+    #Calculate difference and match.
     merged_df$Difference <- merged_df[[col_current]] - merged_df[[col_pinned]]
     merged_df$Match <- ifelse(merged_df$Difference == 0, "Y", "")
     
-    #Reorder columns for logical flow
-    merged_df <- merged_df[, c("Value", col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")]
+    #Reorder columns for logical flow.
+    metric_cols <- c(col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")
+    key_cols <- setdiff(colnames(merged_df), metric_cols)
+    merged_df <- merged_df[, c(key_cols, metric_cols)]
+    
+    #Dynamically generate the window title based on the keys used.
+    title_str <- paste0("Comparison: ", paste(pinned$keys, collapse = ", "), " vs ", paste(current$keys, collapse = ", "))
     
     outer_env$u__df_view(
       merged_df, 
-      paste0("Comparison: ", pinned$column, " vs ", current$column), 
+      title_str, 
       height = 400, width = 800
     )
   }
