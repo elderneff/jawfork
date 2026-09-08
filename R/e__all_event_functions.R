@@ -27,6 +27,8 @@ e__all_event_functions <- function(outer_env = totem) {
       return(NULL)
     }
 
+    base_df <- outer_env[[session_name]]$data2
+
     if (table_type == "Summary Table") {
       current_data <- obj_env$df_obj$current_data()
       
@@ -38,17 +40,36 @@ e__all_event_functions <- function(outer_env = totem) {
       
       #Convert all key columns to character to ensure safe merging.
       for (col in cross_tab_names) {
-        res[[col]] <- as.character(res[[col]])
+        char_vals <- as.character(res[[col]])
+        
+        #Normalize numeric columns to strip trailing zeroes introduced by UI formatting.
+        if (col %in% colnames(base_df) && is.numeric(base_df[[col]])) {
+          is_na_str <- char_vals == "NA" | is.na(char_vals)
+          num_vals <- suppressWarnings(as.numeric(char_vals))
+          char_vals <- as.character(num_vals)
+          char_vals[is_na_str] <- "NA"
+        } else {
+          char_vals[is.na(char_vals)] <- "NA"
+        }
+        res[[col]] <- char_vals
       }
       
       return(list(keys = cross_tab_names, data = res))
       
     } else if (table_type == "Meta Table") {
       #Ignore group by text fields entirely for the meta table.
+      #Extract values directly from the meta table itself.
       col_name <- current_row$column
       current_data <- obj_env$df_obj$current_data()
       
       vals <- as.character(current_data[, col_name, drop = TRUE])
+      
+      #Normalize formatting for numeric metadata columns.
+      if (is.numeric(current_data[[col_name]])) {
+         num_vals <- as.numeric(current_data[[col_name]])
+         vals <- as.character(num_vals)
+      }
+      
       vals[is.na(vals)] <- "NA"
       
       res <- as.data.frame(table(vals), stringsAsFactors = FALSE)
@@ -61,7 +82,7 @@ e__all_event_functions <- function(outer_env = totem) {
     } else {
       #Full Data Table logic natively applies grouping fields if active.
       col_name <- current_row$column
-      temp_df <- outer_env[[session_name]]$data2
+      temp_df <- base_df
       
       group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
       group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
@@ -79,9 +100,13 @@ e__all_event_functions <- function(outer_env = totem) {
       
       target_data <- temp_df[, all_keys, drop = FALSE]
       
-      #Convert NA to "NA" for grouping consistency.
+      #Convert NA to "NA" and normalize numeric formatting.
       for (col in all_keys) {
         char_vals <- as.character(target_data[[col]])
+        if (is.numeric(temp_df[[col]])) {
+          num_vals <- as.numeric(target_data[[col]])
+          char_vals <- as.character(num_vals)
+        }
         char_vals[is.na(char_vals)] <- "NA"
         target_data[[col]] <- char_vals
       }
@@ -100,7 +125,6 @@ e__all_event_functions <- function(outer_env = totem) {
       return(list(keys = all_keys, data = res))
     }
   }
-
   #Action for pinning the column.
   action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
