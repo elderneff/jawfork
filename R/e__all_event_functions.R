@@ -423,311 +423,265 @@ e__all_event_functions <- function(outer_env = totem) {
   }
 
   #--------------------------------------------
-
-  # meta table
-
+  # Meta Table
   #-------------------------------------------
-  i__all_event_functions[["Meta Table"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Copy"]] <- i__all_event_functions[["Copy"]]
+  i__all_event_functions[["Meta Table Copy"]][["dataset layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    obj_env$df_obj$copy_dataset_layout()
+  }
+  i__all_event_functions[["Meta Table Copy"]][["keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    obj_env$df_obj$copy_keep()
+  }
+  i__all_event_functions[["Meta Table Copy"]][["label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    obj_env$df_obj$copy_label()
+  }
+  i__all_event_functions[["Meta Table Copy"]][["length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    obj_env$df_obj$copy_length()
+  }
+
+  i__all_event_functions[["Meta Table Summarize"]] <- list()
+  i__all_event_functions[["Meta Table Summarize"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
     view_objects$event_mapping[["Meta Table|Trigger Value Summary"]](session_name, current_data[row_i, "variable", drop = T])
   }
-  i__all_event_functions[["Meta Table"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Summarize"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
     view_objects$event_mapping[["Meta Table|Trigger Value Summary with Group By"]](session_name, current_data[row_i, "variable", drop = T])
   }
-  i__all_event_functions[["Meta Table"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Summarize"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
     view_objects$event_mapping[["Meta Table|Trigger Value Summary with Unique By"]](session_name, current_data[row_i, "variable", drop = T])
   }
-  i__all_event_functions[["Meta Table"]][["Copy dataset layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    obj_env$df_obj$copy_dataset_layout()
-  }
-  i__all_event_functions[["Meta Table"]][["Copy keep statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    obj_env$df_obj$copy_keep()
-  }
-  i__all_event_functions[["Meta Table"]][["Copy label statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    obj_env$df_obj$copy_label()
-  }
-  i__all_event_functions[["Meta Table"]][["Copy length statement"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    obj_env$df_obj$copy_length()
-  }
-  i__all_event_functions[["Meta Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+
+  i__all_event_functions[["Meta Table Organize"]] <- list()
+  i__all_event_functions[["Meta Table Organize"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     column <- current_data[current_row$row_i, "variable", drop = T]
     outer_env$u__add_count_to_df_summary(session_name, column)
   }
-
-  i__all_event_functions[["Meta Table"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
-    #Make a vector of the format needed to pass to move_column
     fake_current_row <- c()
     fake_current_row$column <- current_data[current_row$row_i, "variable", drop = T]
     outer_env$move_column(0, session_name, fake_current_row)
   }
-  i__all_event_functions[["Meta Table"]][["Move column after"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Move column after"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
-    #Make a vector of the format needed to pass to move_column
     fake_current_row <- c()
     fake_current_row$column <- current_data[current_row$row_i, "variable", drop = T]
     outer_env$move_column(1, session_name, fake_current_row)
   }
-  i__all_event_functions[["Meta Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     col_to_toggle <- current_data[current_row$row_i, "variable", drop = T]
-    
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
-    
     if (st != "") {
-      # Split by comma, but use negative lookahead to ignore commas inside parentheses
       current_cols <- trimws(strsplit(st, split = ",(?![^(]*\\))", perl = TRUE)[[1]])
-      
       if (col_to_toggle %in% current_cols) {
-        # If it's already there, remove it (toggle off)
         current_cols <- setdiff(current_cols, col_to_toggle)
       } else {
-        # If it's not there, add it (toggle on)
         current_cols <- c(current_cols, col_to_toggle)
       }
-      # Rebuild the comma-separated string
       st <- paste0(current_cols, collapse = ", ")
     } else {
       st <- col_to_toggle
     }
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
   }
-  i__all_event_functions[["Meta Table"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     col_to_set <- current_data[current_row$row_i, "variable", drop = T]
-    
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, col_to_set)
-    
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
-  i__all_event_functions[["Meta Table"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     col_to_set <- current_data[current_row$row_i, "variable", drop = T]
-    
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, col_to_set)
-    
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
-  i__all_event_functions[["Meta Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Meta Table")
   }
-  i__all_event_functions[["Meta Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Meta Table Organize"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Meta Table")
   }
-  i__all_event_functions[["Meta Table"]][["Freeze/Unfreeze Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    #Extract the true column name from the clicked row in the meta table.
+  i__all_event_functions[["Meta Table Organize"]][["Freeze/Unfreeze Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     col_name <- current_data[current_row$row_i, "variable", drop = T]
-    
-    #Route the freeze command directly to the Full Data Table view below.
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$freeze_column(col_name)
   }
 
   #--------------------------------------------
-
-  # full data
-
+  # Full Data Table
   #-------------------------------------------
-  i__all_event_functions[["Full Data Table"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Filter"]] <- list()
+  i__all_event_functions[["Full Data Table Filter"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, exclude = T)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, combine = F)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row, exclude = T)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add Column to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
+  }
+  i__all_event_functions[["Full Data Table Filter"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    col <- current_row$column
+    val <- current_row$value
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { clean_col <- paste0("`", col, "`") } else { clean_col <- col }
+    cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
+    outer_env$u__append_before_code(session_name, cmd)
+  }
+
+  i__all_event_functions[["Full Data Table Summarize"]] <- list()
+  i__all_event_functions[["Full Data Table Summarize"]][["Get Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__get_summary(session_name, current_row)
+  }
+  i__all_event_functions[["Full Data Table Summarize"]][["Graph Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__graph_summary(session_name, current_row)
+  }
+  i__all_event_functions[["Full Data Table Summarize"]][["Scatterplot Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__scatter_summary(session_name, current_row)
+  }
+  i__all_event_functions[["Full Data Table Summarize"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
     view_objects$event_mapping[["Full Data Table|Trigger Value Summary"]](session_name, column)
   }
-  i__all_event_functions[["Full Data Table"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Summarize"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
     view_objects$event_mapping[["Full Data Table|Trigger Value Summary with Group By"]](session_name, column)
   }
-  i__all_event_functions[["Full Data Table"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Summarize"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
     view_objects$event_mapping[["Full Data Table|Trigger Value Summary with Unique By"]](session_name, column)
   }
-  i__all_event_functions[["Full Data Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+
+  i__all_event_functions[["Full Data Table Organize"]] <- list()
+  i__all_event_functions[["Full Data Table Organize"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
     col_to_toggle <- obj_env$table_objects_list$current_row$column
-    
     if (st != "") {
-      # Split by comma, but use negative lookahead to ignore commas inside parentheses
       current_cols <- trimws(strsplit(st, split = ",(?![^(]*\\))", perl = TRUE)[[1]])
-      
       if (col_to_toggle %in% current_cols) {
-        # If it's already there, remove it (toggle off)
         current_cols <- setdiff(current_cols, col_to_toggle)
       } else {
-        # If it's not there, add it (toggle on)
         current_cols <- c(current_cols, col_to_toggle)
       }
-      # Rebuild the comma-separated string
       st <- paste0(current_cols, collapse = ", ")
     } else {
       st <- col_to_toggle
     }
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$select_entry, st)
   }
-  i__all_event_functions[["Full Data Table"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, exclude = T)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data(session_name, obj_env$table_objects_list$current_row, combine = F)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row, exclude = T)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add Column to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    col <- current_row$column
-    val <- current_row$value
-    
-    # Sandwich column name with backticks if it has special characters
-    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { 
-      clean_col <- paste0("`", col, "`") 
-    } else {
-      clean_col <- col
-    }
-    
-    # Build the string and append it to the code area
-    cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
-    outer_env$u__append_before_code(session_name, cmd)
-  }
-  i__all_event_functions[["Full Data Table"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__add_count_to_df_summary(session_name, obj_env$table_objects_list$current_row$column)
-  }
-  
-  i__all_event_functions[["Full Data Table"]][["Get Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__get_summary(session_name, current_row)
-  }
-  i__all_event_functions[["Full Data Table"]][["Graph Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__graph_summary(session_name, current_row)
-  }
-  i__all_event_functions[["Full Data Table"]][["Scatterplot Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__scatter_summary(session_name, current_row)
-  }
-
-  i__all_event_functions[["Full Data Table"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Move column before"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$move_column(0, session_name, current_row)
   }
-  i__all_event_functions[["Full Data Table"]][["Move column after"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Move column after"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$move_column(1, session_name, current_row)
   }
-  i__all_event_functions[["Full Data Table"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Add Count to df"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__add_count_to_df_summary(session_name, obj_env$table_objects_list$current_row$column)
+  }
+  i__all_event_functions[["Full Data Table Organize"]][["Format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     col_to_set <- current_row$column
-    
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry, col_to_set)
-    
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
-  i__all_event_functions[["Full Data Table"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Add'l format by Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     col_to_set <- current_row$column
-    
     RGtk2::gtkEntrySetText(outer_env[[session_name]]$format_by_entry2, col_to_set)
-    
     outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
     RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
   }
-  i__all_event_functions[["Full Data Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Full Data Table")
   }
-  i__all_event_functions[["Full Data Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Full Data Table")
   }
-  i__all_event_functions[["Full Data Table"]][["Freeze/Unfreeze Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Full Data Table Organize"]][["Freeze/Unfreeze Column"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$freeze_column(current_row$column)
   }
 
   #--------------------------------------------
-
   # Summary table
-
   #-------------------------------------------
-  i__all_event_functions[["Summary Table"]][["Open Flat View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__flat_view(session_name, current_row)
+  i__all_event_functions[["Summary Table Copy"]] <- i__all_event_functions[["Copy"]]
+  i__all_event_functions[["Summary Table Copy"]][["Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__copy_mapping(session_name, current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Open Inverted View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__inverted_view(session_name, current_row)
+  i__all_event_functions[["Summary Table Copy"]][["Data Columns"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    current_data <- obj_env$df_obj$current_data()
+    cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
+    data_to_copy <- current_data[, cross_tab_names, drop = FALSE]
+    clipr::write_clip(data_to_copy, allow_non_interactive = T)
+    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data columns copied to clipboard")
   }
-  i__all_event_functions[["Summary Table"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+
+  i__all_event_functions[["Summary Table Filter"]] <- list()
+  i__all_event_functions[["Summary Table Filter"]][["Add to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter(session_name, current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter(session_name, obj_env$table_objects_list$current_row, exclude = T)
   }
-  i__all_event_functions[["Summary Table"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add to Main Filter (no combining)"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter(session_name, obj_env$table_objects_list$current_row, combine = F)
   }
-  i__all_event_functions[["Summary Table"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add Bucket to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add Bucket to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_bucket(session_name, obj_env$table_objects_list$current_row, exclude = T)
   }
-  i__all_event_functions[["Summary Table"]][["Add Column to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add Column to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj)
   }
-  i__all_event_functions[["Summary Table"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add Column to Main Filter Exclude"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_full_data_column(session_name, obj_env$table_objects_list$current_row, obj_env$df_obj, exclude = T)
   }
-  i__all_event_functions[["Summary Table"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add grepl to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     col <- current_row$column
     val <- current_row$value
-    
-    # Sandwich column name with backticks if it has special characters
-    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { 
-      clean_col <- paste0("`", col, "`") 
-    } else {
-      clean_col <- col
-    }
-    
-    # Build the string and append it to the code area
+    if (!grepl("^[a-zA-Z][a-zA-Z0-9]*$", col)) { clean_col <- paste0("`", col, "`") } else { clean_col <- col }
     cmd <- paste0("df <- df %>% filter(grepl('", val, "', ", clean_col, ", ignore.case = T))")
     outer_env$u__append_before_code(session_name, cmd)
   }
-  i__all_event_functions[["Summary Table"]][["Add Table to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Filter"]][["Add Table to Main Filter"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     outer_env$u__add_before_filter_table(session_name, current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Copy Mapping"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    outer_env$u__copy_mapping(session_name, current_row)
+
+  i__all_event_functions[["Summary Table Organize"]] <- list()
+  i__all_event_functions[["Summary Table Organize"]][["Open Flat View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__flat_view(session_name, current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Copy Data Columns"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
-    # Fetch the full summary table data currently on screen
-    current_data <- obj_env$df_obj$current_data()
-    
-    # Exclude the metrics and UI columns to isolate the grouping/focus columns
-    cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
-    
-    # Subset the data frame
-    data_to_copy <- current_data[, cross_tab_names, drop = FALSE]
-    
-    # Copy to clipboard using clipr (matches the behavior of other table copies)
-    clipr::write_clip(data_to_copy, allow_non_interactive = T)
-    
-    # Trigger the toast notification
-    if (totem$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data columns copied to clipboard")
+  i__all_event_functions[["Summary Table Organize"]][["Open Inverted View"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+    outer_env$u__inverted_view(session_name, current_row)
   }
-  i__all_event_functions[["Summary Table"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Organize"]][["Pin for Comparison"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_pin(session_name, current_row, view_objects, outer_env, obj_env, "Summary Table")
   }
-  i__all_event_functions[["Summary Table"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
+  i__all_event_functions[["Summary Table Organize"]][["Compare with Pinned"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     action_compare(session_name, current_row, view_objects, outer_env, obj_env, "Summary Table")
   }
-
   #--------------------------------------------
 
   # past code
