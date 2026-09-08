@@ -132,9 +132,11 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
     if (config_i %in% possible_types) {
 
       for (item_i in names(settings_config[[config_i]])) {
-        end_node <- paste0("base|",config_i,"|",item_i)
-         RGtk2::gSignalConnect(inner_env$menubar$item[[end_node]], "activate", all_menu_events,
-    data = list(config_i,item_i, outer_env, inner_env, session_name,event_mapping,NULL))
+        end_node <- paste0("base|", config_i, "|", item_i)
+        
+        #Connect the signal to the correctly referenced item in the items list.
+        RGtk2::gSignalConnect(inner_env$menubar$items[[end_node]], "activate", all_menu_events,
+          data = list(config_i, item_i, outer_env, inner_env, session_name, event_mapping, NULL))
       }
     }
   }
