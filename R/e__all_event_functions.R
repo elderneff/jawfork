@@ -9,7 +9,7 @@ e__all_event_functions <- function(outer_env = totem) {
 
   #Helper to extract frequency data based on table type.
   get_comparison_data <- function(session_name, current_row, outer_env, obj_env, table_type) {
-    # 1. Universally prevent comparison if unique by is active.
+    #Universally prevent comparison if unique by is active.
     unique_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$unique_by_cb)
     unique_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$unique_by_entry))
     has_unique <- unique_cb && unique_txt != ""
@@ -27,11 +27,10 @@ e__all_event_functions <- function(outer_env = totem) {
       return(NULL)
     }
 
-    # 2. Extract data safely.
     if (table_type == "Summary Table") {
       current_data <- obj_env$df_obj$current_data()
       
-      #Extract all grouping and target columns by removing internal UI variables.
+      #Extract all columns present in the summary table by removing internal UI variables.
       cross_tab_names <- setdiff(colnames(current_data), c("r__", "n", "freq", "lines", "nchar"))
       
       res <- as.data.frame(current_data[, c(cross_tab_names, "n"), drop = FALSE], stringsAsFactors = FALSE)
@@ -44,14 +43,26 @@ e__all_event_functions <- function(outer_env = totem) {
       
       return(list(keys = cross_tab_names, data = res))
       
-    } else {
-      #Meta Table or Full Data Table logic.
+    } else if (table_type == "Meta Table") {
+      #Ignore group by text fields entirely for the meta table.
       col_name <- current_row$column
+      current_data <- obj_env$df_obj$current_data()
       
-      #Determine base data (Full Data Table local filters are respected via data2).
+      vals <- as.character(current_data[, col_name, drop = TRUE])
+      vals[is.na(vals)] <- "NA"
+      
+      res <- as.data.frame(table(vals), stringsAsFactors = FALSE)
+      colnames(res) <- c(col_name, "n")
+      res$n <- as.numeric(res$n)
+      res[[col_name]] <- as.character(res[[col_name]])
+      
+      return(list(keys = col_name, data = res))
+      
+    } else {
+      #Full Data Table logic natively applies grouping fields if active.
+      col_name <- current_row$column
       temp_df <- outer_env[[session_name]]$data2
       
-      #Check for Group By variables.
       group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
       group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
       
@@ -78,8 +89,6 @@ e__all_event_functions <- function(outer_env = totem) {
       #Generate frequency table dynamically.
       if (length(all_keys) > 1) {
         res <- as.data.frame(table(target_data), stringsAsFactors = FALSE)
-        
-        #Drop combinations that have 0 frequency.
         res <- res[res$Freq > 0, , drop = FALSE]
         colnames(res)[colnames(res) == "Freq"] <- "n"
       } else {
@@ -87,7 +96,6 @@ e__all_event_functions <- function(outer_env = totem) {
         colnames(res) <- c(all_keys[1], "n")
       }
       
-      #Ensure data types are safe for merging.
       res$n <- as.numeric(res$n)
       for (col in all_keys) {
         res[[col]] <- as.character(res[[col]])
@@ -120,7 +128,6 @@ e__all_event_functions <- function(outer_env = totem) {
     #Determine path to the cross-session RDS file.
     pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
     
-    #Check if file exists before trying to read.
     if (!file.exists(pinned_path)) {
       err_dialog <- RGtk2::gtkMessageDialog(
         parent = outer_env[[session_name]]$windows$main_window,
@@ -158,16 +165,20 @@ e__all_event_functions <- function(outer_env = totem) {
       data = comp_info$data
     )
     
-    #Determine matching keys for the merge.
-    merge_keys <- intersect(pinned$keys, current$keys)
-    
-    if (length(merge_keys) == 0) {
+    #Check if the keys match perfectly regardless of order.
+    if (!setequal(pinned$keys, current$keys)) {
+      msg <- paste0(
+        "Cannot compare data: The grouping columns do not match.\n\n",
+        "Pinned columns: ", paste(pinned$keys, collapse = ", "), "\n",
+        "Current columns: ", paste(current$keys, collapse = ", ")
+      )
+      
       err_dialog <- RGtk2::gtkMessageDialog(
         parent = outer_env[[session_name]]$windows$main_window,
         flags = "destroy-with-parent",
         type = "error",
         buttons = "close",
-        "Cannot compare: The pinned data and current data have no columns in common."
+        msg
       )
       err_dialog$run()
       RGtk2::gtkWidgetDestroy(err_dialog)
@@ -185,8 +196,8 @@ e__all_event_functions <- function(outer_env = totem) {
     colnames(pinned$data)[colnames(pinned$data) == "n"] <- col_pinned
     colnames(current$data)[colnames(current$data) == "n"] <- col_current
     
-    #Merge the data dynamically based on the overlapping keys.
-    merged_df <- merge(pinned$data, current$data, by = merge_keys, all = TRUE)
+    #Merge the data dynamically based on the exact matching keys.
+    merged_df <- merge(pinned$data, current$data, by = current$keys, all = TRUE)
     
     #Add presence indicator columns before zeroing out NAs.
     merged_df$Pinned <- ifelse(!is.na(merged_df[[col_pinned]]), "Y", "")
@@ -202,13 +213,10 @@ e__all_event_functions <- function(outer_env = totem) {
     
     #Reorder columns for logical flow.
     metric_cols <- c(col_pinned, col_current, "Match", "Difference", "Pinned", "Comparison")
-    
-    #Ensure all grouping and target keys lead the table.
-    all_keys_union <- unique(c(pinned$keys, current$keys))
-    merged_df <- merged_df[, c(all_keys_union, metric_cols)]
+    merged_df <- merged_df[, c(current$keys, metric_cols)]
     
     #Dynamically generate the window title based on the keys used.
-    title_str <- paste0("Comparison: ", paste(pinned$keys, collapse = ", "), " vs ", paste(current$keys, collapse = ", "))
+    title_str <- paste0("Comparison: ", paste(current$keys, collapse = ", "))
     
     outer_env$u__df_view(
       merged_df, 
