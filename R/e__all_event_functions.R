@@ -27,6 +27,9 @@ e__all_event_functions <- function(outer_env = totem) {
       return(NULL)
     }
 
+    #Define base_df here so the Summary Table has access to it.
+    base_df <- outer_env[[session_name]]$data2
+
     if (table_type == "Summary Table") {
       current_data <- obj_env$df_obj$current_data()
       
@@ -38,7 +41,7 @@ e__all_event_functions <- function(outer_env = totem) {
       
       #Convert all key columns to character to ensure safe merging.
       for (col in cross_tab_names) {
-        res[[col]] <- as.character(res[[col]])
+        char_vals <- as.character(res[[col]])
 
         #Normalize numeric columns to strip trailing zeroes introduced by UI formatting.
         if (col %in% colnames(base_df) && is.numeric(base_df[[col]])) {
@@ -176,8 +179,13 @@ e__all_event_functions <- function(outer_env = totem) {
       data = comp_info$data
     )
     
-    #Check if the keys match perfectly regardless of order.
-    if (!setequal(pinned$keys, current$keys)) {
+    #Allow 1-to-1 column comparisons regardless of column name matching.
+    if (length(pinned$keys) == 1 && length(current$keys) == 1) {
+      harmonized_key <- pinned$keys[1]
+      colnames(current$data)[colnames(current$data) == current$keys[1]] <- harmonized_key
+      current$keys <- harmonized_key
+    } else if (!setequal(pinned$keys, current$keys)) {
+      #Throw mismatch error only if grouping variables are involved and mismatched.
       msg <- paste0(
         "Cannot compare data: The grouping columns do not match.\n\n",
         "Pinned column(s): ", paste(pinned$keys, collapse = ", "), "\n",
