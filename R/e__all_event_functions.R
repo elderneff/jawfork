@@ -57,32 +57,40 @@ e__all_event_functions <- function(outer_env = totem) {
       return(list(keys = cross_tab_names, data = res))
       
     } else if (table_type == "Meta Table") {
-      #Ignore group by text fields entirely for the meta table.
-      #Extract values directly from the meta table itself.
-      col_name <- current_row$column
+      #Extract values directly from the meta table itself using the matrix index.
+      col_idx <- current_row$column
       current_data <- obj_env$df_obj$current_data()
       
-      vals <- as.character(current_data[, col_name, drop = TRUE])
+      #Translate integer index to actual string name for the comparison headers.
+      col_name_str <- colnames(current_data)[col_idx]
       
-      #Normalize formatting for numeric metadata columns.
-      if (is.numeric(current_data[[col_name]])) {
-         num_vals <- as.numeric(current_data[[col_name]])
+      vals <- as.character(current_data[, col_idx, drop = TRUE])
+      
+      #Normalize formatting for numeric metadata columns safely.
+      num_vals <- suppressWarnings(as.numeric(vals))
+      valid_idx <- !is.na(vals) & vals != "NA" & trimws(vals) != ""
+      
+      #If all non-empty strings parse cleanly as numbers, cast them to drop UI-padded zeroes.
+      if (any(valid_idx) && !any(is.na(num_vals[valid_idx]))) {
          vals <- as.character(num_vals)
       }
       
       vals[is.na(vals)] <- "NA"
       
       res <- as.data.frame(table(vals), stringsAsFactors = FALSE)
-      colnames(res) <- c(col_name, "n")
+      colnames(res) <- c(col_name_str, "n")
       res$n <- as.numeric(res$n)
-      res[[col_name]] <- as.character(res[[col_name]])
+      res[[col_name_str]] <- as.character(res[[col_name_str]])
       
-      return(list(keys = col_name, data = res))
+      return(list(keys = col_name_str, data = res))
       
     } else {
       #Full Data Table logic natively applies grouping fields if active.
-      col_name <- current_row$column
+      col_idx <- current_row$column
       temp_df <- base_df
+      
+      #Translate integer index to string name to ensure it combines with group_cols properly.
+      col_name_str <- colnames(temp_df)[col_idx]
       
       group_cb <- RGtk2::gtkToggleButtonGetActive(outer_env[[session_name]]$data_view_list$group_by_cb)
       group_txt <- trimws(RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$group_by_entry))
@@ -95,7 +103,7 @@ e__all_event_functions <- function(outer_env = totem) {
       }
       
       #Combine grouping columns with the target column.
-      all_keys <- unique(c(group_cols, col_name))
+      all_keys <- unique(c(group_cols, col_name_str))
       all_keys <- intersect(all_keys, colnames(temp_df))
       
       target_data <- temp_df[, all_keys, drop = FALSE]
@@ -124,23 +132,6 @@ e__all_event_functions <- function(outer_env = totem) {
       
       return(list(keys = all_keys, data = res))
     }
-  }
-  #Action for pinning the column.
-  action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
-    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
-    if (is.null(comp_info)) return()
-    
-    pinned_data <- list(
-      dataset = outer_env[[session_name]]$sas_file_basename,
-      keys = comp_info$keys,
-      data = comp_info$data
-    )
-    
-    #Write to cross-session RDS file.
-    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
-    saveRDS(pinned_data, file = pinned_path)
-    
-    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data pinned for cross-session comparison")
   }
 
   #Action for compare with pinned.
