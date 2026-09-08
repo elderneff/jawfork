@@ -67,35 +67,9 @@ e__table_cell_events <- function(event, row.idx, col.idx, outer_env = totem, obj
       val_i <- table_events[[area_j]][[item_j]]
 
       if (current_state == val_i && val_i != "-") {
-        if (is_meta_table && grepl("^Meta Table", area_j)) {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (is_full_data_table && grepl("^Full Data Table", area_j)) {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (is_value_table && grepl("^Summary Table", area_j)) {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (is_data_code_table && area_j == "Past Code Table") {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (is_file_history_table && area_j == "File History Table") {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (area_j == "General") {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        } else if (area_j == "Copy") {
-          config_i <- area_j
-          item_i <- item_j
-          break
-        }
+        config_i <- area_j
+        item_i <- item_j
+        break
       }
     }
     if (config_i != "") break
