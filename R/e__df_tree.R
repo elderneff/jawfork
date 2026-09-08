@@ -75,19 +75,18 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
   settings_config <- outer_env$settings_list$table_events
 
 
-  possible_types <- c("General", "Copy")
-
+  possible_types <- c("General")
 
   if (is_meta_table) {
-    possible_types <- c(possible_types, "Meta Table")
+    possible_types <- c(possible_types, "Meta Table Copy", "Meta Table Summarize", "Meta Table Organize")
   } else if (is_full_data_table) {
-    possible_types <- c(possible_types, "Full Data Table")
+    possible_types <- c(possible_types, "Copy", "Full Data Table Filter", "Full Data Table Summarize", "Full Data Table Organize")
   } else if (is_value_table) {
-    possible_types <- c(possible_types, "Summary Table")
+    possible_types <- c(possible_types, "Summary Table Copy", "Summary Table Filter", "Summary Table Organize")
   } else if (is_data_code_table) {
-    possible_types <- c(possible_types, "Past Code Table")
+    possible_types <- c(possible_types, "Copy", "Past Code Table")
   } else if (is_file_history_table) {
-    possible_types <- c(possible_types, "File History Table")
+    possible_types <- c(possible_types, "Copy", "File History Table")
   }
 
 
