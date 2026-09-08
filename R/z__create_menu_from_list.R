@@ -4,18 +4,17 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
     "Add to filter", "Add to grepl to filter", "Clear filter", "Bob",
     "if then", "if then do", "Column full", "Column filtered", "Column Wide", "Row",
     "Add Column to Main Filter", "Add Column to Main Filter Exclude", "Get Summary", "Graph Summary", "Scatterplot Summary",
-      "Add Column to select", "Move column before", "Move column after", 
-    "Copy dataset layout", "Copy keep statement", "Copy label statement", "Copy length statement",
+    "Add Column to select", "Move column before", "Move column after", 
+    "dataset layout", "keep statement", "label statement", "length statement",
     "Open Flat View", "Open Inverted View"
   )
   
   #Define conditionally dark items using a named list.
-  #Names are the exact menu item labels, values are regex patterns for the parent menu.
   conditional_dark_items <- list(
-    "Format by Column" = "Full Data Table",
-    "Add'l format by Column" = "Full Data Table",
-    "Pin for Comparison" = "Meta Table|Summary Table",
-    "Compare with Pinned" = "Meta Table|Summary Table"
+    "Format by Column" = "Full Data Table Organize",
+    "Add'l format by Column" = "Full Data Table Organize",
+    "Pin for Comparison" = "Meta Table Organize|Summary Table Organize",
+    "Compare with Pinned" = "Meta Table Organize|Summary Table Organize"
   )
   
   #Inject RC string to permanently collapse the invisible left gutter.
@@ -31,85 +30,45 @@ z__create_menu_from_list <- function(obj, parent_name, my_list) {
   if (is.list(my_list)) {
     menu_dirs <- names(my_list)
     for (my_sub_str in menu_dirs) {
-      my_sub_str_name <- my_sub_str
-      item_d_name <- paste0(parent_name, "|", my_sub_str_name)
+      
+      # Strip the internal prefixes so the user just sees "Filter", "Summarize", etc.
+      my_sub_str_name <- sub("^(Full Data Table |Meta Table |Summary Table )", "", my_sub_str)
+      
+      item_d_name <- paste0(parent_name, "|", my_sub_str)
       obj$items[[item_d_name]] <- RGtk2::gtkMenuItem(label = my_sub_str_name)
       RGtk2::gtkMenuShellAppend(obj[[parent_name]], obj$items[[item_d_name]])
       obj[[item_d_name]] <- RGtk2::gtkMenu()
       RGtk2::gtkMenuItemSetSubmenu(obj$items[[item_d_name]], obj[[item_d_name]])
-      obj <- z__create_menu_from_list(
-        obj, item_d_name,
-        my_list[[my_sub_str]]
-      )
+      
+      z__create_menu_from_list(obj, item_d_name, my_list[[my_sub_str]])
     }
-  } else if (is.vector(my_list)) {
+  } else {
     for (my_sub_str in my_list) {
-      my_sub_str_name <- my_sub_str
-      item_d_name <- paste0(parent_name, "|", my_sub_str_name)
+      item_d_name <- paste0(parent_name, "|", my_sub_str)
+      obj$items[[item_d_name]] <- RGtk2::gtkMenuItem(label = my_sub_str)
       
-      #Create an empty menu item.
-      menu_item <- RGtk2::gtkMenuItemNew()
+      # Apply custom visual styling
+      evb <- RGtk2::gtkEventBox()
+      lbl <- RGtk2::gtkLabel(my_sub_str)
+      RGtk2::gtkMiscSetAlignment(lbl, 0, 0.5)
+      RGtk2::gtkContainerAdd(evb, lbl)
+      RGtk2::gtkContainerAdd(obj$items[[item_d_name]], evb)
       
-      #Create an event box to control background rendering completely.
-      eb <- RGtk2::gtkEventBoxNew()
-      RGtk2::gtkWidgetSetHasWindow(eb, TRUE)
-      
-      #Create the text label and align it left.
-      lbl <- RGtk2::gtkLabelNew(my_sub_str_name)
-      lbl$xalign <- 0
-      
-      #Add visual padding inside the EventBox so it mimics native menus.
-      lbl["xpad"] <- 0
-      lbl["ypad"] <- 0
-      
-      #Pack them together.
-      RGtk2::gtkContainerAdd(eb, lbl)
-      RGtk2::gtkContainerAdd(menu_item, eb)
-      
-      #Determine if the item is explicitly conditionally dark based on its parent menu.
-      is_conditional_dark <- FALSE
-      if (my_sub_str_name %in% names(conditional_dark_items)) {
-        if (grepl(conditional_dark_items[[my_sub_str_name]], parent_name, ignore.case = TRUE)) {
-          is_conditional_dark <- TRUE
-        }
+      is_dark <- FALSE
+      if (my_sub_str %in% dark_items) {
+        is_dark <- TRUE
+      } else if (my_sub_str %in% names(conditional_dark_items)) {
+        if (grepl(conditional_dark_items[[my_sub_str]], parent_name)) is_dark <- TRUE
       }
       
-      #Determine the normal background color for the block.
-      if (my_sub_str_name %in% dark_items || is_conditional_dark) {
-        c_norm <- RGtk2::gdkColorParse("#C8C8C8")$color
+      if (is_dark) {
+        RGtk2::gtkWidgetModifyBg(evb, RGtk2::GtkStateType["normal"], RGtk2::gdkColorParse("#E8E8E8")$color)
       } else {
-        c_norm <- RGtk2::gdkColorParse("#F0F0F0")$color
+        RGtk2::gtkWidgetModifyBg(evb, RGtk2::GtkStateType["normal"], RGtk2::gdkColorParse("#F0F0F0")$color)
       }
       
-      #Lock hover color to the light blue permanently.
-      c_hov <- RGtk2::gdkColorParse("#91C9F7")$color
-      
-      #Set the normal and prelight backgrounds initially on BOTH components.
-      RGtk2::gtkWidgetModifyBg(eb, "normal", c_norm)
-      RGtk2::gtkWidgetModifyBg(eb, "prelight", c_norm)
-      RGtk2::gtkWidgetModifyBg(menu_item, "normal", c_norm)
-      RGtk2::gtkWidgetModifyBg(menu_item, "prelight", c_norm)
-      
-      #Manually capture hover states to swap colors with solid paint.
-      RGtk2::gSignalConnect(menu_item, "select", function(widget, data) {
-        RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_hov)
-        RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_hov)
-        RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_hov)
-        return(FALSE)
-      }, data = list(eb = eb, c_hov = c_hov))
-      
-      RGtk2::gSignalConnect(menu_item, "deselect", function(widget, data) {
-        RGtk2::gtkWidgetModifyBg(data$eb, "normal", data$c_norm)
-        RGtk2::gtkWidgetModifyBg(data$eb, "prelight", data$c_norm)
-        RGtk2::gtkWidgetModifyBg(widget, "prelight", data$c_norm)
-        return(FALSE)
-      }, data = list(eb = eb, c_norm = c_norm))
-      
-      obj$items[[item_d_name]] <- menu_item
       RGtk2::gtkMenuShellAppend(obj[[parent_name]], obj$items[[item_d_name]])
-      obj$end_nodes <- c(obj$end_nodes, item_d_name)
     }
   }
-
   return(obj)
 }
