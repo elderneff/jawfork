@@ -169,8 +169,8 @@ e__all_event_functions <- function(outer_env = totem) {
     if (!setequal(pinned$keys, current$keys)) {
       msg <- paste0(
         "Cannot compare data: The grouping columns do not match.\n\n",
-        "Pinned columns: ", paste(pinned$keys, collapse = ", "), "\n",
-        "Current columns: ", paste(current$keys, collapse = ", ")
+        "Pinned column(s): ", paste(pinned$keys, collapse = ", "), "\n",
+        "Attempted comparison column(s): ", paste(current$keys, collapse = ", ")
       )
       
       err_dialog <- RGtk2::gtkMessageDialog(
