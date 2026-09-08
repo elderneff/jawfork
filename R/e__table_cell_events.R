@@ -61,15 +61,15 @@ e__table_cell_events <- function(event, row.idx, col.idx, outer_env = totem, obj
     item_j <- outer_env$settings_window$settings_config_objs[[event_i]]$item
 
     if (current_state == val_i) {
-      if (is_meta_table & area_j == "Meta Table") {
+      if (is_meta_table & grepl("^Meta Table", area_j)) {
         config_i <- area_j
         item_i <- item_j
         break
-      } else if (is_full_data_table & area_j == "Full Data Table") {
+      } else if (is_full_data_table & grepl("^Full Data Table", area_j)) {
         config_i <- area_j
         item_i <- item_j
         break
-      } else if (is_value_table & area_j == "Summary Table") {
+      } else if (is_value_table & grepl("^Summary Table", area_j)) {
         config_i <- area_j
         item_i <- item_j
         break
