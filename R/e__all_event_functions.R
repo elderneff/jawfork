@@ -39,6 +39,17 @@ e__all_event_functions <- function(outer_env = totem) {
       #Convert all key columns to character to ensure safe merging.
       for (col in cross_tab_names) {
         res[[col]] <- as.character(res[[col]])
+
+        #Normalize numeric columns to strip trailing zeroes introduced by UI formatting.
+        if (col %in% colnames(base_df) && is.numeric(base_df[[col]])) {
+          is_na_str <- char_vals == "NA" | is.na(char_vals)
+          num_vals <- suppressWarnings(as.numeric(char_vals))
+          char_vals <- as.character(num_vals)
+          char_vals[is_na_str] <- "NA"
+        } else {
+          char_vals[is.na(char_vals)] <- "NA"
+        }
+        res[[col]] <- char_vals
       }
       
       return(list(keys = cross_tab_names, data = res))
@@ -82,6 +93,10 @@ e__all_event_functions <- function(outer_env = totem) {
       #Convert NA to "NA" for grouping consistency.
       for (col in all_keys) {
         char_vals <- as.character(target_data[[col]])
+        if (is.numeric(temp_df[[col]])) {
+          num_vals <- as.numeric(target_data[[col]])
+          char_vals <- as.character(num_vals)
+        }
         char_vals[is.na(char_vals)] <- "NA"
         target_data[[col]] <- char_vals
       }
