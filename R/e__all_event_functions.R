@@ -86,15 +86,11 @@ e__all_event_functions <- function(outer_env = totem) {
         target_data[[col]] <- char_vals
       }
       
-      #Generate frequency table dynamically.
-      if (length(all_keys) > 1) {
-        res <- as.data.frame(table(target_data), stringsAsFactors = FALSE)
-        res <- res[res$Freq > 0, , drop = FALSE]
-        colnames(res)[colnames(res) == "Freq"] <- "n"
-      } else {
-        res <- as.data.frame(table(target_data[[all_keys[1]]]), stringsAsFactors = FALSE)
-        colnames(res) <- c(all_keys[1], "n")
-      }
+      #Generate frequency table dynamically using dplyr to avoid table() Cartesian explosion.
+      res <- target_data %>%
+        group_by(!!!syms(all_keys)) %>%
+        summarise(n = n(), .groups = "drop") %>%
+        as.data.frame(stringsAsFactors = FALSE)
       
       res$n <- as.numeric(res$n)
       for (col in all_keys) {
