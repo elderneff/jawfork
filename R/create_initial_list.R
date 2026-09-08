@@ -139,25 +139,43 @@ check_settings <- function(settings) {
       "Vector Column filtered" = "-",
       "Row" = "-"
     ),
-    "Meta Table" = list(
+    "Meta Table Copy" = list(
+      "Cell value" = "middle+none",
+      "Column Name" = "-",
+      "Column=Cell" = "-",
+      "if then" = "-",
+      "if then do" = "-",
+      "Table full" = "-",
+      "Table full to file" = "-",
+      "Table filtered" = "-",
+      "Column full" = "-",
+      "Column filtered" = "-",
+      "Column Wide" = "-",
+      "Vector Column full" = "-",
+      "Vector Column filtered" = "-",
+      "Row" = "-",
+      "dataset layout" = "-",
+      "keep statement" = "-",
+      "label statement" = "-",
+      "length statement" = "-"
+    ),
+    "Meta Table Summarize" = list(
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt",
+      "Trigger Value Summary with Unique By" = "left+alt"
+    ),
+    "Meta Table Organize" = list(
       "Add Column to select" = "-",
       "Move column before" = "-",
       "Move column after" = "-",
       "Add Count to df" = "-",
-      "Copy dataset layout" = "-",
-      "Copy keep statement" = "-",
-      "Copy label statement" = "-",
-      "Copy length statement" = "-",
       "Format by Column" = "-",
       "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
       "Compare with Pinned" = "-",
       "Freeze/Unfreeze Column" = "-"
     ),
-    "Full Data Table" = list(
+    "Full Data Table Filter" = list(
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Add to Main Filter (no combining)" = "-",
@@ -165,13 +183,17 @@ check_settings <- function(settings) {
       "Add Column to Main Filter Exclude" = "-",
       "Add grepl to Main Filter" = "-",
       "Add Bucket to Main Filter" = "-",
-      "Add Bucket to Main Filter Exclude" = "-",
+      "Add Bucket to Main Filter Exclude" = "-"
+    ),
+    "Full Data Table Summarize" = list(
       "Get Summary" = "middle+ctrl",
       "Graph Summary" = "-",
       "Scatterplot Summary" = "-",
       "Trigger Value Summary" = "left+none",
       "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt",
+      "Trigger Value Summary with Unique By" = "left+alt"
+    ),
+    "Full Data Table Organize" = list(
       "Add Column to select" = "-",
       "Move column before" = "-",
       "Move column after" = "-",
@@ -182,7 +204,25 @@ check_settings <- function(settings) {
       "Compare with Pinned" = "-",
       "Freeze/Unfreeze Column" = "-"
     ),
-    "Summary Table" = list(
+    "Summary Table Copy" = list(
+      "Cell value" = "middle+none",
+      "Column Name" = "-",
+      "Column=Cell" = "-",
+      "if then" = "-",
+      "if then do" = "-",
+      "Table full" = "-",
+      "Table full to file" = "-",
+      "Table filtered" = "-",
+      "Column full" = "-",
+      "Column filtered" = "-",
+      "Column Wide" = "-",
+      "Vector Column full" = "-",
+      "Vector Column filtered" = "-",
+      "Row" = "-",
+      "Mapping" = "-",
+      "Data Columns" = "-"
+    ),
+    "Summary Table Filter" = list(
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Add to Main Filter (no combining)" = "-",
@@ -191,11 +231,11 @@ check_settings <- function(settings) {
       "Add grepl to Main Filter" = "-",
       "Add Table to Main Filter" = "-",
       "Add Bucket to Main Filter" = "-",
-      "Add Bucket to Main Filter Exclude" = "-",
+      "Add Bucket to Main Filter Exclude" = "-"
+    ),
+    "Summary Table Organize" = list(
       "Open Flat View" = "-",
       "Open Inverted View" = "-",
-      "Copy Mapping" = "-",
-      "Copy Data Columns" = "-",
       "Pin for Comparison" = "-",
       "Compare with Pinned" = "-"
     ),
