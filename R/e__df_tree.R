@@ -67,28 +67,26 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
 
 
   #########################
-  #
   # Menu
-  #
   ##########################
+  
+  #Expose table flags to the inner environment so unified event functions can detect context.
+  inner_env$is_meta_table <- is_meta_table
+  inner_env$is_full_data_table <- is_full_data_table
+  inner_env$is_value_table <- is_value_table
+  inner_env$is_data_code_table <- is_data_code_table
+  inner_env$is_file_history_table <- is_file_history_table
 
   settings_config <- outer_env$settings_list$table_events
 
-
-  possible_types <- c("General")
-
-  if (is_meta_table) {
-    possible_types <- c(possible_types, "Meta Table Copy", "Meta Table Summarize", "Meta Table Organize")
-  } else if (is_full_data_table) {
-    possible_types <- c(possible_types, "Copy", "Full Data Table Filter", "Full Data Table Summarize", "Full Data Table Organize")
-  } else if (is_value_table) {
-    possible_types <- c(possible_types, "Summary Table Copy", "Summary Table Filter", "Summary Table Organize")
-  } else if (is_data_code_table) {
-    possible_types <- c(possible_types, "Copy", "Past Code Table")
+  #Determine which unified categories to show based on table type.
+  if (is_data_code_table) {
+    possible_types <- c("General", "Copy", "Past Code Table")
   } else if (is_file_history_table) {
-    possible_types <- c(possible_types, "Copy", "File History Table")
+    possible_types <- c("General", "Copy", "File History Table")
+  } else {
+    possible_types <- c("General", "Copy", "Filter", "Summarize", "Organize")
   }
-
 
   u__menubar_settings <- list()
   for (config_i in names(settings_config)) {
@@ -99,7 +97,7 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
       }
     }
   }
-
+  
   u__menubar <- list()
   u__menubar$items <- list()
   u__menubar[["base"]] <- RGtk2::gtkMenu()
