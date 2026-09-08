@@ -491,12 +491,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       build_meta_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
-          "Meta Table|Trigger Value Summary" = load_value_function,
-          "Meta Table|Trigger Value Summary with Group By" = add_group_by_function,
-          "Meta Table|Trigger Value Summary with Unique By" = add_unique_by_function
+          "Trigger Value Summary" = load_value_function,
+          "Trigger Value Summary with Group By" = add_group_by_function,
+          "Trigger Value Summary with Unique By" = add_unique_by_function
         )
-
-
 
         return(outer_env$u__df_tree(
           session_name = session_name,
@@ -509,17 +507,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       }
 
 
-
-
-
+      
       build_full_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
-          "Full Data Table|Trigger Value Summary" = load_value_function,
-          "Full Data Table|Trigger Value Summary with Group By" = add_group_by_function,
-          "Full Data Table|Trigger Value Summary with Unique By" = add_unique_by_function
+          "Trigger Value Summary" = load_value_function,
+          "Trigger Value Summary with Group By" = add_group_by_function,
+          "Trigger Value Summary with Unique By" = add_unique_by_function
         )
-
-
 
         return(outer_env$u__df_tree(
           session_name = session_name,
