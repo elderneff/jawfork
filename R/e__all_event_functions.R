@@ -134,6 +134,24 @@ e__all_event_functions <- function(outer_env = totem) {
     }
   }
 
+  #Action for pinning the column.
+  action_pin <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
+    comp_info <- get_comparison_data(session_name, current_row, outer_env, obj_env, table_type)
+    if (is.null(comp_info)) return()
+    
+    pinned_data <- list(
+      dataset = outer_env[[session_name]]$sas_file_basename,
+      keys = comp_info$keys,
+      data = comp_info$data
+    )
+    
+    #Write to cross-session RDS file.
+    pinned_path <- file.path(outer_env$settings_dir_path, "pinned_comparison.rds")
+    saveRDS(pinned_data, file = pinned_path)
+    
+    if (outer_env$settings_list$copy_messages) outer_env$u__show_toast(session_name, "Data pinned for cross-session comparison")
+  }
+
   #Action for compare with pinned.
   action_compare <- function(session_name, current_row, view_objects, outer_env, obj_env, table_type) {
     #Determine path to the cross-session RDS file.
