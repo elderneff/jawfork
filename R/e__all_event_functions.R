@@ -430,17 +430,17 @@ e__all_event_functions <- function(outer_env = totem) {
   i__all_event_functions[["Meta Table"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
-    view_objects$event_mapping[["Meta Table|Trigger Value Summary"]](session_name, current_data[row_i, "variable", drop = T])
+    view_objects$event_mapping[["Trigger Value Summary"]](session_name, current_data[row_i, "variable", drop = T])
   }
   i__all_event_functions[["Meta Table"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
-    view_objects$event_mapping[["Meta Table|Trigger Value Summary with Group By"]](session_name, current_data[row_i, "variable", drop = T])
+    view_objects$event_mapping[["Trigger Value Summary with Group By"]](session_name, current_data[row_i, "variable", drop = T])
   }
   i__all_event_functions[["Meta Table"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     current_data <- obj_env$df_obj$current_data()
     row_i <- current_row$row_i
-    view_objects$event_mapping[["Meta Table|Trigger Value Summary with Unique By"]](session_name, current_data[row_i, "variable", drop = T])
+    view_objects$event_mapping[["Trigger Value Summary with Unique By"]](session_name, current_data[row_i, "variable", drop = T])
   }
   i__all_event_functions[["Meta Table"]][["Copy dataset layout"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     obj_env$df_obj$copy_dataset_layout()
@@ -538,15 +538,15 @@ e__all_event_functions <- function(outer_env = totem) {
   #-------------------------------------------
   i__all_event_functions[["Full Data Table"]][["Trigger Value Summary"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
-    view_objects$event_mapping[["Full Data Table|Trigger Value Summary"]](session_name, column)
+    view_objects$event_mapping[["Trigger Value Summary"]](session_name, column)
   }
   i__all_event_functions[["Full Data Table"]][["Trigger Value Summary with Group By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
-    view_objects$event_mapping[["Full Data Table|Trigger Value Summary with Group By"]](session_name, column)
+    view_objects$event_mapping[["Trigger Value Summary with Group By"]](session_name, column)
   }
   i__all_event_functions[["Full Data Table"]][["Trigger Value Summary with Unique By"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     column <- current_row$column
-    view_objects$event_mapping[["Full Data Table|Trigger Value Summary with Unique By"]](session_name, column)
+    view_objects$event_mapping[["Trigger Value Summary with Unique By"]](session_name, column)
   }
   i__all_event_functions[["Full Data Table"]][["Add Column to select"]] <- function(session_name, current_row, view_objects, outer_env = totem, obj_env = inner_env) {
     st <- RGtk2::gtkEntryGetText(outer_env[[session_name]]$data_view_list$select_entry)
