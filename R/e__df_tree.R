@@ -67,26 +67,29 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
 
 
   #########################
+  #
   # Menu
+  #
   ##########################
-  
-  #Expose table flags to the inner environment so unified event functions can detect context.
-  inner_env$is_meta_table <- is_meta_table
-  inner_env$is_full_data_table <- is_full_data_table
-  inner_env$is_value_table <- is_value_table
-  inner_env$is_data_code_table <- is_data_code_table
-  inner_env$is_file_history_table <- is_file_history_table
 
   settings_config <- outer_env$settings_list$table_events
 
-  #Determine which unified categories to show based on table type.
-  if (is_data_code_table) {
-    possible_types <- c("General", "Copy", "Past Code Table")
+
+  possible_types <- c("General", "Copy")
+
+
+  if (is_meta_table) {
+    possible_types <- c(possible_types, "Meta Table")
+  } else if (is_full_data_table) {
+    possible_types <- c(possible_types, "Full Data Table")
+  } else if (is_value_table) {
+    possible_types <- c(possible_types, "Summary Table")
+  } else if (is_data_code_table) {
+    possible_types <- c(possible_types, "Past Code Table")
   } else if (is_file_history_table) {
-    possible_types <- c("General", "Copy", "File History Table")
-  } else {
-    possible_types <- c("General", "Copy", "Filter", "Summarize", "Organize")
+    possible_types <- c(possible_types, "File History Table")
   }
+
 
   u__menubar_settings <- list()
   for (config_i in names(settings_config)) {
@@ -97,7 +100,7 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
       }
     }
   }
-  
+
   u__menubar <- list()
   u__menubar$items <- list()
   u__menubar[["base"]] <- RGtk2::gtkMenu()
@@ -130,11 +133,9 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
     if (config_i %in% possible_types) {
 
       for (item_i in names(settings_config[[config_i]])) {
-        end_node <- paste0("base|", config_i, "|", item_i)
-        
-        #Connect the signal to the correctly referenced item in the items list.
-        RGtk2::gSignalConnect(inner_env$menubar$items[[end_node]], "activate", all_menu_events,
-          data = list(config_i, item_i, outer_env, inner_env, session_name, event_mapping, NULL))
+        end_node <- paste0("base|",config_i,"|",item_i)
+         RGtk2::gSignalConnect(inner_env$menubar$item[[end_node]], "activate", all_menu_events,
+    data = list(config_i,item_i, outer_env, inner_env, session_name,event_mapping,NULL))
       }
     }
   }
