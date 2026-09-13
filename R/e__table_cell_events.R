@@ -29,7 +29,6 @@ e__table_cell_events <- function(event, row.idx, col.idx, outer_env = totem, obj
   )
 
   if (is_file_history_table == F) {
-    #Check if the status bar exists to prevent pseudo-sessions from throwing errors
     if (!is.null(outer_env[[session_name]]$status_bar)) {
       RGtk2::gtkLabelSetLabel(outer_env[[session_name]]$status_bar$info_label_cell, paste0("| Cell length: ", nchar(value)))
 
@@ -60,35 +59,14 @@ e__table_cell_events <- function(event, row.idx, col.idx, outer_env = totem, obj
     area_j <- outer_env$settings_window$settings_config_objs[[event_i]]$area
     item_j <- outer_env$settings_window$settings_config_objs[[event_i]]$item
 
-    if (current_state == val_i) {
-      if (is_meta_table & area_j == "Meta Table") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (is_full_data_table & area_j == "Full Data Table") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (is_value_table & area_j == "Summary Table") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (is_data_code_table & area_j == "Past Code Table") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (is_file_history_table & area_j == "File History Table") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (area_j == "General") {
-        config_i <- area_j
-        item_i <- item_j
-        break
-      } else if (area_j == "Copy") {
-        config_i <- area_j
-        item_i <- item_j
-        break
+    if (current_state == val_i && val_i != "-") {
+      #Validates if the mapped shortcut legitimately belongs to the active table context
+      if (area_j %in% names(obj_env$u__menubar_settings)) {
+        if (item_j %in% obj_env$u__menubar_settings[[area_j]]) {
+          config_i <- area_j
+          item_i <- item_j
+          break
+        }
       }
     }
   }
