@@ -19,34 +19,22 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
                        is_value_table = F, is_meta_table = F, is_data_code_table = F, is_file_history_table = F, is_full_data_table = F, outer_env = totem) {
   inner_env <- new.env()
 
-  box <- RGtk2::gtkVBox()
+  #Store table identity context in the inner environment
+  inner_env$is_full_data_table <- is_full_data_table
+  inner_env$is_meta_table <- is_meta_table
+  inner_env$is_value_table <- is_value_table
 
+  box <- RGtk2::gtkVBox()
   RGtk2::gtkBoxPackStart(passed_box, box, F, F)
 
-
-  color_header_1 <- "#00ffff"
-  color_bg_1 <- "#ff00ff"
-  color_bg_2 <- "#ffff00"
-  color_sep_1 <- "#00ff00"
-
-
-  if (is.null(event_mapping)) {
-    event_mapping <- list()
-  }
-  if (is.null(style_list)) {
-    style_list <- list()
-  }
-
-
+  if (is.null(event_mapping)) event_mapping <- list()
+  if (is.null(style_list)) style_list <- list()
 
   #########################
   # Helpers & objects
   ##########################
-
   inner_env$table_cell_events <- e__with_env(e__table_cell_events)
   inner_env$tree_view_column_btn_press <- e__with_env(e__tree_view_column_btn_press)
-
-
   inner_env$new_tree_view_column <- e__with_env(e__new_tree_view_column)
   inner_env$add_column_label <- e__with_env(e__add_column_label)
 
@@ -57,100 +45,67 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
 
   inner_env$table_obj_function_df2 <- e__with_env(e__table_obj_function_df2)
   inner_env$table_obj_function <- e__with_env(e__table_obj_function)
-
-
   inner_env$generic_filter_function <- e__with_env(e__generic_filter_function)
   inner_env$df_obj_function <- e__with_env(e__df_obj_function)
 
-
-
-
-
   #########################
-  #
   # Menu
-  #
   ##########################
-
-  settings_config <- outer_env$settings_list$table_events
-
-
-  possible_types <- c("General", "Copy")
-
-
-  if (is_meta_table) {
-    possible_types <- c(possible_types, "Meta Table")
-  } else if (is_full_data_table) {
-    possible_types <- c(possible_types, "Full Data Table")
-  } else if (is_value_table) {
-    possible_types <- c(possible_types, "Summary Table")
-  } else if (is_data_code_table) {
-    possible_types <- c(possible_types, "Past Code Table")
-  } else if (is_file_history_table) {
-    possible_types <- c(possible_types, "File History Table")
-  }
-
-
   u__menubar_settings <- list()
-  for (config_i in names(settings_config)) {
-    if (config_i %in% possible_types) {
-      u__menubar_settings[[config_i]] <- list()
-      for (item_i in names(settings_config[[config_i]])) {
-        u__menubar_settings[[config_i]][[item_i]] <- c("temp")
-      }
+  
+  if (is_meta_table || is_full_data_table || is_value_table) {
+    u__menubar_settings[["General"]] <- c("Open Context Menu", "View", "Refresh", "Add to filter", "Add to grepl to filter", "Clear filter", "Add to arrange", "Clear arrange", "Bob")
+    u__menubar_settings[["Copy"]] <- c("Cell value", "Column Name", "Column=Cell", "if then", "if then do", "Table full", "Table full to file", "Table filtered", "Column full", "Column filtered", "Column Wide", "Vector Column full", "Vector Column filtered", "Row")
+    
+    if (is_meta_table) {
+      u__menubar_settings[["Copy"]] <- c(u__menubar_settings[["Copy"]], "dataset layout", "keep statement", "label statement", "length statement")
+      u__menubar_settings[["Summarize"]] <- c("Trigger Value Summary", "Trigger Value Summary with Group By", "Trigger Value Summary with Unique By")
+      u__menubar_settings[["Organize"]] <- c("Add Column to select", "Move column before", "Move column after", "Add Count to df", "Format by Column", "Add'l format by Column", "Pin for Comparison", "Compare with Pinned", "Freeze/Unfreeze Column")
+    } else if (is_full_data_table) {
+      u__menubar_settings[["Filter"]] <- c("Add to Main Filter", "Add to Main Filter Exclude", "Add to Main Filter (no combining)", "Add Column to Main Filter", "Add Column to Main Filter Exclude", "Add grepl to Main Filter", "Add Bucket to Main Filter", "Add Bucket to Main Filter Exclude")
+      u__menubar_settings[["Summarize"]] <- c("Get Summary", "Graph Summary", "Scatterplot Summary", "Trigger Value Summary", "Trigger Value Summary with Group By", "Trigger Value Summary with Unique By")
+      u__menubar_settings[["Organize"]] <- c("Add Column to select", "Move column before", "Move column after", "Add Count to df", "Format by Column", "Add'l format by Column", "Pin for Comparison", "Compare with Pinned", "Freeze/Unfreeze Column")
+    } else if (is_value_table) {
+      u__menubar_settings[["Copy"]] <- c(u__menubar_settings[["Copy"]], "Mapping", "Data Columns")
+      u__menubar_settings[["Filter"]] <- c("Add to Main Filter", "Add to Main Filter Exclude", "Add to Main Filter (no combining)", "Add Column to Main Filter", "Add Column to Main Filter Exclude", "Add grepl to Main Filter", "Add Table to Main Filter", "Add Bucket to Main Filter", "Add Bucket to Main Filter Exclude")
+      u__menubar_settings[["Organize"]] <- c("Open Flat View", "Open Inverted View", "Pin for Comparison", "Compare with Pinned")
     }
+  } else if (is_data_code_table) {
+    u__menubar_settings <- list("Past Code Table" = c("Load Code"))
+  } else if (is_file_history_table) {
+    u__menubar_settings <- list("File History Table" = c("New Session"))
   }
+
+  inner_env$u__menubar_settings <- u__menubar_settings
 
   u__menubar <- list()
   u__menubar$items <- list()
   u__menubar[["base"]] <- RGtk2::gtkMenu()
   u__menubar$end_nodes <- c()
 
-  # if (exists("pop_up") == F) {
-  #   pop_up <- list()
-  # }
-
-
-
-
   u__menubar_settings_map <- list()
   for (my_name in names(u__menubar_settings)) {
-    u__menubar_settings_map[[my_name]] <- names(u__menubar_settings[[my_name]])
+    u__menubar_settings_map[[my_name]] <- u__menubar_settings[[my_name]]
   }
-
-
 
   inner_env$menubar <- z__create_menu_from_list(
     u__menubar,
     "base", u__menubar_settings_map
   )
 
-
   all_menu_events <- e__with_env(e__all_menu_events)
 
-
-  for (config_i in names(settings_config)) {
-    if (config_i %in% possible_types) {
-
-      for (item_i in names(settings_config[[config_i]])) {
-        end_node <- paste0("base|",config_i,"|",item_i)
-         RGtk2::gSignalConnect(inner_env$menubar$item[[end_node]], "activate", all_menu_events,
-    data = list(config_i,item_i, outer_env, inner_env, session_name,event_mapping,NULL))
-      }
+  for (config_i in names(u__menubar_settings)) {
+    for (item_i in u__menubar_settings[[config_i]]) {
+      end_node <- paste0("base|", config_i, "|", item_i)
+      RGtk2::gSignalConnect(inner_env$menubar$item[[end_node]], "activate", all_menu_events,
+        data = list(config_i, item_i, outer_env, inner_env, session_name, event_mapping, NULL))
     }
   }
 
-
-
-
-
-
   #########################
-  #
   # Create Objects
-  #
   ##########################
-
   top_box <- RGtk2::gtkHBox()
   top_box_right <- RGtk2::gtkVBox()
   header_table0 <- RGtk2::gtkTableNew(rows = 4, columns = 20, homogeneous = F)
@@ -159,7 +114,6 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
 
   inner_env$hidden_table <- T
 
-  # --- NEW: Refresh Button specifically for Past Code Window ---
   if (is_data_code_table) {
     u__button(
       box = top_box,
@@ -170,29 +124,20 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
         outer_env <- data[[1]]
         inner_env <- data[[2]]
         
-        # 1. Pull the latest code history from the disk
         try({
           disk_settings <- readRDS(outer_env$local_settings_rds)
           if (is.list(disk_settings) && !is.null(disk_settings$previous_code)) {
             merged_code <- rbind(outer_env$settings_list$previous_code, disk_settings$previous_code)
-            
-            # 2. Sort descending by time to keep newest code at the top
             merged_code <- merged_code[order(merged_code$time, decreasing = TRUE), ]
             merged_code <- merged_code[!duplicated(merged_code[, -1]), ]
-            
-            # 3. Cap at 500 and save to the active environment
             outer_env$settings_list$previous_code <- head(merged_code, 500)
-            
-            # --- NEW: Save the synchronized state back to disk ---
             save_settings(outer_env)
           }
         }, silent = TRUE)
         
-        # 4. Force the table UI to update with the new data
         if (!is.null(inner_env$df_obj)) {
             inner_env$df_obj$call_generate_full_df(outer_env$settings_list$previous_code)
         }
-        
         return(FALSE)
       },
       data = list(outer_env, inner_env)
@@ -212,12 +157,10 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
         RGtk2::gtkWidgetHide(header_table)
         inner_env$hidden_table <- T
       }
-
       return(T)
     },
     data = NULL
   )
-
 
   dim_label <- RGtk2::gtkLabel("")
   RGtk2::gtkBoxPackStart(top_box, dim_label, F, F, padding = 2)
@@ -226,9 +169,7 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
   RGtk2::gtkBoxPackStart(top_box_right, header_table, T, T, padding = 2)
   RGtk2::gtkWidgetHide(header_table)
 
-
   inner_env$page_obj <- page_setup(header_table0, 0)
-
   inner_env$filter_obj <- filter_setup(header_table, 1)
   inner_env$order_by_obj <- order_by_setup(header_table, 2)
   if (is_full_data_table) {
@@ -236,19 +177,14 @@ e__df_tree <- function(session_name, passed_box, rows_length, event_mapping = NU
   }
   inner_env$df_obj <- inner_env$df_obj_function(passed_box)
 
-
   #########################
-  #
   # Tail
-  #
   ##########################
-
   update <- function(df) {
     inner_env$df_obj$call_generate_full_df(df)
     return(T)
   }
 
-  #Expose freeze_column wrapper bound to inner_env.
   freeze_column <- e__with_env(function(col_name) {
     inner_env$df_obj$freeze_column(col_name)
   })
