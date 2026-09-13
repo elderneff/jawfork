@@ -108,9 +108,7 @@ save_settings <- function(jaw_e) {
 
 check_settings <- function(settings) {
 
-  all_items <- e__all_event_functions()
-
-
+  #Define the new unified category structure
   settings$default_table_events <- list(
     "General" = list(
       "Open Context Menu" = "right+none",
@@ -137,52 +135,15 @@ check_settings <- function(settings) {
       "Column Wide" = "-",
       "Vector Column full" = "-",
       "Vector Column filtered" = "-",
-      "Row" = "-"
+      "Row" = "-",
+      "dataset layout" = "-",
+      "keep statement" = "-",
+      "label statement" = "-",
+      "length statement" = "-",
+      "Mapping" = "-",
+      "Data Columns" = "-"
     ),
-    "Meta Table" = list(
-      "Trigger Value Summary" = "left+none",
-      "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt",
-      "Add Column to select" = "-",
-      "Move column before" = "-",
-      "Move column after" = "-",
-      "Add Count to df" = "-",
-      "Copy dataset layout" = "-",
-      "Copy keep statement" = "-",
-      "Copy label statement" = "-",
-      "Copy length statement" = "-",
-      "Format by Column" = "-",
-      "Add'l format by Column" = "-",
-      "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-",
-      "Freeze/Unfreeze Column" = "-"
-    ),
-    "Full Data Table" = list(
-      "Add to Main Filter" = "right+ctrl",
-      "Add to Main Filter Exclude" = "right+ctrl+shift",
-      "Add to Main Filter (no combining)" = "-",
-      "Add Column to Main Filter" = "-",
-      "Add Column to Main Filter Exclude" = "-",
-      "Add grepl to Main Filter" = "-",
-      "Add Bucket to Main Filter" = "-",
-      "Add Bucket to Main Filter Exclude" = "-",
-      "Get Summary" = "middle+ctrl",
-      "Graph Summary" = "-",
-      "Scatterplot Summary" = "-",
-      "Trigger Value Summary" = "left+none",
-      "Trigger Value Summary with Group By" = "left+ctrl",
-      "Trigger Value Summary with Unique By" = "left+alt",
-      "Add Column to select" = "-",
-      "Move column before" = "-",
-      "Move column after" = "-",
-      "Add Count to df" = "-",
-      "Format by Column" = "-",
-      "Add'l format by Column" = "-",
-      "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-",
-      "Freeze/Unfreeze Column" = "-"
-    ),
-    "Summary Table" = list(
+    "Filter" = list(
       "Add to Main Filter" = "right+ctrl",
       "Add to Main Filter Exclude" = "right+ctrl+shift",
       "Add to Main Filter (no combining)" = "-",
@@ -191,13 +152,28 @@ check_settings <- function(settings) {
       "Add grepl to Main Filter" = "-",
       "Add Table to Main Filter" = "-",
       "Add Bucket to Main Filter" = "-",
-      "Add Bucket to Main Filter Exclude" = "-",
-      "Open Flat View" = "-",
-      "Open Inverted View" = "-",
-      "Copy Mapping" = "-",
-      "Copy Data Columns" = "-",
+      "Add Bucket to Main Filter Exclude" = "-"
+    ),
+    "Summarize" = list(
+      "Get Summary" = "middle+ctrl",
+      "Graph Summary" = "-",
+      "Scatterplot Summary" = "-",
+      "Trigger Value Summary" = "left+none",
+      "Trigger Value Summary with Group By" = "left+ctrl",
+      "Trigger Value Summary with Unique By" = "left+alt"
+    ),
+    "Organize" = list(
+      "Add Column to select" = "-",
+      "Move column before" = "-",
+      "Move column after" = "-",
+      "Add Count to df" = "-",
+      "Format by Column" = "-",
+      "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-"
+      "Compare with Pinned" = "-",
+      "Freeze/Unfreeze Column" = "-",
+      "Open Flat View" = "-",
+      "Open Inverted View" = "-"
     ),
     "Past Code Table" = list(
       "Load Code" = "left+none"
@@ -207,9 +183,97 @@ check_settings <- function(settings) {
     )
   )
 
+  #Auto-migrate settings prior to version 1.2.2.1
+  if (!is.null(settings$table_events) && any(c("Meta Table", "Full Data Table", "Summary Table") %in% names(settings$table_events))) {
+    migrated_events <- settings$default_table_events
+    migrated_shows <- list()
+    for(cat in names(migrated_events)) migrated_shows[[cat]] <- list()
 
-  for (config_i in names(all_items)) {
-    for (item_i in names(all_items[[config_i]])) {
+    apply_migration <- function(old_cat, old_item, new_cat, new_item) {
+      if (!is.null(settings$table_events[[old_cat]][[old_item]])) {
+        old_val <- settings$table_events[[old_cat]][[old_item]]
+        if (old_val != "-") {
+          cur_val <- migrated_events[[new_cat]][[new_item]]
+          if (cur_val == "-" || cur_val == old_val) {
+            migrated_events[[new_cat]][[new_item]] <<- old_val
+          } else {
+            #Conflict found so nullify the hotkey
+            migrated_events[[new_cat]][[new_item]] <<- "-"
+          }
+        }
+      }
+      if (!is.null(settings$menu_items_show[[old_cat]][[old_item]])) {
+        old_show <- settings$menu_items_show[[old_cat]][[old_item]]
+        if (!old_show) migrated_shows[[new_cat]][[new_item]] <<- FALSE
+      }
+    }
+
+    #Map old Meta Table functions
+    apply_migration("Meta Table", "Trigger Value Summary", "Summarize", "Trigger Value Summary")
+    apply_migration("Meta Table", "Trigger Value Summary with Group By", "Summarize", "Trigger Value Summary with Group By")
+    apply_migration("Meta Table", "Trigger Value Summary with Unique By", "Summarize", "Trigger Value Summary with Unique By")
+    apply_migration("Meta Table", "Add Column to select", "Organize", "Add Column to select")
+    apply_migration("Meta Table", "Move column before", "Organize", "Move column before")
+    apply_migration("Meta Table", "Move column after", "Organize", "Move column after")
+    apply_migration("Meta Table", "Add Count to df", "Organize", "Add Count to df")
+    apply_migration("Meta Table", "Copy dataset layout", "Copy", "dataset layout")
+    apply_migration("Meta Table", "Copy keep statement", "Copy", "keep statement")
+    apply_migration("Meta Table", "Copy label statement", "Copy", "label statement")
+    apply_migration("Meta Table", "Copy length statement", "Copy", "length statement")
+    apply_migration("Meta Table", "Format by Column", "Organize", "Format by Column")
+    apply_migration("Meta Table", "Add'l format by Column", "Organize", "Add'l format by Column")
+    apply_migration("Meta Table", "Pin for Comparison", "Organize", "Pin for Comparison")
+    apply_migration("Meta Table", "Compare with Pinned", "Organize", "Compare with Pinned")
+    apply_migration("Meta Table", "Freeze/Unfreeze Column", "Organize", "Freeze/Unfreeze Column")
+
+    #Map old Full Data Table functions
+    apply_migration("Full Data Table", "Add to Main Filter", "Filter", "Add to Main Filter")
+    apply_migration("Full Data Table", "Add to Main Filter Exclude", "Filter", "Add to Main Filter Exclude")
+    apply_migration("Full Data Table", "Add to Main Filter (no combining)", "Filter", "Add to Main Filter (no combining)")
+    apply_migration("Full Data Table", "Add Column to Main Filter", "Filter", "Add Column to Main Filter")
+    apply_migration("Full Data Table", "Add Column to Main Filter Exclude", "Filter", "Add Column to Main Filter Exclude")
+    apply_migration("Full Data Table", "Add grepl to Main Filter", "Filter", "Add grepl to Main Filter")
+    apply_migration("Full Data Table", "Add Bucket to Main Filter", "Filter", "Add Bucket to Main Filter")
+    apply_migration("Full Data Table", "Add Bucket to Main Filter Exclude", "Filter", "Add Bucket to Main Filter Exclude")
+    apply_migration("Full Data Table", "Get Summary", "Summarize", "Get Summary")
+    apply_migration("Full Data Table", "Graph Summary", "Summarize", "Graph Summary")
+    apply_migration("Full Data Table", "Scatterplot Summary", "Summarize", "Scatterplot Summary")
+    apply_migration("Full Data Table", "Trigger Value Summary", "Summarize", "Trigger Value Summary")
+    apply_migration("Full Data Table", "Trigger Value Summary with Group By", "Summarize", "Trigger Value Summary with Group By")
+    apply_migration("Full Data Table", "Trigger Value Summary with Unique By", "Summarize", "Trigger Value Summary with Unique By")
+    apply_migration("Full Data Table", "Add Column to select", "Organize", "Add Column to select")
+    apply_migration("Full Data Table", "Move column before", "Organize", "Move column before")
+    apply_migration("Full Data Table", "Move column after", "Organize", "Move column after")
+    apply_migration("Full Data Table", "Add Count to df", "Organize", "Add Count to df")
+    apply_migration("Full Data Table", "Format by Column", "Organize", "Format by Column")
+    apply_migration("Full Data Table", "Add'l format by Column", "Organize", "Add'l format by Column")
+    apply_migration("Full Data Table", "Pin for Comparison", "Organize", "Pin for Comparison")
+    apply_migration("Full Data Table", "Compare with Pinned", "Organize", "Compare with Pinned")
+    apply_migration("Full Data Table", "Freeze/Unfreeze Column", "Organize", "Freeze/Unfreeze Column")
+
+    #Map old Summary Table functions
+    apply_migration("Summary Table", "Add to Main Filter", "Filter", "Add to Main Filter")
+    apply_migration("Summary Table", "Add to Main Filter Exclude", "Filter", "Add to Main Filter Exclude")
+    apply_migration("Summary Table", "Add to Main Filter (no combining)", "Filter", "Add to Main Filter (no combining)")
+    apply_migration("Summary Table", "Add Column to Main Filter", "Filter", "Add Column to Main Filter")
+    apply_migration("Summary Table", "Add Column to Main Filter Exclude", "Filter", "Add Column to Main Filter Exclude")
+    apply_migration("Summary Table", "Add grepl to Main Filter", "Filter", "Add grepl to Main Filter")
+    apply_migration("Summary Table", "Add Table to Main Filter", "Filter", "Add Table to Main Filter")
+    apply_migration("Summary Table", "Add Bucket to Main Filter", "Filter", "Add Bucket to Main Filter")
+    apply_migration("Summary Table", "Add Bucket to Main Filter Exclude", "Filter", "Add Bucket to Main Filter Exclude")
+    apply_migration("Summary Table", "Open Flat View", "Organize", "Open Flat View")
+    apply_migration("Summary Table", "Open Inverted View", "Organize", "Open Inverted View")
+    apply_migration("Summary Table", "Copy Mapping", "Copy", "Mapping")
+    apply_migration("Summary Table", "Copy Data Columns", "Copy", "Data Columns")
+    apply_migration("Summary Table", "Pin for Comparison", "Organize", "Pin for Comparison")
+    apply_migration("Summary Table", "Compare with Pinned", "Organize", "Compare with Pinned")
+
+    settings$table_events <- migrated_events
+    settings$menu_items_show <- migrated_shows
+  }
+
+  for (config_i in names(settings$default_table_events)) {
+    for (item_i in names(settings$default_table_events[[config_i]])) {
       if((item_i %in%  names(settings$default_table_events[[config_i]]))==F){
         settings$default_table_events[[config_i]][[item_i]] <- "-"
       }
@@ -219,10 +283,9 @@ check_settings <- function(settings) {
         settings$table_events[[config_i]][[item_i]] <- settings$default_table_events[[config_i]][[item_i]]
       }
     }
-    # Force the active settings list to inherit the exact order of the default settings list
+    #Force the active settings list to inherit the exact order of the default settings list
     settings$table_events[[config_i]] <- settings$table_events[[config_i]][names(settings$default_table_events[[config_i]])]
   }
-
 
   if (("table_events" %in% names(settings)) == F) {
     settings$table_events <- settings$default_table_events
@@ -231,8 +294,6 @@ check_settings <- function(settings) {
       if ((config_i %in% names(settings$table_events)) == F) {
         settings$table_events[[config_i]] <- list()
       }
-
-
       for (item_i in names(settings$default_table_events[[config_i]])) {
         if ((item_i %in% names(settings$table_events[[config_i]])) == F) {
           settings$table_events[[config_i]][[item_i]] <- settings$default_table_events[[config_i]][[item_i]]
@@ -240,8 +301,6 @@ check_settings <- function(settings) {
       }
     }
   }
-
-
 
   if (("previous_code" %in% names(settings)) == F) {
     settings$previous_code <- data.frame(
@@ -252,18 +311,13 @@ check_settings <- function(settings) {
       stringsAsFactors = FALSE
     )
   } else {
-    # HEAL EXISTING DATA: Sort descending by time to fix any corrupted orders from old Jaw versions
     if (nrow(settings$previous_code) > 0) {
       settings$previous_code <- settings$previous_code[order(settings$previous_code$time, decreasing = TRUE), ]
-      
-      # Apply the 500 cap here to instantly clean up bloated files on startup!
       settings$previous_code <- head(settings$previous_code, 500)
     }
   }
 
-
   if (("file_history" %in% names(settings)) == F) {
-    # You can set your initial creation order here
     settings$file_history <- data.frame(
       "dataset" = character(), "latest" = logical(), 
       "loaded" = character(), "modified" = character(),
@@ -271,65 +325,26 @@ check_settings <- function(settings) {
       stringsAsFactors = FALSE
     )
   } else {
-    # Dynamically migrate old column names for existing users
     cols <- colnames(settings$file_history)
     cols[cols == "mtime"] <- "modified"
     cols[cols == "load_time"] <- "loaded"
     cols[cols == "full_path"] <- "path"
     colnames(settings$file_history) <- cols
-    
-    # FORCE THE DESIRED COLUMN ORDER
     settings$file_history <- settings$file_history[, c("dataset", "latest", "loaded", "modified", "path")]
   }
 
-  #Default maximize to T if there is no previous setting
-  if (("maximize" %in% names(settings)) == F) {
-    settings$maximize <- T
-  }
-  #Default simplicity to F if there is no previous setting
-  if (("simplicity" %in% names(settings)) == F) {
-    settings$simplicity <- F
-  }
-  #Default Ctrl+Shift to T if there is no previous setting
-  if (("ctrlshift" %in% names(settings)) == F) {
-    settings$ctrlshift <- T
-  }
-  #Default columns labels to T if there is no previous setting
-  if (("columnlabels" %in% names(settings)) == F) {
-    settings$columnlabels <- T
-  }
-  #Default column unique values to T if there is no previous setting
-  if (("columnunique" %in% names(settings)) == F) {
-    settings$columnunique <- T
-  }
-  #Default professional loading to F if there is no previous setting
-  if (("professionalloading" %in% names(settings)) == F) {
-    settings$professionalloading <- F
-  }
-  # Default dark_mode to F if there is no previous setting
-  if (("dark_mode" %in% names(settings)) == F) {
-    settings$dark_mode <- F
-  }
-  #Default show tooltips to T if there is no previous setting
-  if (("show_tooltips" %in% names(settings)) == F) {
-    settings$show_tooltips <- T
-  }
-  #Default show copy messages to T if there is no previous setting
-  if (("copy_messages" %in% names(settings)) == F) {
-    settings$copy_messages <- T
-  }
-  # Default select_everything to T if there is no previous setting
-  if (("select_everything" %in% names(settings)) == F) {
-    settings$select_everything <- T
-  }
-  # Default code generation preferences to "Prompt" if there is no previous setting
-  if (("code_case" %in% names(settings)) == F) {
-    settings$code_case <- "Prompt"
-  }
-  if (("code_spacing" %in% names(settings)) == F) {
-    settings$code_spacing <- "Prompt"
-  }
-  # Default custom code slots to list of name/code pairs
+  if (("maximize" %in% names(settings)) == F) settings$maximize <- T
+  if (("simplicity" %in% names(settings)) == F) settings$simplicity <- F
+  if (("ctrlshift" %in% names(settings)) == F) settings$ctrlshift <- T
+  if (("columnlabels" %in% names(settings)) == F) settings$columnlabels <- T
+  if (("columnunique" %in% names(settings)) == F) settings$columnunique <- T
+  if (("professionalloading" %in% names(settings)) == F) settings$professionalloading <- F
+  if (("dark_mode" %in% names(settings)) == F) settings$dark_mode <- F
+  if (("show_tooltips" %in% names(settings)) == F) settings$show_tooltips <- T
+  if (("copy_messages" %in% names(settings)) == F) settings$copy_messages <- T
+  if (("select_everything" %in% names(settings)) == F) settings$select_everything <- T
+  if (("code_case" %in% names(settings)) == F) settings$code_case <- "Prompt"
+  if (("code_spacing" %in% names(settings)) == F) settings$code_spacing <- "Prompt"
   if (("custom_code_slots" %in% names(settings)) == F) {
     settings$custom_code_slots <- list(
       list(name = "Slot 1", code = ""),
@@ -339,54 +354,33 @@ check_settings <- function(settings) {
       list(name = "Slot 5", code = "")
     )
   }
-  # Default default freeze text to blank
-  if (("default_freeze" %in% names(settings)) == F) {
-    settings$default_freeze <- ""
-  }
-  # Default startup layout to false
-  if (("startup_layout" %in% names(settings)) == F) {
-    settings$fixed_layout <- FALSE
-  }
-  # Default pending startup layout trigger to false
-  if (("pending_startup_layout" %in% names(settings)) == F) {
-    settings$pending_fixed_layout <- FALSE
-  }
+  if (("default_freeze" %in% names(settings)) == F) settings$default_freeze <- ""
+  if (("startup_layout" %in% names(settings)) == F) settings$fixed_layout <- FALSE
+  if (("pending_startup_layout" %in% names(settings)) == F) settings$pending_fixed_layout <- FALSE
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)
-
-
   if (("default_sizes" %in% names(settings)) == F) {
     settings$default_sizes <- default_sizes
   } else {
     for (config_i in names(default_sizes)) {
-      if ((config_i %in% names(settings$default_sizes)) == F) {
-        settings$default_sizes[[config_i]] <- default_sizes[[config_i]]
-      }
+      if ((config_i %in% names(settings$default_sizes)) == F) settings$default_sizes[[config_i]] <- default_sizes[[config_i]]
     }
   }
 
-  # Default update tracking date
-  if (("last_update_check" %in% names(settings)) == F) {
-    settings$last_update_check <- "1970-01-01"
-  }
-  # Default menu item visibility
-  if (!("menu_items_show" %in% names(settings))) {
-    settings$menu_items_show <- list()
-  }
+  if (("last_update_check" %in% names(settings)) == F) settings$last_update_check <- "1970-01-01"
+  if (!("menu_items_show" %in% names(settings))) settings$menu_items_show <- list()
+
   for (config_i in names(settings$default_table_events)) {
     if (!(config_i %in% names(settings$menu_items_show))) {
       settings$menu_items_show[[config_i]] <- list()
     }
     for (item_i in names(settings$default_table_events[[config_i]])) {
       if (!(item_i %in% names(settings$menu_items_show[[config_i]]))) {
-        
-        # Default "Open Context Menu" to hidden, everything else to visible
         if (config_i == "General" && item_i == "Open Context Menu") {
           settings$menu_items_show[[config_i]][[item_i]] <- FALSE
         } else {
           settings$menu_items_show[[config_i]][[item_i]] <- TRUE
         }
-        
       }
     }
   }
