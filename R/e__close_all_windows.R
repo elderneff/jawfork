@@ -34,11 +34,13 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
     disk_settings <- readRDS(outer_env$local_settings_rds)
     if (is.list(disk_settings)) {
       
-      # 1. Sync global checkboxes and keybinds
-      for (setting_name in c("maximize", "ctrlshift", "columnlabel", "columnunique", "professionalloading", "table_events", "select_everything")) {
-        # If this session DID NOT change the setting from its initial state...
+      #Sync global checkboxes and keybinds.
+      sync_vars <- c("maximize", "ctrlshift", "columnlabel", "columnunique", "professionalloading", "table_events", "select_everything", "default_freeze", "fixed_layout", "pending_fixed_layout")
+      
+      for (setting_name in sync_vars) {
+        #If this session did not change the setting from its initial state.
         if (identical(outer_env$settings_list[[setting_name]], outer_env[[session_name]]$initial_settings_snapshot[[setting_name]])) {
-          # ...safely inherit the latest version from the disk
+          #Safely inherit the latest version from the disk.
           if (!is.null(disk_settings[[setting_name]])) {
             outer_env$settings_list[[setting_name]] <- disk_settings[[setting_name]]
           }
@@ -89,15 +91,25 @@ e__close_all_windows <- function(session_name,outer_env=totem) {
   }, silent = TRUE)
 
   if (!is.null(initial)) {
-    # GTK often shifts panes/windows by 1-2 pixels during rendering. 
-    # We require a difference of > 5 pixels to count as a deliberate user resize.
-    if (abs(main_position - initial$main_pane) > 5) outer_env$settings_list$default_sizes$main_pane <- main_position
-    if (abs(top_position - initial$top_pane) > 5) outer_env$settings_list$default_sizes$top_pane <- top_position
-    if (abs(slot_position - initial$slot_pane) > 5) outer_env$settings_list$default_sizes$slot_pane <- slot_position
-    if (simplicity_view != initial$simplicity) outer_env$settings_list$simplicity <- simplicity_view
+    #Check if we are allowed to save layouts
+    can_save_layout <- !outer_env$settings_list$startup_layout || outer_env$settings_list$pending_startup_layout
     
-    if (abs(window_size[1] - initial$window[1]) > 5 || abs(window_size[2] - initial$window[2]) > 5) {
-      outer_env$settings_list$default_sizes$window <- window_size
+    if (can_save_layout) {
+      #GTK often shifts panes/windows by 1-2 pixels during rendering. 
+      #We require a difference of > 5 pixels to count as a deliberate user resize.
+      if (abs(main_position - initial$main_pane) > 5) outer_env$settings_list$default_sizes$main_pane <- main_position
+      if (abs(top_position - initial$top_pane) > 5) outer_env$settings_list$default_sizes$top_pane <- top_position
+      if (abs(slot_position - initial$slot_pane) > 5) outer_env$settings_list$default_sizes$slot_pane <- slot_position
+      if (simplicity_view != initial$simplicity) outer_env$settings_list$simplicity <- simplicity_view
+      
+      if (abs(window_size[1] - initial$window[1]) > 5 || abs(window_size[2] - initial$window[2]) > 5) {
+        outer_env$settings_list$default_sizes$window <- window_size
+      }
+      
+      #Turn off pending flag so it becomes permanently frozen on next close
+      if (outer_env$settings_list$pending_startup_layout) {
+        outer_env$settings_list$pending_startup_layout <- FALSE
+      }
     }
   }
 

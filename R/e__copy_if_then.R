@@ -244,15 +244,15 @@ e__copy_if_then_do <- function(session_name, current_row, df_obj, outer_env = to
 #' @return TODO
 
 e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
-  # 1. Check if user needs to set case/spacing preferences
+  #Check if user needs to set case/spacing preferences.
   if (!outer_env$u__check_code_prefs(session_name)) return()
 
   temp_df <- outer_env[[session_name]]$data2
 
-  # 2. Extract grouping columns and guarantee they exist in the raw data
+  #Extract grouping columns and guarantee they exist in the raw data.
   raw_cross_tab_names <- setdiff(colnames(current_row$row), c("r__", "n", "freq", "lines"))
   
-  # FIX: Intersect strictly with dataset columns to drop any hidden UI metrics 
+  #Intersect strictly with dataset columns to drop any hidden UI metrics.
   cross_tab_names <- intersect(raw_cross_tab_names, colnames(temp_df))
 
   if (length(cross_tab_names) < 2) {
@@ -271,14 +271,17 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
   cond_cols <- cross_tab_names[-length(cross_tab_names)]
   target_col <- cross_tab_names[length(cross_tab_names)]
 
-  # 3. Get all unique combinations from the dataset
+  #Get all unique combinations from the dataset.
   unique_df <- unique(temp_df[, cross_tab_names, drop = FALSE])
+  
+  #Sort the dataframe alphabetically by all columns involved in the mapping.
+  unique_df <- unique_df[do.call(order, as.list(unique_df)), , drop = FALSE]
 
-  # 4. Strictly validate 1-to-1 relationships
+  #Strictly validate 1-to-1 relationships.
   bad_lhs <- c()
   bad_rhs <- c()
 
-  # Check LHS uniqueness (One-to-Many: Do identical conditions map to different targets?)
+  #Check LHS uniqueness (One-to-Many: Do identical conditions map to different targets?).
   if (length(cond_cols) == 1) {
     lhs_vals <- as.character(unique_df[[cond_cols[1]]])
   } else {
@@ -289,14 +292,14 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
     bad_lhs <- names(lhs_counts[lhs_counts > 1])
   }
 
-  # Check RHS uniqueness (Many-to-One: Do multiple conditions map to the same target?)
+  #Check RHS uniqueness (Many-to-One: Do multiple conditions map to the same target?).
   rhs_vals <- as.character(unique_df[[target_col]])
   rhs_counts <- table(rhs_vals)
   if (any(rhs_counts > 1)) {
     bad_rhs <- names(rhs_counts[rhs_counts > 1])
   }
 
-  # 5. Dialog Warning if the data isn't 1-to-1
+  #Dialog Warning if the data isn't 1-to-1.
   if (length(bad_lhs) > 0 || length(bad_rhs) > 0) {
     warn_msg <- "Warning: The values in these columns are not strictly 1-to-1.\n\n"
     if (length(bad_lhs) > 0) {
@@ -321,13 +324,13 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
     response <- dialog$run()
     RGtk2::gtkWidgetDestroy(dialog)
 
-    # -8 is GTK_RESPONSE_YES
+    #-8 is GTK_RESPONSE_YES.
     if (response != RGtk2::GtkResponseType["yes"] && response != -8) {
       return()
     }
   }
 
-  # 6. Prepare Code Generation Preferences
+  #Prepare Code Generation Preferences.
   c_case <- outer_env$settings_list$code_case
   c_space <- outer_env$settings_list$code_spacing
   sp <- ifelse(c_space == "Spaced (x = y)", " = ", "=")
@@ -341,7 +344,7 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
   string_builder <- c()
   first_cond <- TRUE
 
-  # Helper to properly format SAS values (strings vs numbers vs missing)
+  #Helper to properly format SAS values (strings vs numbers vs missing).
   format_val <- function(val, is_num) {
     if (is.na(val)) {
       return(ifelse(is_num, ".", '""'))
@@ -351,18 +354,18 @@ e__copy_mapping <- function(session_name, current_row, outer_env = totem) {
     }
   }
 
-  # 7. Generate Code!
+  #Generate Code!
   for (i in 1:nrow(unique_df)) {
     cond_strings <- c()
     
-    # Build the left-hand side
+    #Build the left-hand side.
     for (col in cond_cols) {
       is_num <- is.numeric(temp_df[[col]])
       val_str <- format_val(unique_df[i, col], is_num)
       cond_strings <- c(cond_strings, paste0(col, sp, val_str))
     }
 
-    # Build the right-hand side
+    #Build the right-hand side.
     target_is_num <- is.numeric(temp_df[[target_col]])
     target_val_str <- format_val(unique_df[i, target_col], target_is_num)
     target_str <- paste0(target_col, sp, target_val_str)

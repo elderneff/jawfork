@@ -118,6 +118,7 @@ e__add_column_label <- function(treeviewcolumn, label, j, var_class = NULL, tool
     }
   }
 
+  #Determine default header color
   is_dark <- totem$settings_list$dark_mode
   header_bg <- ifelse(is_dark, "#2D2D2D", "#FFFFFF")
 

@@ -154,7 +154,8 @@ check_settings <- function(settings) {
       "Format by Column" = "-",
       "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-"
+      "Compare with Pinned" = "-",
+      "Freeze/Unfreeze Column" = "-"
     ),
     "Full Data Table" = list(
       "Add to Main Filter" = "right+ctrl",
@@ -178,7 +179,8 @@ check_settings <- function(settings) {
       "Format by Column" = "-",
       "Add'l format by Column" = "-",
       "Pin for Comparison" = "-",
-      "Compare with Pinned" = "-"
+      "Compare with Pinned" = "-",
+      "Freeze/Unfreeze Column" = "-"
     ),
     "Summary Table" = list(
       "Add to Main Filter" = "right+ctrl",
@@ -336,6 +338,18 @@ check_settings <- function(settings) {
       list(name = "Slot 4", code = ""),
       list(name = "Slot 5", code = "")
     )
+  }
+  # Default default freeze text to blank
+  if (("default_freeze" %in% names(settings)) == F) {
+    settings$default_freeze <- ""
+  }
+  # Default startup layout to false
+  if (("startup_layout" %in% names(settings)) == F) {
+    settings$fixed_layout <- FALSE
+  }
+  # Default pending startup layout trigger to false
+  if (("pending_startup_layout" %in% names(settings)) == F) {
+    settings$pending_fixed_layout <- FALSE
   }
 
   default_sizes <- list(window = c(864 + 50, 698), main_pane = 268, top_pane = 85 + 30, slot_pane = 417)

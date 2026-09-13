@@ -491,12 +491,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
 
       build_meta_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
-          "Meta Table|Trigger Value Summary" = load_value_function,
-          "Meta Table|Trigger Value Summary with Group By" = add_group_by_function,
-          "Meta Table|Trigger Value Summary with Unique By" = add_unique_by_function
+          "Trigger Value Summary" = load_value_function,
+          "Trigger Value Summary with Group By" = add_group_by_function,
+          "Trigger Value Summary with Unique By" = add_unique_by_function
         )
-
-
 
         return(outer_env$u__df_tree(
           session_name = session_name,
@@ -509,17 +507,13 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       }
 
 
-
-
-
+      
       build_full_data <- function(session_name, outer_env = totem) {
         event_mapping <- list(
-          "Full Data Table|Trigger Value Summary" = load_value_function,
-          "Full Data Table|Trigger Value Summary with Group By" = add_group_by_function,
-          "Full Data Table|Trigger Value Summary with Unique By" = add_unique_by_function
+          "Trigger Value Summary" = load_value_function,
+          "Trigger Value Summary with Group By" = add_group_by_function,
+          "Trigger Value Summary with Unique By" = add_unique_by_function
         )
-
-
 
         return(outer_env$u__df_tree(
           session_name = session_name,
@@ -707,7 +701,61 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         }, data = list(session_name, outer_env)
       )
 
+      #----------------------------------------
+      # data view: freeze
+      #----------------------------------------
 
+      outer_env[[session_name]]$data_view_list$freeze_box <- RGtk2::gtkHBox()
+
+      outer_env[[session_name]]$data_view_list$freeze_label <- RGtk2::gtkLabel("  freeze:")
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_label, F, F, padding = 2)
+      
+      #Checkbox to temporarily disable frozen columns
+      outer_env[[session_name]]$data_view_list$freeze_cb <- RGtk2::gtkCheckButtonNew()
+      RGtk2::gtkToggleButtonSetActive(outer_env[[session_name]]$data_view_list$freeze_cb, TRUE)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_cb, F, F, padding = 2)
+
+      outer_env[[session_name]]$data_view_list$freeze_entry <- RGtk2::gtkEntry()
+      #Initialize the freeze box with the global default setting
+      RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$freeze_entry, totem$settings_list$default_freeze)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$freeze_box, outer_env[[session_name]]$data_view_list$freeze_entry, T, T)
+
+      # Trigger data reload when checkbox is toggled
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$freeze_cb, "toggled", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      # Trigger data reload when user presses enter in the field
+      RGtk2::gSignalConnect(outer_env[[session_name]]$data_view_list$freeze_entry, "activate", function(menu, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env$show_load_window()
+        outer_env$u__load_dataset_filter(session_name)
+        outer_env$hide_load_window()
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      # Clear button
+      u__button(
+        box = outer_env[[session_name]]$data_view_list$freeze_box,
+        start = T, padding = 2,
+        stock_id = "gtk-close",
+        tool_tip = "Clear",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          RGtk2::gtkEntrySetText(outer_env[[session_name]]$data_view_list$freeze_entry, "")
+          outer_env$show_load_window()
+          outer_env$u__load_dataset_filter(session_name)
+          outer_env$hide_load_window()
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
 
 
       #----------------------------------------
@@ -1133,6 +1181,7 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar, outer_env[[session_name]]$data_view_list$select_box, T, T, padding = 1)
 
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$group_by_box, T, T, padding = 1)
+      RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$freeze_box, T, T, padding = 1)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$data_view_list$code_tool_bar2, outer_env[[session_name]]$data_view_list$unique_by_box, T, T, padding = 1)
 
 
@@ -1568,9 +1617,46 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
       outer_env[[session_name]]$format_by_label = RGtk2::gtkLabel("Format by: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry, F, F)
+
+      #Trigger table redraws on enter key in the first format field.
+      RGtk2::gSignalConnect(outer_env[[session_name]]$format_by_entry, "activate", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+        outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+        RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
       outer_env[[session_name]]$format_by_label2 = RGtk2::gtkLabel("Add'l format: ")
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_label2, F, F, padding = 2)
       RGtk2::gtkBoxPackStart(outer_env[[session_name]]$status_bar$box, outer_env[[session_name]]$format_by_entry2, F, F)
+
+      #Trigger table redraws on enter key in the second format field.
+      RGtk2::gSignalConnect(outer_env[[session_name]]$format_by_entry2, "activate", function(widget, data) {
+        session_name <- data[[1]]
+        outer_env <- data[[2]]
+        outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+        outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+        RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+        return(TRUE)
+      }, data = list(session_name, outer_env))
+
+      #Add play button to apply formatting immediately.
+      u__button(
+        box = outer_env[[session_name]]$status_bar$box,
+        start = T, padding = 2,
+        stock_id = "gtk-media-play",
+        tool_tip = "Apply formatting",
+        call_back_fct = function(widget, event, data) {
+          session_name <- data[[1]]
+          outer_env <- data[[2]]
+          outer_env[[session_name]]$data_view_list$slot1_list$full_table$update(outer_env[[session_name]]$data2)
+          outer_env[[session_name]]$data_view_list$slot1_list$meta_table$update(outer_env[[session_name]]$data3)
+          RGtk2::gtkWidgetHide(outer_env[[session_name]]$data_view_list$slot2_box)
+          return(FALSE)
+        }, data = list(session_name, outer_env)
+      )
 
 
 
@@ -1595,7 +1681,10 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         columnunique = totem$settings_list$columnunique,
         professionalloading = totem$settings_list$professionalloading,
         table_events = totem$settings_list$table_events,
-        select_everything = totem$settings_list$select_everything
+        select_everything = totem$settings_list$select_everything,
+        default_freeze = totem$settings_list$default_freeze,
+        startup_layout = totem$settings_list$startup_layout,
+        pending_startup_layout = totem$settings_list$pending_startup_layout
       )
 
       #----------------------------------------
@@ -1634,11 +1723,14 @@ e__start <- function(sas_file_path, outer_env = totem, assign_env=.GlobalEnv) {
         outer_env$hide_load_window()
       }
       
-      #Apply theme regardless of dark or light
+      #Apply theme regardless of dark or light.
       outer_env$u__apply_theme(session_name, outer_env)
 
-      refresh(session_name)
-      RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
+      refresh_status <- refresh(session_name)
+      #Only attempt to show the window if the load was successful.
+      if (!identical(refresh_status, FALSE)) {
+        RGtk2::gtkWidgetShow(outer_env[[session_name]]$windows$main_window)
+      }
       outer_env$hide_load_window()
     },
     error = function(e) {
