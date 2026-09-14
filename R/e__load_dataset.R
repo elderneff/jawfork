@@ -322,15 +322,23 @@ e__load_dataset <- function(session_name, outer_env = totem) {
     outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
   }
 
-  #Clean non-standard whitespace and enforce UTF-8 encoding efficiently.
+  #Clean non-standard whitespace and enforce UTF-8 encoding to prevent GTK text area mojibake.
   for (col in colnames(outer_env[[session_name]]$data1)) {
     if (is.character(outer_env[[session_name]]$data1[[col]])) {
       col_vec <- outer_env[[session_name]]$data1[[col]]
-      #Only run substitution if non-breaking spaces exist.
-      if (any(grepl("\u00A0|\xA0", col_vec))) {
-        col_vec <- gsub("[\u00A0\xA0]", " ", col_vec)
-        outer_env[[session_name]]$data1[[col]] <- col_vec
+      
+      #Only run expensive substitutions if the characters actually exist.
+      has_unicode <- any(grepl("\u00A0", col_vec))
+      has_hex <- any(grepl("\xA0", col_vec))
+      
+      if (has_unicode) {
+        col_vec <- gsub("\u00A0", " ", col_vec)
       }
+      if (has_hex) {
+        col_vec <- gsub("\xA0", " ", col_vec)
+      }
+      
+      outer_env[[session_name]]$data1[[col]] <- col_vec
       Encoding(outer_env[[session_name]]$data1[[col]]) <- "UTF-8"
     }
   }
