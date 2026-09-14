@@ -323,25 +323,25 @@ e__load_dataset <- function(session_name, outer_env = totem) {
   }
 
   #Clean non-standard whitespace and enforce UTF-8 encoding to prevent GTK text area mojibake.
-  for (col in colnames(outer_env[[session_name]]$data1)) {
-    if (is.character(outer_env[[session_name]]$data1[[col]])) {
-      col_vec <- outer_env[[session_name]]$data1[[col]]
+  # for (col in colnames(outer_env[[session_name]]$data1)) {
+  #   if (is.character(outer_env[[session_name]]$data1[[col]])) {
+  #     col_vec <- outer_env[[session_name]]$data1[[col]]
       
-      #Only run expensive substitutions if the characters actually exist.
-      has_unicode <- any(grepl("\u00A0", col_vec))
-      has_hex <- any(grepl("\xA0", col_vec))
+  #     #Only run expensive substitutions if the characters actually exist.
+  #     has_unicode <- any(grepl("\u00A0", col_vec))
+  #     has_hex <- any(grepl("\xA0", col_vec))
       
-      if (has_unicode) {
-        col_vec <- gsub("\u00A0", " ", col_vec)
-      }
-      if (has_hex) {
-        col_vec <- gsub("\xA0", " ", col_vec)
-      }
+  #     if (has_unicode) {
+  #       col_vec <- gsub("\u00A0", " ", col_vec)
+  #     }
+  #     if (has_hex) {
+  #       col_vec <- gsub("\xA0", " ", col_vec)
+  #     }
       
-      outer_env[[session_name]]$data1[[col]] <- col_vec
-      Encoding(outer_env[[session_name]]$data1[[col]]) <- "UTF-8"
-    }
-  }
+  #     outer_env[[session_name]]$data1[[col]] <- col_vec
+  #     Encoding(outer_env[[session_name]]$data1[[col]]) <- "UTF-8"
+  #   }
+  # }
 
   file_history <- rbind(data.frame(
     "dataset" = sub(paste0("\\.", outer_env[[session_name]]$passed_ext, "$"), "", outer_env[[session_name]]$sas_file_basename, ignore.case = TRUE),
