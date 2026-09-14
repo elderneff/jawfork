@@ -322,15 +322,18 @@ e__load_dataset <- function(session_name, outer_env = totem) {
     outer_env[[session_name]]$data1_contents <- generate_dynamic_contents(outer_env[[session_name]]$data1)
   }
 
-  #Clean non-standard whitespace and enforce UTF-8 encoding to prevent GTK text area mojibake.
-    for (col in colnames(outer_env[[session_name]]$data1)) {
-      if (is.character(outer_env[[session_name]]$data1[[col]])) {
-        #Use separate gsub calls to avoid R's strict string literal parsing error
-        outer_env[[session_name]]$data1[[col]] <- gsub("\u00A0", " ", outer_env[[session_name]]$data1[[col]])
-        outer_env[[session_name]]$data1[[col]] <- gsub("\xA0", " ", outer_env[[session_name]]$data1[[col]])
-        Encoding(outer_env[[session_name]]$data1[[col]]) <- "UTF-8"
+  #Clean non-standard whitespace and enforce UTF-8 encoding efficiently.
+  for (col in colnames(outer_env[[session_name]]$data1)) {
+    if (is.character(outer_env[[session_name]]$data1[[col]])) {
+      col_vec <- outer_env[[session_name]]$data1[[col]]
+      #Only run substitution if non-breaking spaces exist.
+      if (any(grepl("\u00A0|\xA0", col_vec))) {
+        col_vec <- gsub("[\u00A0\xA0]", " ", col_vec)
+        outer_env[[session_name]]$data1[[col]] <- col_vec
       }
+      Encoding(outer_env[[session_name]]$data1[[col]]) <- "UTF-8"
     }
+  }
 
   file_history <- rbind(data.frame(
     "dataset" = sub(paste0("\\.", outer_env[[session_name]]$passed_ext, "$"), "", outer_env[[session_name]]$sas_file_basename, ignore.case = TRUE),
